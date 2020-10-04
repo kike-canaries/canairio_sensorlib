@@ -4,6 +4,6 @@ Particle sensor manager for multiple sensors: Honeywell, Plantower, Panasonic, S
 
 # Features:
 
--[x] Auto detection for Generic sensors (Honeywell and Plantower sensors)
--[x] Auto detection for Panasonic sensor
--[x] Implemented the autodection flow for Sensirion (original library)
+- [x] Auto detection for Generic sensors (Honeywell and Plantower sensors)
+- [x] Auto detection for Panasonic sensor
+- [x] Implemented the autodection flow for Sensirion (original library)
