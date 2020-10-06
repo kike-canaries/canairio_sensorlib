@@ -21,6 +21,7 @@ void Sensors::loop() {
             if(_onDataCb) _onDataCb();
             dataReady = true;            // only if the main sensor is ready
         }else{
+            if(_onErrorCb)_onErrorCb("-->[W][SENSORS] PM sensor not configured!");
             dataReady = false;
         }
         printValues();
@@ -156,15 +157,14 @@ bool Sensors::pmGenericRead() {
             pm25 = txtMsg[6] * 256 + byte(txtMsg[7]);
             pm10 = txtMsg[8] * 256 + byte(txtMsg[9]);
             if (pm25 > 1000 && pm10 > 1000) {
-                onPmSensorError("Honeywell out of range pm25 > 1000");
+                onPmSensorError("-->[E][PMSENSOR] out of range pm25 > 1000");
             }
             else
                 return true;
         } else {
-            onPmSensorError("invalid Honeywell sensor header!");
+            onPmSensorError("-->[E][PMSENSOR] invalid Generic sensor header!");
         }
     }
-    onPmSensorError("Honeywell read error!");
     return false;
 } 
 
@@ -175,16 +175,16 @@ bool Sensors::pmGenericRead() {
 bool Sensors::pmPanasonicRead() {
     String txtMsg = hwSerialRead();
     if (txtMsg[0] == 02) {
-        DEBUG("-->[SNGC] read > done!");
+        DEBUG("-->[PANASONIC] read > done!");
         pm25 = txtMsg[6] * 256 + byte(txtMsg[5]);
         pm10 = txtMsg[10] * 256 + byte(txtMsg[9]);
         if (pm25 > 2000 && pm10 > 2000) {
-            onPmSensorError("Panasonic out of range pm25 > 2000");
+            onPmSensorError("-->[E][PMSENSOR] out of range pm25 > 2000");
         }
         else
             return true;
     } else {
-        onPmSensorError("invalid detection PM sensor header!");
+        onPmSensorError("-->[E][PMSENSOR] invalid Panasonic sensor header!");
     }
     return false;
 }
@@ -205,7 +205,7 @@ String Sensors::hwSerialRead() {
         }
     }
     if (try_sensor_read > SENSOR_RETRY) {
-        onPmSensorError("Generic sensor read fail!");
+        onPmSensorError("-->[E][PMSENSOR]sensor read fail!");
     }
     return txtMsg;
 }
@@ -221,7 +221,7 @@ bool Sensors::pmSensirionRead() {
         ret = sps30.GetValues(&val);
         if (ret == ERR_DATALENGTH) {
             if (error_cnt++ > 3) {
-                DEBUG("[SPS30] Error during reading values: %d", String(ret).c_str());
+                DEBUG("-->[E][SPS30] Error during reading values: ", String(ret).c_str());
                 return false;
             }
             delay(1000);
@@ -237,7 +237,7 @@ bool Sensors::pmSensirionRead() {
     pm10 = round(val.MassPM10);
 
     if (pm25 > 1000 && pm10 > 1000) {
-        onPmSensorError("Sensirion out of range pm25 > 1000");
+        onPmSensorError("-->[E][SPS30] Sensirion out of range pm25 > 1000");
         return false;
     }
 
@@ -276,12 +276,11 @@ void Sensors::am2320Read() {
 }
 
 void Sensors::onPmSensorError(const char *msg) {
-    DEBUG("-->[W][PMSENSOR] ",msg);
+    DEBUG(msg);
     if(_onErrorCb)_onErrorCb(msg);
 }
 
 void Sensors::pmSensirionErrtoMess(char *mess, uint8_t r) {
-    onPmSensorError(mess);
     char buf[80];
     sps30.GetErrDescription(r, buf, 80);
     DEBUG("-->[E][SENSIRION]",buf);
@@ -289,7 +288,7 @@ void Sensors::pmSensirionErrtoMess(char *mess, uint8_t r) {
 
 void Sensors::pmSensirionErrorloop(char *mess, uint8_t r) {
     if (r) pmSensirionErrtoMess(mess, r);
-    else Serial.println(mess);
+    else DEBUG(mess);
 }
 
 /**
@@ -317,15 +316,15 @@ bool Sensors::pmSensorInit(int pms_type, int pms_rx, int pms_tx) {
     // starting auto detection loop 
     _serial = &Serial2;
     int try_sensor_init = 0;
-    while (!pmSensorAutoDetect() && try_sensor_init++ <= 3);
+    while (!pmSensorAutoDetect(pms_type) && try_sensor_init++ < 2);
 
     // get device selected..
     if (device_type >= 0) {
-        if (devmode) Serial.println("");
         DEBUG("-->[PMSENSOR] detected: ",device_selected.c_str());
         return true;
     } else {
         DEBUG("-->[E][PMSENSOR] detection failed!");
+        if(_onDataCb)_onErrorCb("-->[E][PMSENSOR] detection failed!");
         return false;
     }
 }
@@ -335,26 +334,29 @@ bool Sensors::pmSensorInit(int pms_type, int pms_rx, int pms_tx) {
  * In order UART config, this method looking up for
  * special header on Serial stream
  **/
-bool Sensors::pmSensorAutoDetect() {
-    // starting serial connection for generic PM sensors..
-    delay(1000); // sync serial
-    if (pmGenericRead()) {
-        device_selected = "HONEYWELL";
-        device_type = Honeywell;
-        return true;   
+bool Sensors::pmSensorAutoDetect(int pms_type) {
+
+    delay(1000);  // sync serial
+
+    if (pms_type == Sensirion) {
+        if (pmSensirionInit()) {
+            device_selected = "SENSIRION";
+            device_type = Sensirion;
+            return true;
+        }
+    } else {
+        if (pmGenericRead()) {
+            device_selected = "HONEYWELL";
+            device_type = Honeywell;
+            return true;
+        }
+        if (pmPanasonicRead()) {
+            device_selected = "PANASONIC";
+            device_type = Panasonic;
+            return true;
+        }
     }
-    delay(1000); // sync serial
-    if (pmPanasonicRead()) {
-        device_selected = "PANASONIC";
-        device_type = Panasonic;
-        return true;
-    }
-    delay(1000); // sync serial
-    if (pmSensirionInit()) {
-        device_selected = "SENSIRION";
-        device_type = Sensirion;
-        return true;
-    }
+
     return false;
 }
 
@@ -440,11 +442,9 @@ void Sensors::am2320Init() {
 
 /// Print some sensors values
 void Sensors::printValues() {
-    if (devmode) {
-        char output[100];
-        sprintf(output, " PM1:%03d PM25:%03d PM10:%03d H:%02d%% T:%02d°C", pm1, pm25, pm10, (int)humi, (int)temp);
-        Serial.println(output);
-    }
+    char output[100];
+    sprintf(output, "PM1:%03d PM25:%03d PM10:%03d H:%02d%% T:%02d°C", pm1, pm25, pm10, (int)humi, (int)temp);
+    DEBUG("-->[SENSORS]", output);
 }
 
 void Sensors::DEBUG(const char *text, const char *textb) {

@@ -110,7 +110,7 @@ class Sensors {
     void am2320Init();
     void am2320Read();
     bool pmSensorInit(int pms_type, int rx, int tx);
-    bool pmSensorAutoDetect();
+    bool pmSensorAutoDetect(int pms_type);
     bool pmSensorRead();
     bool pmGenericRead();
     bool pmPanasonicRead();
