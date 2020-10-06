@@ -1,3 +1,5 @@
+[![PlatformIO](https://github.com/kike-canaries/canairio_sensorlib/workflows/PlatformIO/badge.svg)](https://github.com/kike-canaries/canairio_sensorlib/actions/)
+
 # CanAirIO Sensorlib
 
 Particle sensor manager for multiple sensors: Honeywell, Plantower, Panasonic, Sensirion, etc, also it handling some ones like AM2320 sensor.
