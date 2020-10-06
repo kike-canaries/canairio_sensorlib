@@ -15,6 +15,10 @@ void onSensorDataOk() {
     Serial.println(" PM10: " + sensors.getStringPM10());
 }
 
+void onSensorDataError(const char * msg){
+    Serial.println(msg);
+}
+
 /******************************************************************************
 *  M A I N
 ******************************************************************************/
@@ -24,9 +28,16 @@ void setup() {
     delay(200);
     Serial.println("\n== Sensor test setup ==\n");
 
-    sensors.setOnDataCallBack(&onSensorDataOk);  // all data read callback
+    Serial.println("-->[SETUP] Detecting sensors..");
+
     sensors.setSampleTime(5);                       // config sensors sample time interval
-    sensors.init(sensors.Sensirion);                // start all sensors and force to PM sensor to Sensirion
+    sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
+    sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
+    sensors.setDebugMode(false);                    // [optional] debug mode
+    sensors.init();                                 // start all sensors and 
+                                                    // force to try autodetection, 
+                                                    // you can try to select one:
+    // sensors.init(sensors.Sensirion);
 
     if(sensors.isPmSensorConfigured())
         Serial.println("-->[SETUP] Sensor configured: " + sensors.getPmDeviceSelected());

@@ -50,13 +50,14 @@ class Sensors {
     /// Initial sample time for all sensors
     int sample_time = 5;
 
-    void init(int pms_type = -1, int pms_rx = PMS_RX, int pms_tx = PMS_TX, bool debug = false);
+    void init(int pms_type = -1, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
     void loop();
     bool isDataReady();
     bool isPmSensorConfigured();
     void setSampleTime(int seconds);
     void setOnDataCallBack(voidCbFn cb);
     void setOnErrorCallBack(errorCbFn cb);
+    void setDebugMode(bool enable);
     int getPmDeviceTypeSelected();
     String getPmDeviceSelected();
 
@@ -109,7 +110,7 @@ class Sensors {
     void am2320Init();
     void am2320Read();
     bool pmSensorInit(int pms_type, int rx, int tx);
-    bool pmSensorAutoDetect();
+    bool pmSensorAutoDetect(int pms_type);
     bool pmSensorRead();
     bool pmGenericRead();
     bool pmPanasonicRead();
@@ -121,6 +122,15 @@ class Sensors {
     void pmSensirionErrorloop(char *mess, uint8_t r);
     void getSensirionDeviceInfo();
     String hwSerialRead();
+    void DEBUG(const char * text, const char * textb = "" );
+
+// @todo use DEBUG_ESP_PORT ?
+#ifdef WM_DEBUG_PORT
+    Stream &_debugPort = WM_DEBUG_PORT;
+#else
+    Stream &_debugPort = Serial;  // debug output stream ref
+#endif
+
 };
 
 #if !defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_SENSORSHANDLER)
