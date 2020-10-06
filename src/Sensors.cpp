@@ -40,7 +40,9 @@ void Sensors::loop() {
 void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
 
     // override with debug INFO level (>=3)
+    #ifdef CORE_DEBUG_LEVEL
     if (CORE_DEBUG_LEVEL>=3) devmode = true;  
+    #endif
     if (devmode) Serial.println("-->[SENSORS] debug is enable.");
 
     DEBUG("-->[SENSORS] sample time set to: ",String(sample_time).c_str());

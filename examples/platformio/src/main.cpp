@@ -34,7 +34,10 @@ void setup() {
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
     sensors.setDebugMode(false);                    // [optional] debug mode
-    sensors.init();                                 // start all sensors and force to PM sensor to Sensirion
+    sensors.init();                                 // start all sensors and 
+                                                    // force to try autodetection, 
+                                                    // you can try to select one:
+    // sensors.init(sensors.Sensirion);
 
     if(sensors.isPmSensorConfigured())
         Serial.println("-->[SETUP] Sensor configured: " + sensors.getPmDeviceSelected());
