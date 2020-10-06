@@ -33,7 +33,7 @@ void setup() {
     sensors.setSampleTime(5);                       // config sensors sample time interval
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
-    sensors.setDebugMode(true);                     // [optional] debug mode
+    sensors.setDebugMode(false);                    // [optional] debug mode
     sensors.init();                                 // start all sensors and force to PM sensor to Sensirion
 
     if(sensors.isPmSensorConfigured())

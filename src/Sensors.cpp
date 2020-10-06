@@ -205,7 +205,7 @@ String Sensors::hwSerialRead() {
         }
     }
     if (try_sensor_read > SENSOR_RETRY) {
-        onPmSensorError("-->[E][PMSENSOR]sensor read fail!");
+        onPmSensorError("-->[E][PMSENSOR] sensor read fail!");
     }
     return txtMsg;
 }
@@ -304,7 +304,7 @@ void Sensors::pmSensirionErrorloop(char *mess, uint8_t r) {
 bool Sensors::pmSensorInit(int pms_type, int pms_rx, int pms_tx) {
     // set UART for autodetection sensors (Honeywell, Plantower, Panasonic)
     if (pms_type <= 1) {
-        DEBUG("-->[PMSENSOR] detecting Generic sensor..");
+        DEBUG("-->[PMSENSOR] detecting PM sensor..");
         Serial2.begin(9600, SERIAL_8N1, pms_rx, pms_tx);
     }
     // set UART for autodetection Sensirion sensor
@@ -324,7 +324,7 @@ bool Sensors::pmSensorInit(int pms_type, int pms_rx, int pms_tx) {
         return true;
     } else {
         DEBUG("-->[E][PMSENSOR] detection failed!");
-        if(_onDataCb)_onErrorCb("-->[E][PMSENSOR] detection failed!");
+        if(_onErrorCb)_onErrorCb("-->[E][PMSENSOR] detection failed!");
         return false;
     }
 }
@@ -345,11 +345,13 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
             return true;
         }
     } else {
+        DEBUG("-->[PMSENSOR] detecting Honeywell/Plantower sensor..");
         if (pmGenericRead()) {
             device_selected = "HONEYWELL";
             device_type = Honeywell;
             return true;
         }
+        DEBUG("-->[PMSENSOR] detecting Panasonic sensor..");
         if (pmPanasonicRead()) {
             device_selected = "PANASONIC";
             device_type = Panasonic;
