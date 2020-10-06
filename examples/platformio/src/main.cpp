@@ -24,8 +24,11 @@ void setup() {
     delay(200);
     Serial.println("\n== Sensor test setup ==\n");
 
-    sensors.setOnDataCallBack(&onSensorDataOk);  // all data read callback
+    Serial.println("-->[SETUP] Detecting sensors..");
+
+    sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setSampleTime(5);                       // config sensors sample time interval
+    sensors.setDebugMode(false);                    // optional debug mode
     sensors.init(sensors.Sensirion);                // start all sensors and force to PM sensor to Sensirion
 
     if(sensors.isPmSensorConfigured())
