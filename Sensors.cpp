@@ -306,7 +306,7 @@ void Sensors::pmSensirionErrorloop(char *mess, uint8_t r) {
 bool Sensors::pmSensorInit(int pms_type, int pms_rx, int pms_tx) {
     // set UART for autodetection sensors (Honeywell, Plantower, Panasonic)
     if (pms_type <= 1) {
-        DEBUG("-->[PMSENSOR] detecting PM sensor..");
+        DEBUG("-->[PMSENSOR] detecting Generic PM sensor..");
         Serial2.begin(9600, SERIAL_8N1, pms_rx, pms_tx);
     }
     // set UART for autodetection Sensirion sensor
