@@ -101,6 +101,16 @@ String Sensors::getStringPM25() {
     return String(output);
 }
 
+uint16_t Sensors::getPM4() {
+    return pm4;
+}
+
+String Sensors::getStringPM4() {
+    char output[5];
+    sprintf(output, "%03d", getPM4());
+    return String(output);
+}
+
 uint16_t Sensors::getPM10() {
     return pm10;
 }
@@ -235,7 +245,9 @@ bool Sensors::pmSensirionRead() {
 
     DEBUG("-->[SPS30] read > done!");
 
+    pm1  = round(val.MassPM1);
     pm25 = round(val.MassPM2);
+    pm4  = round(val.MassPM4);
     pm10 = round(val.MassPM10);
 
     if (pm25 > 1000 && pm10 > 1000) {

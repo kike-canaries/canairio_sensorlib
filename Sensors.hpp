@@ -63,6 +63,7 @@ class Sensors {
 
     uint16_t getPM1();
     uint16_t getPM25();
+    uint16_t getPM4();
     uint16_t getPM10();
 
     float getTemperature();
@@ -79,6 +80,7 @@ class Sensors {
 
     String getStringPM1();
     String getStringPM25();
+    String getStringPM4();
     String getStringPM10();
 
    private:
@@ -98,6 +100,7 @@ class Sensors {
 
     uint16_t pm1;   // PM1
     uint16_t pm25;  // PM2.5
+    uint16_t pm4;  // PM4
     uint16_t pm10;  // PM10
 
     float humi = 0.0;  // % Relative humidity
