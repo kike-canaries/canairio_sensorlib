@@ -6,10 +6,11 @@ Particle meter (PM) sensor manager for multiple (PM) sensors: Honeywell, Plantow
 
 # Features:
 
-- [x] Auto detection for Generic sensors (Honeywell and Plantower sensors)
-- [x] Auto detection for Panasonic sensor
+- [x] Auto detection for Generic sensors (Honeywell, Panasonic and Plantower sensors)
 - [x] Implemented `Sensirion` autodection flow (for original library)
-- [x] Disable/enable logs
+- [x] Disable/enable logs (debug mode flag)
+- [x] Debugging compatible with ESP32 log level
+- [ ] BME680 support (from TTGO-T7 CanAirIO version)
 
 # Usage
 
@@ -32,7 +33,7 @@ You can review a full implementation on [CanAirIO project firmware](https://gith
 
 /// sensors data callback
 void onSensorDataOk() {
-    Serial.print  (" PM1.0: " + sensors.getStringPM1());  // Also you can get other measures and fields
+    Serial.print  (" PM1.0: " + sensors.getStringPM1());  // some fields sample
     Serial.print  (" PM2.5: " + sensors.getStringPM25());
     Serial.println(" PM10: "  + sensors.getStringPM10());
 }
@@ -71,3 +72,7 @@ void setup() {
     sensors.init(0,RX,TX); // generic sensor(default), custom RX, custom TX pines.
 }
 ```
+
+## Credits
+
+Thanks to all collaborators and [CanAirIO](https://canair.io) community for testing and reports.
