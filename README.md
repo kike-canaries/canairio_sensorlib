@@ -26,6 +26,8 @@ sensors.init();                               // start all sensors and
 
 ## Full implementation
 
+You can review a full implementation on [CanAirIO project firmware](https://github.com/kike-canaries/canairio_firmware/blob/master/src/main.cpp), but a little brief is the next:
+
 ```Java
 
 /// sensors data callback
