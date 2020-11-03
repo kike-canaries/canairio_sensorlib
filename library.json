@@ -34,6 +34,14 @@
     "teensy",
     "espressif32"
   ],
+  "export": {
+    "exclude":
+    [
+        ".github",
+        "releases",
+        "examples/platformio/.vscode"
+    ]
+  },
   "authors":
   [
     {
