@@ -2,7 +2,7 @@
 
 # CanAirIO Air Quality Sensors Library
 
-Particle sensor manager for multiple sensors: Honeywell, Plantower, Panasonic, Sensirion, etc, also it handling some ones like AM2320 sensor.
+Particle meter (PM) sensor manager for multiple (PM) sensors: Honeywell, Plantower, Panasonic, Sensirion, etc, also it handling others like AM2320 sensor.
 
 # Features:
 
@@ -17,7 +17,6 @@ Particle sensor manager for multiple sensors: Honeywell, Plantower, Panasonic, S
 
 ```Java
 sensors.setOnDataCallBack(&onSensorDataOk);   // all data read callback
-sensors.setSampleTime(cfg.stime);             // config sensors sample time
 sensors.init();                               // start all sensors and
                                               // try to detect PM sensor: 
                                               // Panasonic, Honeywell or Plantower.
@@ -31,9 +30,9 @@ sensors.init();                               // start all sensors and
 
 /// sensors data callback
 void onSensorDataOk() {
-    Serial.print("-->[MAIN] PM1.0: "+sensors.getStringPM1());
+    Serial.print  (" PM1.0: " + sensors.getStringPM1());  // Also you can get other measures and fields
     Serial.print  (" PM2.5: " + sensors.getStringPM25());
-    Serial.println(" PM10: " + sensors.getStringPM10());
+    Serial.println(" PM10: "  + sensors.getStringPM10());
 }
 
 /// sensors error callback
@@ -46,7 +45,7 @@ void setup() {
     sensors.setSampleTime(5);                       // config sensors sample time interval
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
-    sensors.setDebugMode(false);                    // [optional] debug mode
+    sensors.setDebugMode(true);                     // [optional] debug mode
     sensors.init();                                 // start all sensors and 
                                                     // force to try autodetection, 
                                                     // you can try to select one:
@@ -60,5 +59,13 @@ void setup() {
 
 void loop() {
     sensors.loop();  // read sensor data and showed it
+}
+```
+
+### Custom RX/TX pines
+
+```javascript
+void setup() {
+    sensors.init(0,RX,TX); // generic sensor(default), custom RX, custom TX pines.
 }
 ```
