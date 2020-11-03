@@ -1,0 +1,54 @@
+{
+  "name": "CanAirIO Sensor Library",
+  "version": "0.1.0",
+  "maintainer":"hpsaturn@gmail.com",
+  "homepage":"https://canair.io",
+  "keywords": 
+  [ 
+    "Honeywell",
+    "Panasonic",
+    "Sensirion",
+    "Plantower",
+    "SN-GCJA5",
+    "sps30",
+    "hpma115",
+    "PMS7003",
+    "PMS5003",
+    "AM2320",
+    "particulate matter",
+    "PM2.5",
+    "PM1.0",
+    "PM10"
+  ],
+  "description":"Particle sensor manager for multiple sensors: Honeywell, Plantower, Panasonic, Sensirion, etc, also it handling other kind sensors like AM2320 sensor. Autodetection via UART of each particle meter sensor. ESP32 compatible",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/kike-canaries/canairio_sensorlib"
+  },
+  "frameworks": ["espidf", "freertos", "arduino"],
+  "platforms":
+  [
+    "atmelavr",
+    "teensy",
+    "espressif32"
+  ],
+  "authors":
+  [
+    {
+      "name": "Antonio Vanegas",
+      "url": "https://hpsaturn.com"
+    },
+    {
+      "name": "CanAirIO Project",
+      "url": "https://canair.io"
+    }
+  ],
+  "license": "GPLv3",
+  "dependencies":
+  [
+    {"name":"Adafruit Unified Sensor", "owner":"adafruit"},
+    {"name":"Adafruit AM2320 sensor library", "owner":"adafruit"},
+    {"name":"sps30", "owner":"paulvha"}
+  ]
+}
