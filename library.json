@@ -38,6 +38,8 @@
     "exclude":
     [
         ".github",
+        ".travis.yml",
+        ".gitignore",
         "releases",
         "examples/platformio/.vscode"
     ]
