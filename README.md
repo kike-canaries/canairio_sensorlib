@@ -1,10 +1,11 @@
-# CanAirIO Air Quality Sensors Library
 
 [![PlatformIO](https://github.com/kike-canaries/canairio_sensorlib/workflows/PlatformIO/badge.svg)](https://github.com/kike-canaries/canairio_sensorlib/actions/) [![Build Status](https://travis-ci.com/kike-canaries/canairio_sensorlib.svg?branch=master)](https://travis-ci.com/kike-canaries/canairio_sensorlib.svg?branch=master)
 
+# CanAirIO Air Quality Sensors Library
+
 Particle meter (PM) sensor manager for multiple (PM) sensors: Honeywell, Plantower, Panasonic, Sensirion, etc, also it handling others like AM2320 sensor.
 
-# Features:
+## Features
 
 - [x] Auto detection for Generic sensors (Honeywell, Panasonic and Plantower sensors)
 - [x] Implemented `Sensirion` autodection flow (for original library)
@@ -12,9 +13,9 @@ Particle meter (PM) sensor manager for multiple (PM) sensors: Honeywell, Plantow
 - [x] Debugging compatible with ESP32 log level
 - [ ] BME680 support (from TTGO-T7 CanAirIO version)
 
-# Usage
+## Usage
 
-## Quick implementation
+### Quick implementation
 
 ```Java
 sensors.setOnDataCallBack(&onSensorDataOk);   // all data read callback
@@ -25,12 +26,11 @@ sensors.init();                               // start all sensors and
                                               // init(sensors.Sensirion)
 ```
 
-## Full implementation
+### Full implementation
 
 You can review a full implementation on [CanAirIO project firmware](https://github.com/kike-canaries/canairio_firmware/blob/master/src/main.cpp), but a little brief is the next:
 
 ```Java
-
 /// sensors data callback
 void onSensorDataOk() {
     Serial.print  (" PM1.0: " + sensors.getStringPM1());  // some fields sample
