@@ -45,7 +45,6 @@
 *.zip
 
 # IDE
-.travis.yml
 extensions.json
 settings.json
 *tags*
