@@ -4,13 +4,7 @@
 
 Example for **CanAirIO sensors library**, it is a particle meter (**PM**) sensor manager for multiple (PM) sensors: **Honeywell, Plantower, Panasonic, Sensirion**, etc, also it handling others like **AM2320** sensor.
 
-# Features:
-
-- [x] Auto detection for Generic sensors (Honeywell, Panasonic and Plantower sensors)
-- [x] Implemented `Sensirion` autodection flow (for original library)
-- [x] Disable/enable logs (debug mode flag)
-- [x] Debugging compatible with ESP32 log level
-- [ ] BME680 support (from TTGO-T7 CanAirIO version)
+You can review a **full implementation** on [CanAirIO project firmware](https://github.com/kike-canaries/canairio_firmware/blob/master/src/main.cpp), but a little brief is the next:
 
 ## Implementation
 
@@ -54,8 +48,6 @@ void loop() {
     sensors.loop();  // read sensor data and showed it
 }
 ```
-
-You can review a **full implementation** on [CanAirIO project firmware](https://github.com/kike-canaries/canairio_firmware/blob/master/src/main.cpp), but a little brief is the next:
 
 ### Custom RX/TX pines
 
