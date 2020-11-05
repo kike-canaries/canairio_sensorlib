@@ -49,8 +49,8 @@ void setup() {
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
     sensors.setDebugMode(true);                     // [optional] debug mode
-    sensors.init();                                 // start all sensors and 
-                                                    // force to try autodetection, 
+    sensors.init();                                 // start all sensors and
+                                                    // force to try autodetection,
                                                     // you can try to select one:
                                                     // sensors.init(sensors.Sensirion);
 
@@ -115,6 +115,7 @@ From `arduino-cli` you can run the basic example in a ESP32 board:
 
 ```javascript
 arduino-cli compile --fqbn esp32:esp32:lolin32 basic
+arduino-cli upload --fqbn esp32:esp32:lolin32:UploadSpeed=115200 -p /dev/ttyUSB0 basic
 ```
 
 where `basic` is the basic example on examples directory.

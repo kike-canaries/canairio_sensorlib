@@ -36,7 +36,7 @@ void setup() {
     sensors.init();                                 // start all sensors and 
                                                     // force to try autodetection, 
                                                     // you can try to select one:
-    // sensors.init(sensors.Sensirion);
+                                                    // sensors.init(sensors.Sensirion);
 
     if(sensors.isPmSensorConfigured())
         Serial.println("-->[SETUP] Sensor configured: " + sensors.getPmDeviceSelected());
