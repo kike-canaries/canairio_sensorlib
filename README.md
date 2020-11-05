@@ -73,6 +73,18 @@ void setup() {
 }
 ```
 
+### Output
+
+On your serial monitor you should have something like that:
+
+```bash
+-->[SETUP] Detecting sensors..
+-->[SETUP] Sensor configured: SENSIRION
+-->[MAIN] PM1.0: 002 PM2.5: 004 PM10: 006
+-->[MAIN] PM1.0: 002 PM2.5: 002 PM10: 002
+-->[MAIN] PM1.0: 002 PM2.5: 002 PM10: 002
+```
+
 ## Credits
 
 Thanks to all collaborators and [CanAirIO](https://canair.io) community for testing and reports.
