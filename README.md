@@ -73,6 +73,54 @@ void setup() {
 }
 ```
 
+### Output
+
+On your serial monitor you should have something like that:
+
+```bash
+-->[SETUP] Detecting sensors..
+-->[SETUP] Sensor configured: SENSIRION
+-->[MAIN] PM1.0: 002 PM2.5: 004 PM10: 006
+-->[MAIN] PM1.0: 002 PM2.5: 002 PM10: 002
+-->[MAIN] PM1.0: 002 PM2.5: 002 PM10: 002
+```
+
+## Frameworks
+
+### PlatformIO
+
+#### Compiling and Installing
+
+Please install first [PlatformIO](http://platformio.org/) open source ecosystem for IoT development compatible with **Arduino** IDE and its command line tools (Windows, MacOs and Linux), then connect your compatible board to the USB and run the next command:
+
+```python
+pio run --target upload
+```
+
+### Arduino
+
+#### Prerequisites
+
+You need first before run the examples, install **arduino-cli** or the **Arduino IDE** with the next libraries or dependencies:
+
+Adafruit Unified Sensor  
+Adafruit AM2320 sensor library  
+[Sensirion library sps30](https://github.com/paulvha/sps30)  
+`CanAirIO Air Quality Sensors Library` (this library).
+
+
+#### Compiling and Installing
+
+From `arduino-cli` you can run the basic example in a ESP32 board:
+
+```javascript
+arduino-cli compile --fqbn esp32:esp32:lolin32 basic
+```
+
+where `basic` is the basic example on examples directory.
+
+---
+
 ## Credits
 
 Thanks to all collaborators and [CanAirIO](https://canair.io) community for testing and reports.

@@ -57,6 +57,26 @@ void setup() {
 }
 ```
 
+## Compiling and Installing
+
+Please install first [PlatformIO](http://platformio.org/) open source ecosystem for IoT development compatible with **Arduino** IDE and its command line tools (Windows, MacOs and Linux), then connect your compatible board to the USB and run the next command:
+
+```python
+pio run --target upload
+```
+
+### Output
+
+On your serial monitor you should have something like that:
+
+```bash
+-->[SETUP] Detecting sensors..
+-->[SETUP] Sensor configured: SENSIRION
+-->[MAIN] PM1.0: 002 PM2.5: 004 PM10: 006
+-->[MAIN] PM1.0: 002 PM2.5: 002 PM10: 002
+-->[MAIN] PM1.0: 002 PM2.5: 002 PM10: 002
+```
+
 ## Credits
 
 Thanks to all collaborators and [CanAirIO](https://canair.io) community for testing and reports.
