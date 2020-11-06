@@ -108,12 +108,28 @@ Adafruit AM2320 sensor library
 [Sensirion library sps30](https://github.com/paulvha/sps30)  
 `CanAirIO Air Quality Sensors Library` (this library).
 
+Also you need before add the alternative links for support ESP32 boards:
+
+```bash
+arduino-cli config init
+```
+
+in the `.arduino15/arduino-cli.yaml` file add:
+
+```yml
+board_manager:
+  additional_urls:
+    - https://arduino.esp8266.com/stable/package_esp8266com_index.json
+    - https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+``` 
 
 #### Compiling and Installing
 
-From `arduino-cli` you can run the basic example in a ESP32 board:
+From `arduino-cli` you can run the basic example in a ESP32 board folling the next steps:
 
 ```javascript
+arduino-cli core update-index
+arduino-cli core install esp32:esp32:lolin32
 arduino-cli compile --fqbn esp32:esp32:lolin32 basic
 arduino-cli upload --fqbn esp32:esp32:lolin32:UploadSpeed=115200 -p /dev/ttyUSB0 basic
 ```
