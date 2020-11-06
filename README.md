@@ -101,14 +101,14 @@ pio run --target upload
 
 #### Prerequisites
 
-You need first before run the examples, install **arduino-cli** or the **Arduino IDE** with the next libraries or dependencies:
+You first need to run the examples, install **arduino-cli** or the **Arduino IDE** with the following libraries:
 
 Adafruit Unified Sensor  
 Adafruit AM2320 sensor library  
 [Sensirion library sps30](https://github.com/paulvha/sps30)  
 `CanAirIO Air Quality Sensors Library` (this library).
 
-Also you need before add the alternative links for support ESP32 boards:
+Also you need to add the **alternative links** for supporting the ESP32 boards:
 
 ```bash
 arduino-cli config init
@@ -125,7 +125,7 @@ board_manager:
 
 #### Compiling and Installing
 
-From `arduino-cli` you can run the basic example in a ESP32 board folling the next steps:
+From `arduino-cli` you can run the basic example in a ESP32 board following these steps:
 
 ```javascript
 arduino-cli core update-index
