@@ -1,7 +1,6 @@
 {
   "name": "CanAirIO Air Quality Sensors Library",
   "version": "0.1.2",
-  "maintainer":"hpsaturn@gmail.com",
   "homepage":"https://canair.io",
   "keywords": 
   [ 
@@ -47,8 +46,9 @@
   "authors":
   [
     {
-      "name": "Antonio Vanegas",
-      "url": "https://hpsaturn.com"
+      "name": "@hpsaturn",
+      "url": "https://hpsaturn.com",
+      "maintainer": true
     },
     {
       "name": "CanAirIO Project",
