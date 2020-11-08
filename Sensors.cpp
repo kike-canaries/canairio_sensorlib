@@ -264,7 +264,7 @@ bool Sensors::pmSensirionRead() {
  */
 bool Sensors::pmSensorRead() {
     switch (device_type) {
-        case Honeywell:
+        case Auto:
             return pmGenericRead();
             break;
 
@@ -361,8 +361,8 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
     } else {
         DEBUG("-->[PMSENSOR] detecting Honeywell/Plantower sensor..");
         if (pmGenericRead()) {
-            device_selected = "HONEYWELL";
-            device_type = Honeywell;
+            device_selected = "GENERIC";
+            device_type = Auto;
             return true;
         }
         DEBUG("-->[PMSENSOR] detecting Panasonic sensor..");
