@@ -38,8 +38,8 @@ class Sensors {
 
    public:
 
-    /// Supported devices. Honeywell and Plantower sensors are similars
-    enum SENSOR_TYPE { Honeywell, Panasonic, Sensirion };
+    /// Supported devices. Auto is for Honeywell and Plantower sensors and similars
+    enum SENSOR_TYPE { Auto, Panasonic, Sensirion };
     
     /// SPS30 values. Only for Sensirion SPS30 sensor.
     struct sps_values val;
