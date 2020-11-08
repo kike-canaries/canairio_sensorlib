@@ -33,12 +33,14 @@ void setup() {
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
     sensors.setDebugMode(false);                    // [optional] debug mode
-    sensors.init(sensors.Sensirion);                // force sensor detection for Sensirion SPS30
 
-    // You also can try init() with:
-    // sensors.init()  => auto detection PM sensors (Honeywell, Plantower or Panasonic)
-    // sensors.init(sensors.Sensirion) => only auto detection for Sensirion
-    // sensors.init(sensors.Honeywell,21,22) => force RX,TX pines
+    // sensors.init();                              // Auto detection of PM sensors (Honeywell, Plantower)
+    // sensors.init(sensors.Auto);                  // Auto detection of PM sensors (Honeywell, Plantower)
+    // sensors.init(sensors.Panasonic);             // Force detection to Panasonic sensor
+    // sensors.init(sensors.Sensirion);             // Force detection to Sensirion sensor
+    // sensors.init(sensors.Auto,mRX,mTX);          // Auto detection and custom RX, TX pines
+
+    sensors.init(sensors.Sensirion);                // Force detection to Sensirion sensor
 
     if(sensors.isPmSensorConfigured())
         Serial.println("-->[SETUP] Sensor configured: " + sensors.getPmDeviceSelected());
