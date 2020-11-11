@@ -47,7 +47,9 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
 
     DEBUG("-->[SENSORS] sample time set to: ",String(sample_time).c_str());
     
-    pmSensorInit(pms_type, pms_rx, pms_tx);
+    if(!pmSensorInit(pms_type, pms_rx, pms_tx)){
+        DEBUG("-->[E][PMSENSOR] init failed!");
+    }
 
     // TODO: enable/disable via flag
     DEBUG("-->[AM2320] starting AM2320 sensor..");
@@ -319,16 +321,15 @@ bool Sensors::pmSensorInit(int pms_type, int pms_rx, int pms_tx) {
     // set UART for autodetection sensors (Honeywell, Plantower, Panasonic)
     if (pms_type <= 1) {
         DEBUG("-->[PMSENSOR] detecting Generic PM sensor..");
-        Serial2.begin(9600, SERIAL_8N1, pms_rx, pms_tx);
+        if(!serialInit(9600, pms_rx, pms_tx))return false;
     }
     // set UART for autodetection Sensirion sensor
     else if (pms_type == Sensirion) {
         DEBUG("-->[PMSENSOR] detecting Sensirion sensor..");
-        Serial2.begin(115200);
+        if(!serialInit(115200, pms_rx, pms_tx))return false;
     }
 
     // starting auto detection loop 
-    _serial = &Serial2;
     int try_sensor_init = 0;
     while (!pmSensorAutoDetect(pms_type) && try_sensor_init++ < 2);
 
@@ -357,7 +358,8 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
             device_selected = "SENSIRION";
             device_type = Sensirion;
             return true;
-        }
+        }else
+            DEBUG("-->[E][PMSENSOR] sensirion init error!");
     } else {
         DEBUG("-->[PMSENSOR] detecting Honeywell/Plantower sensor..");
         if (pmGenericRead()) {
@@ -381,8 +383,10 @@ bool Sensors::pmSensirionInit() {
     DEBUG("-->[SPS30] starting SPS30 sensor..");
     if(!devmode) sps30.EnableDebugging(0);
     // Begin communication channel;
-    if (!sps30.begin(SP30_COMMS))
+    if (!sps30.begin(SENSOR_COMMS)){
         pmSensirionErrorloop((char *)"-->[E][SPS30] could not initialize communication channel.", 0);
+        return false;
+    }
     // check for SPS30 connection
     if (!sps30.probe())
         pmSensirionErrorloop((char *)"-->[E][SPS30] could not probe / connect with SPS30.", 0);
@@ -401,7 +405,7 @@ bool Sensors::pmSensirionInit() {
     } else
         pmSensirionErrorloop((char *)"-->[E][SPS30] Could NOT start measurement", 0);
 
-    if (SP30_COMMS == I2C_COMMS) {
+    if (SENSOR_COMMS == I2C_COMMS) {
         if (sps30.I2C_expect() == 4)
             DEBUG("-->[E][SPS30] Due to I2C buffersize only PM values  \n");
     }
@@ -442,7 +446,7 @@ void Sensors::getSensirionDeviceInfo() {
   sprintf(buf,"%d.%d",v.major,v.minor);
   DEBUG("-->[SPS30] Firmware level: ", buf);
 
-  if (SP30_COMMS != I2C_COMMS) {
+  if (SENSOR_COMMS != I2C_COMMS) {
     sprintf(buf,"%d.%d",v.SHDLC_major,v.SHDLC_minor);
     DEBUG("-->[SPS30] Hardware level: ",String(v.HW_version).c_str());
     DEBUG("-->[SPS30] SHDLC protocol: ",buf);
@@ -472,6 +476,85 @@ void Sensors::DEBUG(const char *text, const char *textb) {
         }
         _debugPort.println();
     }
+}
+
+bool Sensors::serialInit(long speed_baud, int pms_rx, int pms_tx) {
+    
+    switch (SENSOR_COMMS) {
+        case SERIALPORT:
+            Serial.begin(speed_baud);
+            _serial = &Serial;
+            break;
+#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || defined(SAMD21G18A) || defined(ARDUINO_SAM_DUE)
+        case SERIALPORT1:
+            Serial1.begin(speed_baud);
+            _serial = &Serial1;
+            break;
+#endif
+#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || defined(ARDUINO_SAM_DUE)
+        case SERIALPORT2:
+            Serial2.begin(speed_baud);
+            _serial = &Serial2;
+            break;
+
+        case SERIALPORT3:
+            Serial3.begin(speed_baud);
+            _serial = &Serial3;
+            break;
+#endif
+#if defined(__AVR_ATmega32U4__) 
+        case SERIALPORT1:
+            Serial1.begin(speed_baud);
+            _serial = &Serial1;
+            break;
+#endif
+
+#if defined(ARDUINO_ARCH_ESP32)
+        //on a Sparkfun ESP32 Thing the default pins for serial1 are used for acccessing flash memory
+        //you have to define different pins upfront in order to use serial1 port. 
+        case SERIALPORT1:
+            if (pms_rx == 0 || pms_tx== 0) {
+                DEBUG("TX/RX line not defined");
+                return false;
+            }
+            Serial1.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx, false);
+            _serial = &Serial1;
+            break;
+
+        case SERIALPORT2:
+            Serial2.begin(speed_baud);
+            _serial = &Serial2;
+            break;
+#endif
+        default:
+
+            if (pms_rx == 0 || pms_tx == 0) {
+                DEBUG("TX/RX line not defined");
+                return false;
+            }
+            // In case RX and TX are both pin 8, try Serial1 anyway.
+            // A way to force-enable Serial1 on some boards.
+            if (pms_rx == 8 && pms_tx == 8) {
+                Serial1.begin(speed_baud);
+                _serial = &Serial1;
+            }
+
+            else 
+            {
+#if defined(INCLUDE_SOFTWARE_SERIAL)
+                static SoftwareSerial swSerial(pms_rx, pms_tx);
+                swSerial.begin(speed_baud);
+                _serial = &swSerial;
+#else
+                DEBUG("SoftWareSerial not enabled\n");
+                return (false);
+#endif  //INCLUDE_SOFTWARE_SERIAL
+            }
+            break;
+    }
+
+    delay(100);
+    return true;
 }
 
 #if !defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_SENSORSHANDLER)

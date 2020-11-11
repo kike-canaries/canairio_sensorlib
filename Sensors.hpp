@@ -29,7 +29,7 @@ using namespace std;
 #define SENSOR_RETRY 1000  // Sensor read retry. (unit chars)
 
 // Sensirion SPS30 sensor
-#define SP30_COMMS SERIALPORT2  // UART OR I2C
+#define SENSOR_COMMS SERIALPORT2  // UART OR I2C
 
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
@@ -125,6 +125,7 @@ class Sensors {
     void pmSensirionErrorloop(char *mess, uint8_t r);
     void getSensirionDeviceInfo();
     String hwSerialRead();
+    bool serialInit(long speed_baud, int pms_rx, int pms_tx);
     void DEBUG(const char * text, const char * textb = "" );
 
 // @todo use DEBUG_ESP_PORT ?

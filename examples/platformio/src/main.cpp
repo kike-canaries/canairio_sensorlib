@@ -33,7 +33,7 @@ void setup() {
     sensors.setSampleTime(5);                       // config sensors sample time interval
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
-    sensors.setDebugMode(false);                    // [optional] debug mode
+    sensors.setDebugMode(true);                    // [optional] debug mode
 
     // sensors.init();                              // Auto detection of PM sensors (Honeywell, Plantower)
     // sensors.init(sensors.Auto);                  // Auto detection of PM sensors (Honeywell, Plantower)
