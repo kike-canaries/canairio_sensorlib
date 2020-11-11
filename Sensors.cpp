@@ -188,6 +188,7 @@ bool Sensors::pmGenericRead() {
  */
 bool Sensors::pmPanasonicRead() {
     String txtMsg = hwSerialRead();
+    delay(100);
     if (txtMsg[0] == 02) {
         DEBUG("-->[PANASONIC] read > done!");
         pm25 = txtMsg[6] * 256 + byte(txtMsg[5]);
@@ -319,13 +320,17 @@ void Sensors::pmSensirionErrorloop(char *mess, uint8_t r) {
  **/
 bool Sensors::pmSensorInit(int pms_type, int pms_rx, int pms_tx) {
     // set UART for autodetection sensors (Honeywell, Plantower, Panasonic)
-    if (pms_type <= 1) {
+    if (pms_type == Auto) {
         DEBUG("-->[PMSENSOR] detecting Generic PM sensor..");
+        if(!serialInit(9600, pms_rx, pms_tx))return false;
+    }
+    else if (pms_type == Panasonic) {
+        DEBUG("-->[PMSENSOR] detecting Panasonic PM sensor..");
         if(!serialInit(9600, pms_rx, pms_tx))return false;
     }
     // set UART for autodetection Sensirion sensor
     else if (pms_type == Sensirion) {
-        DEBUG("-->[PMSENSOR] detecting Sensirion sensor..");
+        DEBUG("-->[PMSENSOR] detecting Sensirion PM sensor..");
         if(!serialInit(115200, pms_rx, pms_tx))return false;
     }
 
@@ -358,22 +363,23 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
             device_selected = "SENSIRION";
             device_type = Sensirion;
             return true;
-        }else
-            DEBUG("-->[E][PMSENSOR] sensirion init error!");
-    } else {
-        DEBUG("-->[PMSENSOR] detecting Honeywell/Plantower sensor..");
+        }
+    } 
+    
+    if (pms_type <= Panasonic) {
         if (pmGenericRead()) {
             device_selected = "GENERIC";
             device_type = Auto;
             return true;
         }
-        DEBUG("-->[PMSENSOR] detecting Panasonic sensor..");
+        delay(1000);
         if (pmPanasonicRead()) {
             device_selected = "PANASONIC";
             device_type = Panasonic;
             return true;
         }
-    }
+    } 
+    
 
     return false;
 }
@@ -522,7 +528,7 @@ bool Sensors::serialInit(long speed_baud, int pms_rx, int pms_tx) {
             break;
 
         case SERIALPORT2:
-            Serial2.begin(speed_baud);
+            Serial2.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx, false);
             _serial = &Serial2;
             break;
 #endif

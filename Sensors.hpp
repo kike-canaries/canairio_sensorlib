@@ -50,7 +50,7 @@ class Sensors {
     /// Initial sample time for all sensors
     int sample_time = 5;
 
-    void init(int pms_type = -1, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
+    void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
     void loop();
     bool isDataReady();
     bool isPmSensorConfigured();
