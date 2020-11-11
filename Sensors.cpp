@@ -322,16 +322,16 @@ bool Sensors::pmSensorInit(int pms_type, int pms_rx, int pms_tx) {
     // set UART for autodetection sensors (Honeywell, Plantower, Panasonic)
     if (pms_type == Auto) {
         DEBUG("-->[PMSENSOR] detecting Generic PM sensor..");
-        if(!serialInit(9600, pms_rx, pms_tx))return false;
+        if(!serialInit(pms_type, 9600, pms_rx, pms_tx))return false;
     }
     else if (pms_type == Panasonic) {
         DEBUG("-->[PMSENSOR] detecting Panasonic PM sensor..");
-        if(!serialInit(9600, pms_rx, pms_tx))return false;
+        if(!serialInit(pms_type, 9600, pms_rx, pms_tx))return false;
     }
     // set UART for autodetection Sensirion sensor
     else if (pms_type == Sensirion) {
         DEBUG("-->[PMSENSOR] detecting Sensirion PM sensor..");
-        if(!serialInit(115200, pms_rx, pms_tx))return false;
+        if(!serialInit(pms_type, 115200, pms_rx, pms_tx))return false;
     }
 
     // starting auto detection loop 
@@ -372,7 +372,7 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
             device_type = Auto;
             return true;
         }
-        delay(1000);
+        delay(1000);  // sync serial
         if (pmPanasonicRead()) {
             device_selected = "PANASONIC";
             device_type = Panasonic;
@@ -484,7 +484,7 @@ void Sensors::DEBUG(const char *text, const char *textb) {
     }
 }
 
-bool Sensors::serialInit(long speed_baud, int pms_rx, int pms_tx) {
+bool Sensors::serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx) {
     
     switch (SENSOR_COMMS) {
         case SERIALPORT:
@@ -528,7 +528,10 @@ bool Sensors::serialInit(long speed_baud, int pms_rx, int pms_tx) {
             break;
 
         case SERIALPORT2:
-            Serial2.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx, false);
+            if (pms_type == Sensirion)
+                Serial2.begin(speed_baud);
+            else
+                Serial2.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx, false);
             _serial = &Serial2;
             break;
 #endif
