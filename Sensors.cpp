@@ -188,7 +188,6 @@ bool Sensors::pmGenericRead() {
  */
 bool Sensors::pmPanasonicRead() {
     String txtMsg = hwSerialRead();
-    delay(100);
     if (txtMsg[0] == 02) {
         DEBUG("-->[PANASONIC] read > done!");
         pm25 = txtMsg[6] * 256 + byte(txtMsg[5]);
@@ -551,8 +550,13 @@ bool Sensors::serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx) 
             else 
             {
 #if defined(INCLUDE_SOFTWARE_SERIAL)
+                DEBUG("-->[SENSORS] swSerial init on pin: ",String(pms_rx).c_str());
                 static SoftwareSerial swSerial(pms_rx, pms_tx);
-                swSerial.begin(speed_baud);
+                if (pms_type == Sensirion)
+                    swSerial.begin(speed_baud);
+                else
+                    swSerial.begin(speed_baud);
+                    // swSerial.begin(speed_baud,SoftwareSerialConfig::SWSERIAL_8N1,pms_rx,pms_tx,false);
                 _serial = &swSerial;
 #else
                 DEBUG("SoftWareSerial not enabled\n");
