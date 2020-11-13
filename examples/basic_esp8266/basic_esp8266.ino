@@ -41,7 +41,7 @@ void setup() {
     // sensors.init(sensors.Sensirion);             // Force detection to Sensirion sensor
     // sensors.init(sensors.Auto,mRX,mTX);          // Auto detection and custom RX, TX pines
 
-    sensors.init();
+    sensors.init(sensors.Panasonic,5,6);            // ESP8266 software serial pines
 
     if(sensors.isPmSensorConfigured())
         Serial.println("-->[SETUP] Sensor configured: " + sensors.getPmDeviceSelected());
