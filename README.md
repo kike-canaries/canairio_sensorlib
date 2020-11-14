@@ -85,6 +85,14 @@ On your serial monitor you should have something like that:
 -->[MAIN] PM1.0: 002 PM2.5: 002 PM10: 002
 ```
 
+## Demo
+
+[![CanAirIO auto configuration demo](https://img.youtube.com/vi/hmukAmG5Eec/0.jpg)](https://www.youtube.com/watch?v=hmukAmG5Eec)
+
+CanAirIO sensorlib auto configuration demo on [Youtube](https://www.youtube.com/watch?v=hmukAmG5Eec)
+
+---
+
 ## Frameworks
 
 ### PlatformIO
