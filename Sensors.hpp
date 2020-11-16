@@ -1,8 +1,8 @@
 #ifndef Sensors_hpp
 #define Sensors_hpp
 
-#include <Adafruit_AM2320.h>
 #include <Adafruit_Sensor.h>
+#include <Adafruit_AM2320.h>
 #include <Adafruit_BME280.h>
 #include <Adafruit_AHTX0.h>
 #include <Adafruit_SHT31.h>
