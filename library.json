@@ -40,7 +40,9 @@
         ".travis.yml",
         ".gitignore",
         "releases",
-        "examples/platformio/.vscode"
+        "examples/platformio/.vscode",
+        "examples/platformio/platformio.ini.default",
+        "examples/platformio/platformio.ini.devel"
     ]
   },
   "authors":
