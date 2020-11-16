@@ -12,6 +12,7 @@ void onSensorDataOk() {
     Serial.print("-->[MAIN] PM1.0: "+sensors.getStringPM1());
     Serial.print  (" PM2.5: " + sensors.getStringPM25());
     Serial.println(" PM10: " + sensors.getStringPM10());
+    Serial.println(" PM1: " + sensors.getStringPM1());
 }
 
 void onSensorDataError(const char * msg){
