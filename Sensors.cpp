@@ -3,6 +3,21 @@
 // Humidity sensor
 Adafruit_AM2320 am2320 = Adafruit_AM2320();
 
+//BME280
+ #define SEALEVELPRESSURE_HPA (1013.25)
+ Adafruit_BME280 bme;           // BME280 I2C
+//AHT10
+ TwoWire I2CBME = TwoWire(0);
+ Adafruit_AHTX0 aht;
+ Adafruit_Sensor *aht_humidity, *aht_temp;
+//SHT31
+ Adafruit_SHT31 sht31 = Adafruit_SHT31();
+//DHT22
+ #define DHTTYPE DHT22         // DHT 22 (AM2302)
+ #define DHTPIN 15
+ DHT dht(DHTPIN, DHTTYPE);
+
+
 /***********************************************************************************
  *  P U B L I C   M E T H O D S
  * *********************************************************************************/
@@ -54,6 +69,26 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     // TODO: enable/disable via flag
     DEBUG("-->[AM2320] starting AM2320 sensor..");
     am2320Init();
+}
+
+void Sensors::am2320Init() {
+    am2320.begin();  // temp/humidity sensor
+}
+
+void Sensors::sht31Init() {
+    sht31.begin(0x44);  // temp/humidity sensor
+}
+
+void Sensors::bme280Init() {
+    bme.begin(0x76);  // temp/humidity sensor
+}
+
+void Sensors::aht10Init() {
+    aht.begin();  // temp/humidity sensor
+}
+
+void Sensors::dht22Init() {
+    dht.begin();  // temp/humidity sensor
 }
 
 /// set loop time interval for each sensor sample
@@ -153,6 +188,43 @@ String Sensors::getPmDeviceSelected(){
 
 int Sensors::getPmDeviceTypeSelected(){
     return device_type;
+}
+
+void Sensors::am2320Read() {
+    humi = am2320.readHumidity();
+    temp = am2320.readTemperature();
+    if (isnan(humi)) humi = 0.0;
+    if (isnan(temp)) temp = 0.0;
+}
+
+void Sensors::bme280Read() {
+    humi = bme.readHumidity();
+    temp = bme.readTemperature();
+    if (isnan(humi)) humi = 0.0;
+    if (isnan(temp)) temp = 0.0;
+}
+
+void Sensors::aht10Read() {
+    aht_temp = aht.getTemperatureSensor();
+    aht_humidity = aht.getHumiditySensor();
+    humi = aht_humidity;
+    temp = aht_temp  
+    if (isnan(humi)) humi = 0.0;
+    if (isnan(temp)) temp = 0.0;
+}
+
+void Sensors::sht31Read() {
+    humi = sht31.readHumidity();
+    temp = sht31.readTemperature();
+    if (isnan(humi)) humi = 0.0;
+    if (isnan(temp)) temp = 0.0;
+}
+
+void Sensors::dht22Read() {
+    humi = dht.readHumidity();
+    temp = dht.readTemperature();
+    if (isnan(humi)) humi = 0.0;
+    if (isnan(temp)) temp = 0.0;
 }
 
 /******************************************************************************

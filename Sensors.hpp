@@ -3,6 +3,10 @@
 
 #include <Adafruit_AM2320.h>
 #include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
+#include <Adafruit_AHTX0.h>
+#include <Adafruit_SHT31.h>
+#include <DHT.h>
 #include <sps30.h>
 using namespace std;
 #include <vector>
@@ -112,6 +116,15 @@ class Sensors {
     void restart();
     void am2320Init();
     void am2320Read();
+    void bme280Init();
+    void bme280Read();
+    void aht10Init();
+    void aht10Read();
+    void sht31Init();
+    void sht31Read();
+    void dht22Init();
+    void dht22Read();
+ 
     bool pmSensorInit(int pms_type, int rx, int tx);
     bool pmSensorAutoDetect(int pms_type);
     bool pmSensorRead();
