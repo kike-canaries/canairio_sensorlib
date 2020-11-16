@@ -7,7 +7,6 @@ Adafruit_AM2320 am2320 = Adafruit_AM2320();
  #define SEALEVELPRESSURE_HPA (1013.25)
  Adafruit_BME280 bme;           // BME280 I2C
 //AHT10
- TwoWire I2CBME = TwoWire(0);
  Adafruit_AHTX0 aht;
  Adafruit_Sensor *aht_humidity, *aht_temp;
 //SHT31
