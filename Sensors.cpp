@@ -262,6 +262,7 @@ bool Sensors::pmPanasonicRead() {
     String txtMsg = hwSerialRead();
     if (txtMsg[0] == 02) {
         DEBUG("-->[PANASONIC] read > done!");
+        pm1  = txtMsg[2] * 256 + byte(txtMsg[1]);
         pm25 = txtMsg[6] * 256 + byte(txtMsg[5]);
         pm10 = txtMsg[10] * 256 + byte(txtMsg[9]);
         if (pm25 > 2000 && pm10 > 2000) {
@@ -626,9 +627,10 @@ bool Sensors::serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx) 
                 static SoftwareSerial swSerial(pms_rx, pms_tx);
                 if (pms_type == Sensirion)
                     swSerial.begin(speed_baud);
+                else if (pms_type == Panasonic)
+                    swSerial.begin(speed_baud,SWSERIAL_8E1,pms_rx,pms_tx,false);
                 else
-                    swSerial.begin(speed_baud);
-                    // swSerial.begin(speed_baud,SoftwareSerialConfig::SWSERIAL_8N1,pms_rx,pms_tx,false);
+                    swSerial.begin(speed_baud,SWSERIAL_8N1,pms_rx,pms_tx,false);
                 _serial = &swSerial;
 #else
                 DEBUG("SoftWareSerial not enabled\n");

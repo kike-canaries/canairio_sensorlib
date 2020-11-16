@@ -4,6 +4,15 @@
  * @date June 2018 - 2020
  * @brief Particle meter sensor tests
  * @license GPL3
+ * 
+ * Full documentation:
+ * https://github.com/kike-canaries/canairio_sensorlib#canairio-air-quality-sensors-library
+ * 
+ * Full implementation for WiFi and Bluetooth Air Quality fixed and mobile station:
+ * https://github.com/kike-canaries/canairio_firmware#canairio-firmware
+ * 
+ * CanAirIO project:
+ * https://canair.io
  */
 
 #include <Arduino.h>
@@ -13,6 +22,7 @@ void onSensorDataOk() {
     Serial.print("-->[MAIN] PM1.0: "+sensors.getStringPM1());
     Serial.print  (" PM2.5: " + sensors.getStringPM25());
     Serial.println(" PM10: " + sensors.getStringPM10());
+    Serial.println(" PM1: " + sensors.getStringPM1());
 }
 
 void onSensorDataError(const char * msg){
@@ -33,7 +43,7 @@ void setup() {
     sensors.setSampleTime(5);                       // config sensors sample time interval
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
-    sensors.setDebugMode(true);                    // [optional] debug mode
+    sensors.setDebugMode(true);                     // [optional] debug mode
 
     // sensors.init();                              // Auto detection of PM sensors (Honeywell, Plantower, Panasonic)
     // sensors.init(sensors.Auto);                  // Auto detection of PM sensors (Honeywell, Plantower, Panasonic)

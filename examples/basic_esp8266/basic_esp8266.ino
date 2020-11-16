@@ -4,6 +4,15 @@
  * @date June 2018 - 2020
  * @brief Particle meter sensor tests
  * @license GPL3
+ * 
+ * Full documentation:
+ * https://github.com/kike-canaries/canairio_sensorlib#canairio-air-quality-sensors-library
+ * 
+ * Full implementation for WiFi and Bluetooth Air Quality fixed and mobile station:
+ * https://github.com/kike-canaries/canairio_firmware#canairio-firmware
+ * 
+ * CanAirIO project:
+ * https://canair.io
  */
 
 #include <Arduino.h>
@@ -13,6 +22,7 @@ void onSensorDataOk() {
     Serial.print("-->[MAIN] PM1.0: "+sensors.getStringPM1());
     Serial.print  (" PM2.5: " + sensors.getStringPM25());
     Serial.println(" PM10: " + sensors.getStringPM10());
+    Serial.println(" PM1: " + sensors.getStringPM1());
 }
 
 void onSensorDataError(const char * msg){
@@ -41,7 +51,7 @@ void setup() {
     // sensors.init(sensors.Sensirion);             // Force detection to Sensirion sensor
     // sensors.init(sensors.Auto,mRX,mTX);          // Auto detection and custom RX, TX pines
 
-    sensors.init(sensors.Panasonic,5,6);            // ESP8266 software serial pines
+    sensors.init(sensors.Panasonic, 5, 6);          // Panasonic sensor with ESP8266 software serial pines
 
     if(sensors.isPmSensorConfigured())
         Serial.println("-->[SETUP] Sensor configured: " + sensors.getPmDeviceSelected());
