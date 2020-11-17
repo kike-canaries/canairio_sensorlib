@@ -25,12 +25,6 @@ using namespace std;
 #elif TTGO_TQ
 #define PMS_RX 13  // config for TTGO_TQ board
 #define PMS_TX 18
-#elif ESP32DevKit
-#define PMS_RX 17  // config for for ESP32-DevKitC - U series
-#define PMS_TX 16
-#elif ESP32S
-#define PMS_RX 17  // config for ESP32S
-#define PMS_TX 16
 #else
 #define PMS_RX 17  // config for D1MIN1 board
 #define PMS_TX 16

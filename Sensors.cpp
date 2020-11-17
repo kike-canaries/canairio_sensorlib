@@ -1,10 +1,12 @@
 #include "Sensors.hpp"
+#define SEALEVELPRESSURE_HPA (1013.25)
+#define DHTTYPE DHT22         // DHT 22 (AM2302)
+#define DHTPIN 15
 
 // Humidity sensor
 Adafruit_AM2320 am2320 = Adafruit_AM2320();
 
 //BME280
- #define SEALEVELPRESSURE_HPA (1013.25)
  Adafruit_BME280 bme;           // BME280 I2C
 //AHT10
  Adafruit_AHTX0 aht;
@@ -12,8 +14,6 @@ Adafruit_AM2320 am2320 = Adafruit_AM2320();
 //SHT31
  Adafruit_SHT31 sht31 = Adafruit_SHT31();
 //DHT22
- #define DHTTYPE DHT22         // DHT 22 (AM2302)
- #define DHTPIN 15
  DHT dht(DHTPIN, DHTTYPE);
 
 
