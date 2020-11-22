@@ -61,7 +61,6 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     }
 
     // TODO: enable/disable via flag
-    DEBUG("-->[AM2320] starting AM2320 sensor..");
     H&TInit();
 }
 
@@ -558,22 +557,27 @@ void Sensors::H&TInit() {
 }
 
 void Sensors::am2320Init() {
+    DEBUG("-->[AM2320] starting AM2320 sensor..");
     am2320.begin();  // temp/humidity sensor
 }
 
 void Sensors::sht31Init() {
+    DEBUG("-->[SHT31] starting SHT31 sensor..");
     sht31.begin(0x44);  // temp/humidity sensor
 }
 
 void Sensors::bme280Init() {
+    DEBUG("-->[BME280] starting BME280 sensor..");
     bme.begin(0x76);  // temp/humidity sensor
 }
 
 void Sensors::aht10Init() {
+    DEBUG("-->[AHT10] starting AHT10 sensor..");
     aht.begin();  // temp/humidity sensor
 }
 
 void Sensors::dht22Init() {
+    DEBUG("-->[DHT22] starting DHT22 sensor..");
     DHT dht(DHTPIN, DHTTYPE);
     dht.begin();  // temp/humidity sensor
 }
