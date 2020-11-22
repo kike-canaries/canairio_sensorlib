@@ -35,6 +35,11 @@ using namespace std;
 // Sensirion SPS30 sensor
 #define SENSOR_COMMS SERIALPORT2  // UART OR I2C
 
+//H&T definitions
+#define SEALEVELPRESSURE_HPA (1013.25)
+#define DHTTYPE DHT22         // DHT 22 (AM2302)
+#define DHTPIN 23
+
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
 
