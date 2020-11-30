@@ -22,7 +22,6 @@ void Sensors::loop() {
     if ((millis() - pmLoopTimeStamp > sample_time * 1000)) {  // sample time for each capture
         dataReady = false;
         pmLoopTimeStamp = millis();
-        H&TRead();
         if(pmSensorRead()) {           
             if(_onDataCb) _onDataCb();
             dataReady = true;            // only if the main sensor is ready
@@ -57,8 +56,6 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
         DEBUG("-->[E][PMSENSOR] init failed!");
     }
 
-    // TODO: enable/disable via flag
-    H&TInit();
 }
 
 /// set loop time interval for each sensor sample
@@ -305,8 +302,10 @@ void Sensors::bme280Read() {
 }
 
 void Sensors::aht10Read() {
-    humi = aht.getTemperatureSensor();
-    temp = aht.getHumiditySensor();
+    sensors_event_t aht_humi, aht_temp;
+    aht.getEvent(&aht_humi, &aht_temp);
+    temp = aht_temp.temperature;
+    humi = aht_humi.relative_humidity;
     if (isnan(humi)) humi = 0.0;
     if (isnan(temp)) temp = 0.0;
 }
