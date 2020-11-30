@@ -3,6 +3,15 @@
 // Humidity sensor
 Adafruit_AM2320 am2320 = Adafruit_AM2320();
 
+//BME280
+ Adafruit_BME280 bme;           // BME280 I2C
+//AHT10
+ Adafruit_AHTX0 aht;
+ Adafruit_Sensor *aht_humidity, *aht_temp;
+//SHT31
+ Adafruit_SHT31 sht31 = Adafruit_SHT31();
+
+
 /***********************************************************************************
  *  P U B L I C   M E T H O D S
  * *********************************************************************************/
@@ -16,7 +25,7 @@ void Sensors::loop() {
     if ((millis() - pmLoopTimeStamp > sample_time * 1000)) {  // sample time for each capture
         dataReady = false;
         pmLoopTimeStamp = millis();
-        am2320Read();
+        H&TRead();
         if(pmSensorRead()) {           
             if(_onDataCb) _onDataCb();
             dataReady = true;            // only if the main sensor is ready
@@ -52,8 +61,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     }
 
     // TODO: enable/disable via flag
-    DEBUG("-->[AM2320] starting AM2320 sensor..");
-    am2320Init();
+    H&TInit();
 }
 
 /// set loop time interval for each sensor sample
@@ -285,9 +293,67 @@ bool Sensors::pmSensorRead() {
     }
 }
 
+void Sensors::H&TRead() {
+    switch (H&T_type) {
+        case am2320:
+            return am2320Read();
+            break;
+
+        case bme280:
+            return bme280Read();
+            break;
+
+        case aht10:
+            return aht10Read();
+            break;
+    
+        case sht31:
+            return sht31Read();
+            break;
+
+        case dht22:
+            return dht22Read();
+            break;            
+
+        default:
+            return false;
+            break;
+    }
+}
+
 void Sensors::am2320Read() {
     humi = am2320.readHumidity();
     temp = am2320.readTemperature();
+    if (isnan(humi)) humi = 0.0;
+    if (isnan(temp)) temp = 0.0;
+}
+
+void Sensors::bme280Read() {
+    humi = bme.readHumidity();
+    temp = bme.readTemperature();
+    if (isnan(humi)) humi = 0.0;
+    if (isnan(temp)) temp = 0.0;
+}
+
+void Sensors::aht10Read() {
+    aht_temp = aht.getTemperatureSensor();
+    aht_humidity = aht.getHumiditySensor();
+    humi = aht_humidity;
+    temp = aht_temp  
+    if (isnan(humi)) humi = 0.0;
+    if (isnan(temp)) temp = 0.0;
+}
+
+void Sensors::sht31Read() {
+    humi = sht31.readHumidity();
+    temp = sht31.readTemperature();
+    if (isnan(humi)) humi = 0.0;
+    if (isnan(temp)) temp = 0.0;
+}
+
+void Sensors::dht22Read() {
+    humi = dht.readHumidity();
+    temp = dht.readTemperature();
     if (isnan(humi)) humi = 0.0;
     if (isnan(temp)) temp = 0.0;
 }
@@ -462,8 +528,58 @@ void Sensors::getSensirionDeviceInfo() {
   DEBUG("-->[SPS30] Library level : ",buf); 
 }
 
+void Sensors::H&TInit() {
+    switch (H&T_type) {
+        case am2320:
+            return am2320Init();
+            break;
+
+        case bme280:
+            return bme280Init();
+            break;
+
+        case aht10:
+            return aht10Init();
+            break;
+    
+        case sht31:
+            return sht31Init();
+            break;
+
+        case dht22:
+            return dht22Init();
+            break;            
+
+        default:
+            return false;
+            break;
+    }
+}
+
 void Sensors::am2320Init() {
+    DEBUG("-->[AM2320] starting AM2320 sensor..");
     am2320.begin();  // temp/humidity sensor
+}
+
+void Sensors::sht31Init() {
+    DEBUG("-->[SHT31] starting SHT31 sensor..");
+    sht31.begin(0x44);  // temp/humidity sensor
+}
+
+void Sensors::bme280Init() {
+    DEBUG("-->[BME280] starting BME280 sensor..");
+    bme.begin(0x76);  // temp/humidity sensor
+}
+
+void Sensors::aht10Init() {
+    DEBUG("-->[AHT10] starting AHT10 sensor..");
+    aht.begin();  // temp/humidity sensor
+}
+
+void Sensors::dht22Init() {
+    DEBUG("-->[DHT22] starting DHT22 sensor..");
+    DHT dht(DHTPIN, DHTTYPE);
+    dht.begin();  // temp/humidity sensor
 }
 
 /// Print some sensors values
