@@ -60,6 +60,11 @@
   [
     {"name":"Adafruit Unified Sensor", "owner":"adafruit"},
     {"name":"Adafruit AM2320 sensor library", "owner":"adafruit"},
-    {"name":"sps30", "owner":"paulvha"}
+    {"name":"sps30", "owner":"paulvha"},
+    {"name":"Adafruit BME280 Library", "owner":"adafruit"},
+    {"name":"Adafruit AHTX0", "owner":"adafruit"},
+    {"name":"Adafruit BusIO", "owner":"adafruit"},
+    {"name":"Adafruit SHT31 Library", "owner":"adafruit"},
+    {"name":"Adafruit DHT sensor library", "owner":"Adafruit"}
   ]
 }
