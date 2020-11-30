@@ -47,13 +47,12 @@ void setup() {
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
     sensors.setDebugMode(true);                     // [optional] debug mode
 
-    // sensors.init();                                  // Auto detection of PM sensors (Honeywell, Plantower, Panasonic)
-    // sensors.init(sensors.Auto);                      // Auto detection of PM sensors (Honeywell, Plantower, Panasonic)
-    // sensors.init(sensors.Panasonic);                 // Force detection to Panasonic sensor
-    // sensors.init(sensors.Sensirion);                 // Force detection to Sensirion sensor
-    // sensors.init(sensors.Auto,mRX,mTX);              // Auto detection and custom RX, TX pines
-    // sensors.init(sensors.Auto,mRX,mTX,DHTPIN,DHT22); // Auto detection, custom RX,TX and custom DHT config
-
+    // sensors.init();                                    // Auto detection of PM sensors (Honeywell, Plantower, Panasonic)
+    // sensors.init(sensors.Auto);                        // Auto detection of PM sensors (Honeywell, Plantower, Panasonic)
+    // sensors.init(sensors.Panasonic);                   // Force detection to Panasonic sensor
+    // sensors.init(sensors.Sensirion);                   // Force detection to Sensirion sensor
+    // sensors.init(sensors.Auto,mRX,mTX);                // Auto detection and custom RX, TX pines
+    // sensors.init(sensors.Auto,PMS_RX,PMS_TX,23,DHT22); // Auto detection, custom RX,TX and custom DHT config
     sensors.init();
 
     if(sensors.isPmSensorConfigured())
