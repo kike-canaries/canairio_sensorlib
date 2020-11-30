@@ -2,15 +2,12 @@
 
 // Humidity sensor
 Adafruit_AM2320 am2320 = Adafruit_AM2320();
-
-//BME280
- Adafruit_BME280 bme;           // BME280 I2C
-//AHT10
- Adafruit_AHTX0 aht;
- Adafruit_Sensor *aht_humidity, *aht_temp;
-//SHT31
- Adafruit_SHT31 sht31 = Adafruit_SHT31();
-
+// BME280 I2C
+Adafruit_BME280 bme;  
+// AHT10
+Adafruit_AHTX0 aht;
+// SHT31
+Adafruit_SHT31 sht31 = Adafruit_SHT31();
 
 /***********************************************************************************
  *  P U B L I C   M E T H O D S
@@ -336,10 +333,8 @@ void Sensors::bme280Read() {
 }
 
 void Sensors::aht10Read() {
-    aht_temp = aht.getTemperatureSensor();
-    aht_humidity = aht.getHumiditySensor();
-    humi = aht_humidity;
-    temp = aht_temp  
+    humi = aht.getTemperatureSensor();
+    temp = aht.getHumiditySensor();
     if (isnan(humi)) humi = 0.0;
     if (isnan(temp)) temp = 0.0;
 }
