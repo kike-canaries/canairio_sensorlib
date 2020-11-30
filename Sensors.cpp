@@ -290,34 +290,6 @@ bool Sensors::pmSensorRead() {
     }
 }
 
-void Sensors::H&TRead() {
-    switch (H&T_type) {
-        case am2320:
-            return am2320Read();
-            break;
-
-        case bme280:
-            return bme280Read();
-            break;
-
-        case aht10:
-            return aht10Read();
-            break;
-    
-        case sht31:
-            return sht31Read();
-            break;
-
-        case dht22:
-            return dht22Read();
-            break;            
-
-        default:
-            return false;
-            break;
-    }
-}
-
 void Sensors::am2320Read() {
     humi = am2320.readHumidity();
     temp = am2320.readTemperature();
