@@ -93,7 +93,7 @@ CanAirIO sensorlib auto configuration demo on [Youtube](https://www.youtube.com/
 
 ---
 
-## Frameworks
+## Examples
 
 ### PlatformIO
 
