@@ -8,6 +8,8 @@ Adafruit_BME280 bme;
 Adafruit_AHTX0 aht;
 // SHT31
 Adafruit_SHT31 sht31 = Adafruit_SHT31();
+// DHT Library
+DHT dht(DHTPIN, DHTTYPE);
 
 /***********************************************************************************
  *  P U B L I C   M E T H O D S
@@ -29,6 +31,13 @@ void Sensors::loop() {
             if(_onErrorCb)_onErrorCb("-->[W][SENSORS] PM sensor not configured!");
             dataReady = false;
         }
+
+        am2320Read();
+        bme280Read();
+        aht10Read();
+        sht31Read();
+        dht22Read();
+
         printValues();
     }
 }
@@ -42,7 +51,7 @@ void Sensors::loop() {
  * @param pms_tx PMS TX pin.
  * @param debug enable PMS log output.
  */
-void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
+void Sensors::init(int pms_type, int pms_rx, int pms_tx, int dht_pin, int dht_type) {
 
     // override with debug INFO level (>=3)
     #ifdef CORE_DEBUG_LEVEL
@@ -56,6 +65,12 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
         DEBUG("-->[E][PMSENSOR] init failed!");
     }
 
+    DEBUG("-->[SENSORS] try to load temp and humidity sensor..");
+    am2320Init();
+    sht31Init();
+    bme280Init();
+    aht10Init();
+    dht22Init(dht_pin, dht_type);
 }
 
 /// set loop time interval for each sensor sample
@@ -494,34 +509,6 @@ void Sensors::getSensirionDeviceInfo() {
   DEBUG("-->[SPS30] Library level : ",buf); 
 }
 
-void Sensors::H&TInit() {
-    switch (H&T_type) {
-        case am2320:
-            return am2320Init();
-            break;
-
-        case bme280:
-            return bme280Init();
-            break;
-
-        case aht10:
-            return aht10Init();
-            break;
-    
-        case sht31:
-            return sht31Init();
-            break;
-
-        case dht22:
-            return dht22Init();
-            break;            
-
-        default:
-            return false;
-            break;
-    }
-}
-
 void Sensors::am2320Init() {
     DEBUG("-->[AM2320] starting AM2320 sensor..");
     am2320.begin();  // temp/humidity sensor
@@ -542,9 +529,9 @@ void Sensors::aht10Init() {
     aht.begin();  // temp/humidity sensor
 }
 
-void Sensors::dht22Init() {
+void Sensors::dht22Init(int pin, int type) {
     DEBUG("-->[DHT22] starting DHT22 sensor..");
-    DHT dht(DHTPIN, DHTTYPE);
+    DHT dht(pin, type);
     dht.begin();  // temp/humidity sensor
 }
 

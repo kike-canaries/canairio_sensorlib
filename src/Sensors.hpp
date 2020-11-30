@@ -37,7 +37,8 @@ using namespace std;
 
 //H&T definitions
 #define SEALEVELPRESSURE_HPA (1013.25)
-#define DHTPIN 23
+#define DHTTYPE DHT22         // DHT 22 (AM2302)
+#define DHTPIN 23             // default pin
 
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
@@ -58,7 +59,7 @@ class Sensors {
     /// Initial sample time for all sensors
     int sample_time = 5;
 
-    void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
+    void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX, int dht_pin = DHTPIN, int dht_type = DHTTYPE);
     void loop();
     bool isDataReady();
     bool isPmSensorConfigured();
@@ -126,7 +127,7 @@ class Sensors {
     void aht10Read();
     void sht31Init();
     void sht31Read();
-    void dht22Init();
+    void dht22Init(int pin, int type);
     void dht22Read();
  
     bool pmSensorInit(int pms_type, int rx, int tx);
