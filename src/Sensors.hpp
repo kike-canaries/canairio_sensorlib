@@ -96,6 +96,8 @@ class Sensors {
 
     /// Sensiriom library
     SPS30 sps30;
+    /// DHTEsp library
+    DHTesp dht;
     /// Generic PM sensors Serial.
     Stream *_serial;
     /// Callback on some sensors error.
