@@ -308,35 +308,50 @@ void Sensors::am2320Read() {
     humi1 = am2320.readHumidity();
     temp1 = am2320.readTemperature();
     if (!isnan(humi1)) humi = humi1;
-    if (!isnan(temp1)) temp = temp1;
+    if (!isnan(temp1)) {
+        temp = temp1;
+        DEBUG("-->[AM2320] read > done!");
+    }
 }
 
 void Sensors::bme280Read() {
     humi1 = bme.readHumidity();
     temp1 = bme.readTemperature();
     if (humi1 != 0) humi = humi1;
-    if (temp1 != 0) temp = temp1;
+    if (temp1 != 0) {
+        temp = temp1;
+        DEBUG("-->[BME280] read > done!");
+    }
 }
 
 void Sensors::aht10Read() {
     humi1 = aht10.readHumidity(); 
     temp1 = aht10.readTemperature();
     if (humi1 != 255) humi = humi1;
-    if (temp1 != 255) temp = temp1;
+    if (temp1 != 255) {
+        temp = temp1;
+        DEBUG("-->[AHT10] read > done!");
+    }
 }
 
 void Sensors::sht31Read() {
     humi1 = sht31.readHumidity();
     temp1 = sht31.readTemperature();
     if (!isnan(humi1)) humi = humi1;
-    if (!isnan(temp1)) temp = temp1;
+    if (!isnan(temp1)) {
+        temp = temp1;
+        DEBUG("-->[SHT31] read > done!");
+    }
 }
 
 void Sensors::dht22Read() {
     humi1 = dht.readHumidity();
     temp1 = dht.readTemperature();
     if (!isnan(humi1)) humi = humi1;
-    if (!isnan(temp1)) temp = temp1;
+    if (!isnan(temp1)) {
+        temp = temp1;
+        DEBUG("-->[DHT11_22] read > done!");
+    }
 }
 
 void Sensors::onPmSensorError(const char *msg) {
