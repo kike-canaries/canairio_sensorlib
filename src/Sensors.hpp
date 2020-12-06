@@ -4,7 +4,7 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_AM2320.h>
 #include <Adafruit_BME280.h>
-#include <Adafruit_AHTX0.h>
+#include <AHT10.h>
 #include <Adafruit_SHT31.h>
 #include <DHT.h>
 #include <sps30.h>
@@ -114,6 +114,8 @@ class Sensors {
 
     float humi = 0.0;  // % Relative humidity
     float temp = 0.0;  // Temperature (°C)
+    float humi1 = 0.0;  // % Relative humidity
+    float temp1 = 0.0;  // Temperature (°C)
     float pres = 0.0;  // Pressure
     float alt = 0.0;
     float gas = 0.0;

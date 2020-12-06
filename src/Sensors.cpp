@@ -5,7 +5,7 @@ Adafruit_AM2320 am2320 = Adafruit_AM2320();
 // BME280 I2C
 Adafruit_BME280 bme;  
 // AHT10
-Adafruit_AHTX0 aht;
+AHT10 aht10(AHT10_ADDRESS_0X38);
 // SHT31
 Adafruit_SHT31 sht31 = Adafruit_SHT31();
 // DHT Library
@@ -303,40 +303,55 @@ bool Sensors::pmSensorRead() {
 }
 
 void Sensors::am2320Read() {
-    humi = am2320.readHumidity();
-    temp = am2320.readTemperature();
-    if (isnan(humi)) humi = 0.0;
-    if (isnan(temp)) temp = 0.0;
+    humi = 0;
+    temp = 0;
+    humi1 = am2320.readHumidity();
+    temp1 = am2320.readTemperature();
+    if (!isnan(humi1)) humi = humi1;
+    if (!isnan(temp1)) {
+        temp = temp1;
+        DEBUG("-->[AM2320] read > done!");
+    }
 }
 
 void Sensors::bme280Read() {
-    humi = bme.readHumidity();
-    temp = bme.readTemperature();
-    if (isnan(humi)) humi = 0.0;
-    if (isnan(temp)) temp = 0.0;
+    humi1 = bme.readHumidity();
+    temp1 = bme.readTemperature();
+    if (humi1 != 0) humi = humi1;
+    if (temp1 != 0) {
+        temp = temp1;
+        DEBUG("-->[BME280] read > done!");
+    }
 }
 
 void Sensors::aht10Read() {
-    sensors_event_t aht_humi, aht_temp;
-    aht.getEvent(&aht_humi, &aht_temp);
-    temp = aht_temp.temperature;
-    humi = aht_humi.relative_humidity;
-    if (isnan(humi)) humi = 0.0;
-    if (isnan(temp)) temp = 0.0;
+    humi1 = aht10.readHumidity(); 
+    temp1 = aht10.readTemperature();
+    if (humi1 != 255) humi = humi1;
+    if (temp1 != 255) {
+        temp = temp1;
+        DEBUG("-->[AHT10] read > done!");
+    }
 }
 
 void Sensors::sht31Read() {
-    humi = sht31.readHumidity();
-    temp = sht31.readTemperature();
-    if (isnan(humi)) humi = 0.0;
-    if (isnan(temp)) temp = 0.0;
+    humi1 = sht31.readHumidity();
+    temp1 = sht31.readTemperature();
+    if (!isnan(humi1)) humi = humi1;
+    if (!isnan(temp1)) {
+        temp = temp1;
+        DEBUG("-->[SHT31] read > done!");
+    }
 }
 
 void Sensors::dht22Read() {
-    humi = dht.readHumidity();
-    temp = dht.readTemperature();
-    if (isnan(humi)) humi = 0.0;
-    if (isnan(temp)) temp = 0.0;
+    humi1 = dht.readHumidity();
+    temp1 = dht.readTemperature();
+    if (!isnan(humi1)) humi = humi1;
+    if (!isnan(temp1)) {
+        temp = temp1;
+        DEBUG("-->[DHT11_22] read > done!");
+    }
 }
 
 void Sensors::onPmSensorError(const char *msg) {
@@ -526,7 +541,7 @@ void Sensors::bme280Init() {
 
 void Sensors::aht10Init() {
     DEBUG("-->[AHT10] starting AHT10 sensor..");
-    aht.begin();  // temp/humidity sensor
+    aht10.begin();  // temp/humidity sensor
 }
 
 void Sensors::dht22Init(int pin, int type) {
