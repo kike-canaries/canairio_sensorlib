@@ -5,7 +5,7 @@ Adafruit_AM2320 am2320 = Adafruit_AM2320();
 // BME280 I2C
 Adafruit_BME280 bme;  
 // AHT10
-Adafruit_AHTX0 aht;
+AHT10 aht10(AHT10_ADDRESS_0X38);
 // SHT31
 Adafruit_SHT31 sht31 = Adafruit_SHT31();
 // DHT Library
@@ -34,7 +34,7 @@ void Sensors::loop() {
 
         am2320Read();
         bme280Read();
-      //  aht10Read();
+        aht10Read();
         sht31Read();
         dht22Read();
 
@@ -319,12 +319,10 @@ void Sensors::bme280Read() {
 }
 
 void Sensors::aht10Read() {
-    sensors_event_t aht_humi, aht_temp;
-    aht.getEvent(&aht_humi, &aht_temp);
-    humi1 = aht_humi.relative_humidity;
-    temp1 = aht_temp.temperature;
-    if (humi1 != 0) humi = humi1;
-    if (temp1 != 0) temp = temp1;
+    humi1 = aht10.readHumidity(); 
+    temp1 = aht10.readTemperature();
+    if (humi1 != 255) humi = humi1;
+    if (temp1 != 255) temp = temp1;
 }
 
 void Sensors::sht31Read() {
@@ -528,7 +526,7 @@ void Sensors::bme280Init() {
 
 void Sensors::aht10Init() {
     DEBUG("-->[AHT10] starting AHT10 sensor..");
-    aht.begin();  // temp/humidity sensor
+    aht10.begin();  // temp/humidity sensor
 }
 
 void Sensors::dht22Init(int pin, int type) {

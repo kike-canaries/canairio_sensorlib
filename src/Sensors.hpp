@@ -4,7 +4,7 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_AM2320.h>
 #include <Adafruit_BME280.h>
-#include <Adafruit_AHTX0.h>
+#include <AHT10.h>
 #include <Adafruit_SHT31.h>
 #include <DHT.h>
 #include <sps30.h>
