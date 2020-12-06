@@ -34,7 +34,7 @@ void Sensors::loop() {
 
         am2320Read();
         bme280Read();
-        aht10Read();
+      //  aht10Read();
         sht31Read();
         dht22Read();
 
@@ -303,40 +303,42 @@ bool Sensors::pmSensorRead() {
 }
 
 void Sensors::am2320Read() {
-    humi = am2320.readHumidity();
-    temp = am2320.readTemperature();
-    if (isnan(humi)) humi = 0.0;
-    if (isnan(temp)) temp = 0.0;
+    humi = 0;
+    temp = 0;
+    humi1 = am2320.readHumidity();
+    temp1 = am2320.readTemperature();
+    if (!isnan(humi1)) humi = humi1;
+    if (!isnan(temp1)) temp = temp1;
 }
 
 void Sensors::bme280Read() {
-    humi = bme.readHumidity();
-    temp = bme.readTemperature();
-    if (isnan(humi)) humi = 0.0;
-    if (isnan(temp)) temp = 0.0;
+    humi1 = bme.readHumidity();
+    temp1 = bme.readTemperature();
+    if (humi1 != 0) humi = humi1;
+    if (temp1 != 0) temp = temp1;
 }
 
 void Sensors::aht10Read() {
     sensors_event_t aht_humi, aht_temp;
     aht.getEvent(&aht_humi, &aht_temp);
-    temp = aht_temp.temperature;
-    humi = aht_humi.relative_humidity;
-    if (isnan(humi)) humi = 0.0;
-    if (isnan(temp)) temp = 0.0;
+    humi1 = aht_humi.relative_humidity;
+    temp1 = aht_temp.temperature;
+    if (humi1 != 0) humi = humi1;
+    if (temp1 != 0) temp = temp1;
 }
 
 void Sensors::sht31Read() {
-    humi = sht31.readHumidity();
-    temp = sht31.readTemperature();
-    if (isnan(humi)) humi = 0.0;
-    if (isnan(temp)) temp = 0.0;
+    humi1 = sht31.readHumidity();
+    temp1 = sht31.readTemperature();
+    if (!isnan(humi1)) humi = humi1;
+    if (!isnan(temp1)) temp = temp1;
 }
 
 void Sensors::dht22Read() {
-    humi = dht.readHumidity();
-    temp = dht.readTemperature();
-    if (isnan(humi)) humi = 0.0;
-    if (isnan(temp)) temp = 0.0;
+    humi1 = dht.readHumidity();
+    temp1 = dht.readTemperature();
+    if (!isnan(humi1)) humi = humi1;
+    if (!isnan(temp1)) temp = temp1;
 }
 
 void Sensors::onPmSensorError(const char *msg) {
