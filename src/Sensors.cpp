@@ -32,10 +32,10 @@ void Sensors::loop() {
             dataReady = false;
         }
 
-        am2320Read();
-        bme280Read();
-        aht10Read();
-        sht31Read();
+        // am2320Read();
+        // bme280Read();
+        // aht10Read();
+        // sht31Read();
         dht22Read();
 
         printValues();
@@ -66,10 +66,10 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     }
 
     DEBUG("-->[SENSORS] try to load temp and humidity sensor..");
-    am2320Init();
-    sht31Init();
-    bme280Init();
-    aht10Init();
+    // am2320Init();
+    // sht31Init();
+    // bme280Init();
+    // aht10Init();
     dht22Init();
 }
 
@@ -345,7 +345,7 @@ void Sensors::sht31Read() {
 }
 
 void Sensors::dht22Read() {
-    delay(delayMS);
+    delay(3000);
     // Get temperature event and print its value.
     sensors_event_t event;
     dht.temperature().getEvent(&event);
