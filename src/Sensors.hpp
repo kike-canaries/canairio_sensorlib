@@ -4,9 +4,10 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_AM2320.h>
 #include <Adafruit_BME280.h>
-#include <Adafruit_AHTX0.h>
+#include <AHT10.h>
 #include <Adafruit_SHT31.h>
 #include <DHT.h>
+#include <DHT_U.h>
 #include <sps30.h>
 using namespace std;
 #include <vector>
@@ -37,8 +38,6 @@ using namespace std;
 
 //H&T definitions
 #define SEALEVELPRESSURE_HPA (1013.25)
-#define DHTTYPE DHT22         // DHT 22 (AM2302)
-#define DHTPIN 23             // default pin
 
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
@@ -59,7 +58,7 @@ class Sensors {
     /// Initial sample time for all sensors
     int sample_time = 5;
 
-    void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX, int dht_pin = DHTPIN, int dht_type = DHTTYPE);
+    void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
     void loop();
     bool isDataReady();
     bool isPmSensorConfigured();
@@ -96,8 +95,9 @@ class Sensors {
 
     /// Sensiriom library
     SPS30 sps30;
-    /// DHTEsp library
-    DHTesp dht;
+    /// DHT library
+    DHT_Unified dht(2, DHT22);
+    uint32_t delayMS;
     /// Generic PM sensors Serial.
     Stream *_serial;
     /// Callback on some sensors error.
@@ -116,6 +116,8 @@ class Sensors {
 
     float humi = 0.0;  // % Relative humidity
     float temp = 0.0;  // Temperature (°C)
+    float humi1 = 0.0;  // % Relative humidity
+    float temp1 = 0.0;  // Temperature (°C)
     float pres = 0.0;  // Pressure
     float alt = 0.0;
     float gas = 0.0;
@@ -129,7 +131,7 @@ class Sensors {
     void aht10Read();
     void sht31Init();
     void sht31Read();
-    void dht22Init(int pin, int type);
+    void dht22Init();
     void dht22Read();
  
     bool pmSensorInit(int pms_type, int rx, int tx);

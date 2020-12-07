@@ -5,11 +5,9 @@ Adafruit_AM2320 am2320 = Adafruit_AM2320();
 // BME280 I2C
 Adafruit_BME280 bme;  
 // AHT10
-Adafruit_AHTX0 aht;
+AHT10 aht10(AHT10_ADDRESS_0X38);
 // SHT31
 Adafruit_SHT31 sht31 = Adafruit_SHT31();
-// DHT Library
-DHT dht(DHTPIN, DHTTYPE);
 
 /***********************************************************************************
  *  P U B L I C   M E T H O D S
@@ -51,7 +49,7 @@ void Sensors::loop() {
  * @param pms_tx PMS TX pin.
  * @param debug enable PMS log output.
  */
-void Sensors::init(int pms_type, int pms_rx, int pms_tx, int dht_pin, int dht_type) {
+void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
 
     // override with debug INFO level (>=3)
     #ifdef CORE_DEBUG_LEVEL
@@ -70,7 +68,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx, int dht_pin, int dht_ty
     sht31Init();
     bme280Init();
     aht10Init();
-    dht22Init(dht_pin, dht_type);
+    dht22Init();
 }
 
 /// set loop time interval for each sensor sample
@@ -303,40 +301,55 @@ bool Sensors::pmSensorRead() {
 }
 
 void Sensors::am2320Read() {
-    humi = am2320.readHumidity();
-    temp = am2320.readTemperature();
-    if (isnan(humi)) humi = 0.0;
-    if (isnan(temp)) temp = 0.0;
+    humi = 0;
+    temp = 0;
+    humi1 = am2320.readHumidity();
+    temp1 = am2320.readTemperature();
+    if (!isnan(humi1)) humi = humi1;
+    if (!isnan(temp1)) {
+        temp = temp1;
+        DEBUG("-->[AM2320] read > done!");
+    }
 }
 
 void Sensors::bme280Read() {
-    humi = bme.readHumidity();
-    temp = bme.readTemperature();
-    if (isnan(humi)) humi = 0.0;
-    if (isnan(temp)) temp = 0.0;
+    humi1 = bme.readHumidity();
+    temp1 = bme.readTemperature();
+    if (humi1 != 0) humi = humi1;
+    if (temp1 != 0) {
+        temp = temp1;
+        DEBUG("-->[BME280] read > done!");
+    }
 }
 
 void Sensors::aht10Read() {
-    sensors_event_t aht_humi, aht_temp;
-    aht.getEvent(&aht_humi, &aht_temp);
-    temp = aht_temp.temperature;
-    humi = aht_humi.relative_humidity;
-    if (isnan(humi)) humi = 0.0;
-    if (isnan(temp)) temp = 0.0;
+    humi1 = aht10.readHumidity(); 
+    temp1 = aht10.readTemperature();
+    if (humi1 != 255) humi = humi1;
+    if (temp1 != 255) {
+        temp = temp1;
+        DEBUG("-->[AHT10] read > done!");
+    }
 }
 
 void Sensors::sht31Read() {
-    humi = sht31.readHumidity();
-    temp = sht31.readTemperature();
-    if (isnan(humi)) humi = 0.0;
-    if (isnan(temp)) temp = 0.0;
+    humi1 = sht31.readHumidity();
+    temp1 = sht31.readTemperature();
+    if (!isnan(humi1)) humi = humi1;
+    if (!isnan(temp1)) {
+        temp = temp1;
+        DEBUG("-->[SHT31] read > done!");
+    }
 }
 
 void Sensors::dht22Read() {
-    humi = dht.readHumidity();
-    temp = dht.readTemperature();
-    if (isnan(humi)) humi = 0.0;
-    if (isnan(temp)) temp = 0.0;
+    delay(delayMS);
+    // Get temperature event and print its value.
+    sensors_event_t event;
+    dht.temperature().getEvent(&event);
+    if (!isnan(event.temperature)) temp = event.temperature;
+    dht.humidity().getEvent(&event);
+    if (!isnan(event.relative_humidity)) humi = event.relative_humidity;
 }
 
 void Sensors::onPmSensorError(const char *msg) {
@@ -526,13 +539,53 @@ void Sensors::bme280Init() {
 
 void Sensors::aht10Init() {
     DEBUG("-->[AHT10] starting AHT10 sensor..");
-    aht.begin();  // temp/humidity sensor
+    aht10.begin();  // temp/humidity sensor
 }
 
-void Sensors::dht22Init(int pin, int type) {
+void Sensors::dht22Init() {
     DEBUG("-->[DHT22] starting DHT22 sensor..");
-    DHT dht(pin, type);
     dht.begin();  // temp/humidity sensor
+    sensor_t sensor;
+    dht.temperature().getSensor(&sensor);
+    Serial.println(F("------------------------------------"));
+    Serial.println(F("Temperature Sensor"));
+    Serial.print(F("Sensor Type: "));
+    Serial.println(sensor.name);
+    Serial.print(F("Driver Ver:  "));
+    Serial.println(sensor.version);
+    Serial.print(F("Unique ID:   "));
+    Serial.println(sensor.sensor_id);
+    Serial.print(F("Max Value:   "));
+    Serial.print(sensor.max_value);
+    Serial.println(F("°C"));
+    Serial.print(F("Min Value:   "));
+    Serial.print(sensor.min_value);
+    Serial.println(F("°C"));
+    Serial.print(F("Resolution:  "));
+    Serial.print(sensor.resolution);
+    Serial.println(F("°C"));
+    Serial.println(F("------------------------------------"));
+    // Print humidity sensor details.
+    dht.humidity().getSensor(&sensor);
+    Serial.println(F("Humidity Sensor"));
+    Serial.print(F("Sensor Type: "));
+    Serial.println(sensor.name);
+    Serial.print(F("Driver Ver:  "));
+    Serial.println(sensor.version);
+    Serial.print(F("Unique ID:   "));
+    Serial.println(sensor.sensor_id);
+    Serial.print(F("Max Value:   "));
+    Serial.print(sensor.max_value);
+    Serial.println(F("%"));
+    Serial.print(F("Min Value:   "));
+    Serial.print(sensor.min_value);
+    Serial.println(F("%"));
+    Serial.print(F("Resolution:  "));
+    Serial.print(sensor.resolution);
+    Serial.println(F("%"));
+    Serial.println(F("------------------------------------"));
+    // Set delay between sensor readings based on sensor details.
+    delayMS = sensor.min_delay / 1000;
 }
 
 /// Print some sensors values
