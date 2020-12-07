@@ -8,6 +8,8 @@ Adafruit_BME280 bme;
 AHT10 aht10(AHT10_ADDRESS_0X38);
 // SHT31
 Adafruit_SHT31 sht31 = Adafruit_SHT31();
+// DHT22
+DHT_Unified dht(DHTPIN, DHT22);
 
 /***********************************************************************************
  *  P U B L I C   M E T H O D S

@@ -39,6 +39,9 @@ using namespace std;
 //H&T definitions
 #define SEALEVELPRESSURE_HPA (1013.25)
 
+//DHT22 Library
+#define DHTPIN 2     // Digital pin connected to the DHT sensor 
+
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
 
@@ -96,7 +99,6 @@ class Sensors {
     /// Sensiriom library
     SPS30 sps30;
     /// DHT library
-    DHT_Unified dht(2, DHT22);
     uint32_t delayMS;
     /// Generic PM sensors Serial.
     Stream *_serial;
