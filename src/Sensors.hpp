@@ -39,8 +39,9 @@ using namespace std;
 #define SEALEVELPRESSURE_HPA (1013.25)
 
 //DHT22 Library
+
 #define DHT_SENSOR_TYPE DHT_TYPE_22
-#define DHT_SENSOR_PIN 2     // Digital pin connected to the DHT sensor 
+static const int DHT_SENSOR_PIN = 2;  // Digital pin connected to the DHT sensor
 
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
@@ -60,6 +61,15 @@ class Sensors {
 
     /// Initial sample time for all sensors
     int sample_time = 5;
+
+    // Humidity sensor
+    Adafruit_AM2320 am2320; 
+    // BME280 I2C
+    Adafruit_BME280 bme;
+    // AHT10
+    AHT10 aht10;
+    // SHT31
+    Adafruit_SHT31 sht31;
 
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
     void loop();
@@ -136,6 +146,7 @@ class Sensors {
     void aht10Read();
     void sht31Init();
     void sht31Read();
+    void dhtInit();
     void dhtRead();
     bool dhtIsReady(float *temperature, float *humidity);
  

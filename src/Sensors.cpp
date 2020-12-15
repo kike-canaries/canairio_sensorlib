@@ -1,16 +1,6 @@
 #include "Sensors.hpp"
 
-// Humidity sensor
-Adafruit_AM2320 am2320 = Adafruit_AM2320();
-// BME280 I2C
-Adafruit_BME280 bme;  
-// AHT10
-AHT10 aht10(AHT10_ADDRESS_0X38);
-// SHT31
-Adafruit_SHT31 sht31 = Adafruit_SHT31();
-// DHT22
-DHT_nonblocking dht_sensor( DHT_SENSOR_PIN, DHT_SENSOR_TYPE );
-
+DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
 
 /***********************************************************************************
  *  P U B L I C   M E T H O D S
@@ -71,6 +61,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     sht31Init();
     bme280Init();
     aht10Init();
+    dhtInit();
 }
 
 /// set loop time interval for each sensor sample
@@ -535,11 +526,13 @@ void Sensors::getSensirionDeviceInfo() {
 
 void Sensors::am2320Init() {
     DEBUG("-->[AM2320] starting AM2320 sensor..");
+    am2320 = Adafruit_AM2320();
     am2320.begin();  // temp/humidity sensor
 }
 
 void Sensors::sht31Init() {
     DEBUG("-->[SHT31] starting SHT31 sensor..");
+    sht31 = Adafruit_SHT31();
     sht31.begin(0x44);  // temp/humidity sensor
 }
 
@@ -550,7 +543,11 @@ void Sensors::bme280Init() {
 
 void Sensors::aht10Init() {
     DEBUG("-->[AHT10] starting AHT10 sensor..");
+    aht10 = AHT10(AHT10_ADDRESS_0X38);
     aht10.begin();  // temp/humidity sensor
+}
+
+void Sensors::dhtInit() {
 }
 
 /// Print some sensors values
