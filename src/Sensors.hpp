@@ -6,8 +6,7 @@
 #include <Adafruit_BME280.h>
 #include <AHT10.h>
 #include <Adafruit_SHT31.h>
-#include <DHT.h>
-#include <DHT_U.h>
+#include <dht_nonblocking.h>
 #include <sps30.h>
 using namespace std;
 #include <vector>
@@ -27,8 +26,8 @@ using namespace std;
 #define PMS_RX 13  // config for TTGO_TQ board
 #define PMS_TX 18
 #else
-#define PMS_RX 17  // config for D1MIN1 board
-#define PMS_TX 16
+#define PMS_RX 21  // config for D1MIN1 board
+#define PMS_TX 23
 #endif
 
 #define SENSOR_RETRY 1000  // Sensor read retry. (unit chars)
@@ -40,7 +39,8 @@ using namespace std;
 #define SEALEVELPRESSURE_HPA (1013.25)
 
 //DHT22 Library
-#define DHTPIN 2     // Digital pin connected to the DHT sensor 
+#define DHT_SENSOR_TYPE DHT_TYPE_22
+#define DHT_SENSOR_PIN 2     // Digital pin connected to the DHT sensor 
 
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
@@ -124,6 +124,9 @@ class Sensors {
     float alt = 0.0;
     float gas = 0.0;
 
+    float dht22humi;
+    float dht22temp;
+
     void restart();
     void am2320Init();
     void am2320Read();
@@ -133,8 +136,8 @@ class Sensors {
     void aht10Read();
     void sht31Init();
     void sht31Read();
-    void dht22Init();
-    void dht22Read();
+    void dhtRead();
+    bool dhtIsReady(float *temperature, float *humidity);
  
     bool pmSensorInit(int pms_type, int rx, int tx);
     bool pmSensorAutoDetect(int pms_type);
