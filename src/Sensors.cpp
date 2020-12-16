@@ -1,16 +1,6 @@
 #include "Sensors.hpp"
 
-// Humidity sensor
-Adafruit_AM2320 am2320 = Adafruit_AM2320();
-
-//BME280
- Adafruit_BME280 bme;           // BME280 I2C
-//AHT10
- Adafruit_AHTX0 aht;
- Adafruit_Sensor *aht_humidity, *aht_temp;
-//SHT31
- Adafruit_SHT31 sht31 = Adafruit_SHT31();
-
+DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
 
 /***********************************************************************************
  *  P U B L I C   M E T H O D S
@@ -25,7 +15,6 @@ void Sensors::loop() {
     if ((millis() - pmLoopTimeStamp > sample_time * 1000)) {  // sample time for each capture
         dataReady = false;
         pmLoopTimeStamp = millis();
-        H&TRead();
         if(pmSensorRead()) {           
             if(_onDataCb) _onDataCb();
             dataReady = true;            // only if the main sensor is ready
@@ -33,8 +22,15 @@ void Sensors::loop() {
             if(_onErrorCb)_onErrorCb("-->[W][SENSORS] PM sensor not configured!");
             dataReady = false;
         }
+
+        am2320Read();
+        bme280Read();
+        aht10Read();
+        sht31Read();
         printValues();
     }
+
+    dhtRead();  // DHT2x sensors need check fastest
 }
 
 /**
@@ -60,8 +56,12 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
         DEBUG("-->[E][PMSENSOR] init failed!");
     }
 
-    // TODO: enable/disable via flag
-    H&TInit();
+    DEBUG("-->[SENSORS] try to load temp and humidity sensor..");
+    am2320Init();
+    sht31Init();
+    bme280Init();
+    aht10Init();
+    dhtInit();
 }
 
 /// set loop time interval for each sensor sample
@@ -293,69 +293,70 @@ bool Sensors::pmSensorRead() {
     }
 }
 
-void Sensors::H&TRead() {
-    switch (H&T_type) {
-        case am2320:
-            return am2320Read();
-            break;
-
-        case bme280:
-            return bme280Read();
-            break;
-
-        case aht10:
-            return aht10Read();
-            break;
-    
-        case sht31:
-            return sht31Read();
-            break;
-
-        case dht22:
-            return dht22Read();
-            break;            
-
-        default:
-            return false;
-            break;
+void Sensors::am2320Read() {
+    humi1 = am2320.readHumidity();
+    temp1 = am2320.readTemperature();
+    if (!isnan(humi1)) humi = humi1;
+    if (!isnan(temp1)) {
+        temp = temp1;
+        DEBUG("-->[AM2320] read > done!");
     }
 }
 
-void Sensors::am2320Read() {
-    humi = am2320.readHumidity();
-    temp = am2320.readTemperature();
-    if (isnan(humi)) humi = 0.0;
-    if (isnan(temp)) temp = 0.0;
-}
-
 void Sensors::bme280Read() {
-    humi = bme.readHumidity();
-    temp = bme.readTemperature();
-    if (isnan(humi)) humi = 0.0;
-    if (isnan(temp)) temp = 0.0;
+    humi1 = bme.readHumidity();
+    temp1 = bme.readTemperature();
+    if (humi1 != 0) humi = humi1;
+    if (temp1 != 0) {
+        temp = temp1;
+        DEBUG("-->[BME280] read > done!");
+    }
 }
 
 void Sensors::aht10Read() {
-    aht_temp = aht.getTemperatureSensor();
-    aht_humidity = aht.getHumiditySensor();
-    humi = aht_humidity;
-    temp = aht_temp  
-    if (isnan(humi)) humi = 0.0;
-    if (isnan(temp)) temp = 0.0;
+    humi1 = aht10.readHumidity(); 
+    temp1 = aht10.readTemperature();
+    if (humi1 != 255) humi = humi1;
+    if (temp1 != 255) {
+        temp = temp1;
+        DEBUG("-->[AHT10] read > done!");
+    }
 }
 
 void Sensors::sht31Read() {
-    humi = sht31.readHumidity();
-    temp = sht31.readTemperature();
-    if (isnan(humi)) humi = 0.0;
-    if (isnan(temp)) temp = 0.0;
+    humi1 = sht31.readHumidity();
+    temp1 = sht31.readTemperature();
+    if (!isnan(humi1)) humi = humi1;
+    if (!isnan(temp1)) {
+        temp = temp1;
+        DEBUG("-->[SHT31] read > done!");
+    }
 }
 
-void Sensors::dht22Read() {
-    humi = dht.readHumidity();
-    temp = dht.readTemperature();
-    if (isnan(humi)) humi = 0.0;
-    if (isnan(temp)) temp = 0.0;
+bool Sensors::dhtIsReady(float *temperature, float *humidity) {
+    static unsigned long measurement_timestamp = millis();
+
+    /* Measure once every four seconds. */
+    if (millis() - measurement_timestamp > 4000ul) {
+        if (dht_sensor.measure(temperature, humidity) == true) {
+            measurement_timestamp = millis();
+            return (true);
+        }
+    }
+
+    return (false);
+}
+
+void Sensors::setDHTparameters (int dht_sensor_pin, int dht_sensor_type) {
+    DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
+}
+
+void Sensors::dhtRead() {
+    if (dhtIsReady(&dhttemp, &dhthumi) == true) {
+        temp=dhttemp;
+        humi=dhthumi;
+        DEBUG("-->[DHTXX] read > done!");
+    }
 }
 
 void Sensors::onPmSensorError(const char *msg) {
@@ -528,41 +529,15 @@ void Sensors::getSensirionDeviceInfo() {
   DEBUG("-->[SPS30] Library level : ",buf); 
 }
 
-void Sensors::H&TInit() {
-    switch (H&T_type) {
-        case am2320:
-            return am2320Init();
-            break;
-
-        case bme280:
-            return bme280Init();
-            break;
-
-        case aht10:
-            return aht10Init();
-            break;
-    
-        case sht31:
-            return sht31Init();
-            break;
-
-        case dht22:
-            return dht22Init();
-            break;            
-
-        default:
-            return false;
-            break;
-    }
-}
-
 void Sensors::am2320Init() {
     DEBUG("-->[AM2320] starting AM2320 sensor..");
+    am2320 = Adafruit_AM2320();
     am2320.begin();  // temp/humidity sensor
 }
 
 void Sensors::sht31Init() {
     DEBUG("-->[SHT31] starting SHT31 sensor..");
+    sht31 = Adafruit_SHT31();
     sht31.begin(0x44);  // temp/humidity sensor
 }
 
@@ -573,19 +548,17 @@ void Sensors::bme280Init() {
 
 void Sensors::aht10Init() {
     DEBUG("-->[AHT10] starting AHT10 sensor..");
-    aht.begin();  // temp/humidity sensor
+    aht10 = AHT10(AHT10_ADDRESS_0X38);
+    aht10.begin();  // temp/humidity sensor
 }
 
-void Sensors::dht22Init() {
-    DEBUG("-->[DHT22] starting DHT22 sensor..");
-    DHT dht(DHTPIN, DHTTYPE);
-    dht.begin();  // temp/humidity sensor
+void Sensors::dhtInit() {
 }
 
 /// Print some sensors values
 void Sensors::printValues() {
     char output[100];
-    sprintf(output, "PM1:%03d PM25:%03d PM10:%03d H:%02d%% T:%02d°C", pm1, pm25, pm10, (int)humi, (int)temp);
+    sprintf(output, "PM1:%03d PM25:%03d PM10:%03d H:%03f%% T:%03f°C", pm1, pm25, pm10, humi, temp);
     DEBUG("-->[SENSORS]", output);
 }
 

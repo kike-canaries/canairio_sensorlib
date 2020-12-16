@@ -11,6 +11,9 @@ Particle meter (PM) sensor manager for multiple (PM) sensors: Honeywell, Plantow
 - [x] Implemented `Sensirion` autodection flow (for original library)
 - [x] Disable/enable logs (debug mode flag)
 - [x] Debugging compatible with ESP32 log level
+- [x] Added bme280, aht10, sht31, am2320 i2c sensors
+- [x] Exposed public sub-libraries objects, sps30, aht10, etc.
+- [ ] Added old DHT sensors 
 - [ ] BME680 support (from TTGO-T7 CanAirIO version)
 
 ## Usage
@@ -53,6 +56,11 @@ void setup() {
                                                     // force to try autodetection,
                                                     // you can try to select one:
                                                     // sensors.init(sensors.Sensirion);
+
+    // Also you can access to special public objects, for example:
+    // sensors.sps30.sleep()
+    // sensors.bme.readPressure();
+
 
     if(sensors.isPmSensorConfigured())
         Serial.println("-->[SETUP] Sensor configured: " + sensors.getPmDeviceSelected());

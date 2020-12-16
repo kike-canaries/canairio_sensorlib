@@ -4,9 +4,9 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_AM2320.h>
 #include <Adafruit_BME280.h>
-#include <Adafruit_AHTX0.h>
+#include <AHT10.h>
 #include <Adafruit_SHT31.h>
-#include <DHT.h>
+#include <dht_nonblocking.h>
 #include <sps30.h>
 using namespace std;
 #include <vector>
@@ -37,8 +37,10 @@ using namespace std;
 
 //H&T definitions
 #define SEALEVELPRESSURE_HPA (1013.25)
-#define DHTTYPE DHT22         // DHT 22 (AM2302)
-#define DHTPIN 23
+
+//DHT Library
+#define DHT_SENSOR_PIN 2              // Digital pin connected to the DHT sensor
+#define DHT_SENSOR_TYPE DHT_TYPE_22   // DHT sensor type
 
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
@@ -58,6 +60,19 @@ class Sensors {
 
     /// Initial sample time for all sensors
     int sample_time = 5;
+    
+    /// Sensiriom library
+    SPS30 sps30;
+    // Humidity sensor
+    Adafruit_AM2320 am2320; 
+    // BME280 I2C
+    Adafruit_BME280 bme;
+    // AHT10
+    AHT10 aht10;
+    // SHT31
+    Adafruit_SHT31 sht31;
+    // DHT sensor
+    float dhthumi, dhttemp;
 
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
     void loop();
@@ -67,6 +82,7 @@ class Sensors {
     void setOnDataCallBack(voidCbFn cb);
     void setOnErrorCallBack(errorCbFn cb);
     void setDebugMode(bool enable);
+    void setDHTparameters (int dht_sensor_pin = DHT_SENSOR_PIN, int dht_sensor_type = DHT_SENSOR_TYPE);
     int getPmDeviceTypeSelected();
     String getPmDeviceSelected();
 
@@ -94,8 +110,8 @@ class Sensors {
 
    private:
 
-    /// Sensiriom library
-    SPS30 sps30;
+    /// DHT library
+    uint32_t delayMS;
     /// Generic PM sensors Serial.
     Stream *_serial;
     /// Callback on some sensors error.
@@ -114,6 +130,8 @@ class Sensors {
 
     float humi = 0.0;  // % Relative humidity
     float temp = 0.0;  // Temperature (°C)
+    float humi1 = 0.0;  // % Relative humidity
+    float temp1 = 0.0;  // Temperature (°C)
     float pres = 0.0;  // Pressure
     float alt = 0.0;
     float gas = 0.0;
@@ -127,8 +145,9 @@ class Sensors {
     void aht10Read();
     void sht31Init();
     void sht31Read();
-    void dht22Init();
-    void dht22Read();
+    void dhtInit();
+    void dhtRead();
+    bool dhtIsReady(float *temperature, float *humidity);
  
     bool pmSensorInit(int pms_type, int rx, int tx);
     bool pmSensorAutoDetect(int pms_type);
