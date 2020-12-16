@@ -58,13 +58,13 @@
   "license": "GPL-3.0-only",
   "dependencies":
   [
-    {"name":"Adafruit Unified Sensor", "owner":"adafruit"},
-    {"name":"Adafruit AM2320 sensor library", "owner":"adafruit"},
-    {"name":"sps30", "owner":"paulvha"},
-    {"name":"Adafruit BME280 Library", "owner":"adafruit"},
-    {"name":"Adafruit AHTX0", "owner":"adafruit"},
-    {"name":"Adafruit BusIO", "owner":"adafruit"},
-    {"name":"Adafruit SHT31 Library", "owner":"adafruit"},
-    {"name":"Adafruit DHT sensor library", "owner":"Adafruit"}
+    {"name":"Adafruit Unified Sensor", "owner":"adafruit", "version":"1.1.4"},
+    {"name":"Adafruit AM2320 sensor library", "owner":"adafruit", "version":"1.1.4"},
+    {"name":"sps30", "owner":"paulvha","version":"1.4.9"},
+    {"name":"Adafruit BME280 Library", "owner":"adafruit","version":"2.1.2"},
+    {"name":"AHT10", "owner":"enjoyneering","version":"1.1.0"},
+    {"name":"Adafruit BusIO", "owner":"adafruit","version":"1.6.0"},
+    {"name":"Adafruit SHT31 Library", "owner":"adafruit","version":"2.0.0"},
+    {"name":"DHT_nonblocking", "version":"https://github.com/hpsaturn/DHT_nonblocking/archive/master.zip"}
   ]
 }
