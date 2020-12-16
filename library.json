@@ -20,7 +20,7 @@
     "PM1.0",
     "PM10"
   ],
-  "description":"Particle meter sensor manager for multiple sensors: Honeywell, Plantower, Panasonic, Sensirion, etc, also it handling other kind sensors like AM2320 sensor. Autodetection via UART of each particle meter sensor. ESP32 compatible",
+  "description":"Particle meter sensor manager for multiple sensors: Honeywell, Plantower, Panasonic, Sensirion, etc, also it handling other kind sensors like AM2320, bme280, aht10, sht31, DHT. Autodetection via UART of each particle meter sensor. ESP32/8266 compatible",
   "repository":
   {
     "type": "git",
@@ -31,7 +31,8 @@
   [
     "atmelavr",
     "teensy",
-    "espressif32"
+    "espressif32",
+    "espressif8266"
   ],
   "export": {
     "exclude":
