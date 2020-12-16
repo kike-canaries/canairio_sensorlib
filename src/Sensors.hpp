@@ -39,7 +39,7 @@ using namespace std;
 #define SEALEVELPRESSURE_HPA (1013.25)
 
 //DHT Library
-#define DHT_SENSOR_PIN 2              // Digital pin connected to the DHT sensor
+#define DHT_SENSOR_PIN 23             // Digital pin connected to the DHT sensor
 #define DHT_SENSOR_TYPE DHT_TYPE_22   // DHT sensor type
 
 typedef void (*errorCbFn)(const char *msg);
