@@ -347,6 +347,11 @@ bool Sensors::dhtIsReady(float *temperature, float *humidity) {
     return (false);
 }
 
+
+void Sensors::setDHTparameters (int dht_sensor_pin, int dht_sensor_type) {
+    DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
+}
+
 void Sensors::dhtRead() {
     if (dhtIsReady(&dhttemp, &dhthumi) == true) {
         temp=dhttemp;

@@ -38,10 +38,9 @@ using namespace std;
 //H&T definitions
 #define SEALEVELPRESSURE_HPA (1013.25)
 
-//DHT22 Library
-
-#define DHT_SENSOR_TYPE DHT_TYPE_22
-static const int DHT_SENSOR_PIN = 2;  // Digital pin connected to the DHT sensor
+//DHT Library
+#define DHT_SENSOR_PIN 2              // Digital pin connected to the DHT sensor
+#define DHT_SENSOR_TYPE DHT_TYPE_22   // DHT sensor type
 
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
@@ -72,9 +71,8 @@ class Sensors {
     AHT10 aht10;
     // SHT31
     Adafruit_SHT31 sht31;
-    // DHT sensors
-    float dhthumi;
-    float dhttemp;
+    // DHT sensor
+    float dhthumi, dhttemp;
 
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
     void loop();
@@ -84,6 +82,7 @@ class Sensors {
     void setOnDataCallBack(voidCbFn cb);
     void setOnErrorCallBack(errorCbFn cb);
     void setDebugMode(bool enable);
+    void setDHTparameters (int dht_sensor_pin = DHT_SENSOR_PIN, int dht_sensor_type = DHT_SENSOR_TYPE);
     int getPmDeviceTypeSelected();
     String getPmDeviceSelected();
 
