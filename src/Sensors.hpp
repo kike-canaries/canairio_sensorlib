@@ -61,7 +61,9 @@ class Sensors {
 
     /// Initial sample time for all sensors
     int sample_time = 5;
-
+    
+    /// Sensiriom library
+    SPS30 sps30;
     // Humidity sensor
     Adafruit_AM2320 am2320; 
     // BME280 I2C
@@ -70,6 +72,9 @@ class Sensors {
     AHT10 aht10;
     // SHT31
     Adafruit_SHT31 sht31;
+    // DHT sensors
+    float dhthumi;
+    float dhttemp;
 
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
     void loop();
@@ -106,8 +111,6 @@ class Sensors {
 
    private:
 
-    /// Sensiriom library
-    SPS30 sps30;
     /// DHT library
     uint32_t delayMS;
     /// Generic PM sensors Serial.
@@ -133,9 +136,6 @@ class Sensors {
     float pres = 0.0;  // Pressure
     float alt = 0.0;
     float gas = 0.0;
-
-    float dht22humi;
-    float dht22temp;
 
     void restart();
     void am2320Init();

@@ -348,9 +348,10 @@ bool Sensors::dhtIsReady(float *temperature, float *humidity) {
 }
 
 void Sensors::dhtRead() {
-    if (dhtIsReady(&dht22temp, &dht22humi) == true) {
-        temp=dht22temp;
-        humi=dht22humi;
+    if (dhtIsReady(&dhttemp, &dhthumi) == true) {
+        temp=dhttemp;
+        humi=dhthumi;
+        DEBUG("-->[DHTXX] read > done!");
     }
 }
 
