@@ -20,7 +20,7 @@
     "PM1.0",
     "PM10"
   ],
-  "description":"Particle meter sensor manager for multiple sensors: Honeywell, Plantower, Panasonic, Sensirion, etc, also it handling other kind sensors like AM2320 sensor. Autodetection via UART of each particle meter sensor. ESP32 compatible",
+  "description":"Particle meter sensor manager for multiple sensors: Honeywell, Plantower, Panasonic, Sensirion, etc, also it handling other kind sensors like AM2320, bme280, aht10, sht31, DHT. Autodetection via UART of each particle meter sensor. ESP32/8266 compatible",
   "repository":
   {
     "type": "git",
@@ -31,7 +31,8 @@
   [
     "atmelavr",
     "teensy",
-    "espressif32"
+    "espressif32",
+    "espressif8266"
   ],
   "export": {
     "exclude":
@@ -60,8 +61,13 @@
   "license": "GPL-3.0-only",
   "dependencies":
   [
-    {"name":"Adafruit Unified Sensor", "owner":"adafruit"},
-    {"name":"Adafruit AM2320 sensor library", "owner":"adafruit"},
-    {"name":"sps30", "owner":"paulvha"}
+    {"name":"Adafruit Unified Sensor", "owner":"adafruit", "version":"1.1.4"},
+    {"name":"Adafruit AM2320 sensor library", "owner":"adafruit", "version":"1.1.4"},
+    {"name":"sps30", "owner":"paulvha","version":"1.4.9"},
+    {"name":"Adafruit BME280 Library", "owner":"adafruit","version":"2.1.2"},
+    {"name":"AHT10", "owner":"enjoyneering","version":"1.1.0"},
+    {"name":"Adafruit BusIO", "owner":"adafruit","version":"1.6.0"},
+    {"name":"Adafruit SHT31 Library", "owner":"adafruit","version":"2.0.0"},
+    {"name":"DHT_nonblocking", "version":"https://github.com/hpsaturn/DHT_nonblocking/archive/master.zip"}
   ]
 }

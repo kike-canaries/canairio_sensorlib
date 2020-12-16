@@ -23,8 +23,6 @@ void onSensorDataOk() {
     Serial.print (" PM2.5: " + sensors.getStringPM25());
     Serial.print (" PM10: " + sensors.getStringPM10());
     Serial.print (" PM1: " + sensors.getStringPM1());
-    Serial.print (" T: " + String(sensors.getTemperature()));
-    Serial.println(" H: "+ String(sensors.getHumidity()));
 }
 
 void onSensorDataError(const char * msg){ 
@@ -47,13 +45,7 @@ void setup() {
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
     sensors.setDebugMode(true);                     // [optional] debug mode
 
-    // sensors.init();                                    // Auto detection of PM sensors (Honeywell, Plantower, Panasonic)
-    // sensors.init(sensors.Auto);                        // Auto detection of PM sensors (Honeywell, Plantower, Panasonic)
-    // sensors.init(sensors.Panasonic);                   // Force detection to Panasonic sensor
-    // sensors.init(sensors.Sensirion);                   // Force detection to Sensirion sensor
-    // sensors.init(sensors.Auto,mRX,mTX);                // Auto detection and custom RX, TX pines
-    // sensors.init(sensors.Auto,PMS_RX,PMS_TX); // Auto detection, custom RX,TX and custom DHT config
-    sensors.init(sensors.Auto);
+    sensors.init(sensors.Sensirion);
 
     if(sensors.isPmSensorConfigured())
         Serial.println("-->[SETUP] Sensor configured: " + sensors.getPmDeviceSelected());
@@ -61,6 +53,21 @@ void setup() {
     delay(500);
 }
 
+uint64_t counter = 0;
+
 void loop() {
-    sensors.loop();  // read sensor data and showed it
+
+    counter++;
+
+    if (counter < 5000000) sensors.loop();  // read sensor data and showed it
+
+    if (counter == 5000000) {
+        Serial.println("sleep sensirion..");
+        sensors.sps30.sleep();
+    }
+    if (counter == 100000000) {
+        Serial.println("wakeup sensirion..");
+        sensors.sps30.wakeup();
+        counter = 0;
+    }
 }
