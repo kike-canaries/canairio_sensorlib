@@ -26,8 +26,8 @@ using namespace std;
 #define PMS_RX 13  // config for TTGO_TQ board
 #define PMS_TX 18
 #else
-#define PMS_RX 21  // config for D1MIN1 board
-#define PMS_TX 23
+#define PMS_RX 17  // config for D1MIN1 board
+#define PMS_TX 16
 #endif
 
 #define SENSOR_RETRY 1000  // Sensor read retry. (unit chars)

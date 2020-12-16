@@ -347,7 +347,6 @@ bool Sensors::dhtIsReady(float *temperature, float *humidity) {
     return (false);
 }
 
-
 void Sensors::setDHTparameters (int dht_sensor_pin, int dht_sensor_type) {
     DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
 }
@@ -559,7 +558,7 @@ void Sensors::dhtInit() {
 /// Print some sensors values
 void Sensors::printValues() {
     char output[100];
-    sprintf(output, "PM1:%03d PM25:%03d PM10:%03d H:%02d%% T:%02d°C", pm1, pm25, pm10, (int)humi, (int)temp);
+    sprintf(output, "PM1:%03d PM25:%03d PM10:%03d H:%03f%% T:%03f°C", pm1, pm25, pm10, humi, temp);
     DEBUG("-->[SENSORS]", output);
 }
 
