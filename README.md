@@ -13,7 +13,7 @@ Particle meter (PM) sensor manager for multiple (PM) sensors: Honeywell, Plantow
 - [x] Debugging compatible with ESP32 log level
 - [x] Added bme280, aht10, sht31, am2320 i2c sensors
 - [x] Exposed public sub-libraries objects, sps30, aht10, etc.
-- [ ] Added old DHT sensors 
+- [x] Added old DHT sensors 
 - [ ] BME680 support (from TTGO-T7 CanAirIO version)
 
 ## Usage
@@ -77,7 +77,7 @@ void loop() {
 
 ```javascript
 void setup() {
-    sensors.init(0,RX,TX); // generic sensor(default), custom RX, custom TX pines.
+    sensors.init(sensors.Auto,RX,TX); // generic sensor(default), custom RX, custom TX pines.
 }
 ```
 
@@ -119,10 +119,15 @@ pio run --target upload
 
 You first need to run the examples, install **arduino-cli** or the **Arduino IDE** with the following libraries:
 
-Adafruit Unified Sensor  
-Adafruit AM2320 sensor library  
-[Sensirion library sps30](https://github.com/paulvha/sps30)  
-`CanAirIO Air Quality Sensors Library` (this library).
+adafruit/Adafruit Unified Sensor @ 1.1.4  
+adafruit/Adafruit AM2320 sensor library @ 1.1.4  
+adafruit/Adafruit BME280 Library @ 2.1.2  
+adafruit/Adafruit BusIO @ 1.6.0  
+adafruit/Adafruit SHT31 Library @ 2.0.0  
+enjoyneering/AHT10 @ ^1.1.0  
+[DTH_nonblocking](https://github.com/hpsaturn/DHT_nonblocking.git)  
+[Sensirion library sps30](https://github.com/paulvha/sps30) @ 1.4.9  
+`CanAirIO Air Quality Sensors Library` (this library).  
 
 Also you need to add the **alternative links** for supporting the ESP32 boards:
 
