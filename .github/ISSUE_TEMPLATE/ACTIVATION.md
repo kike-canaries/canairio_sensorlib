@@ -1,6 +1,6 @@
 ---
-name: I am having difficulty installing CanAirIO firmware or getting it to work
-about: You have run into problems while downloading or installing CanAirIO firmware or app, or you are running into some other issue before even being able to run the app from the IDE.
+name: I am having difficulty with the CanAirIO library
+about: Please report any  implementation issue of the library or in the execution of some example on it
 title: ''
 labels: 'question'
 assignees: ''
