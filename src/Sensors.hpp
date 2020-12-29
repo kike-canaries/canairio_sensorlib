@@ -7,6 +7,7 @@
 #include <AHT10.h>
 #include <Adafruit_SHT31.h>
 #include <dht_nonblocking.h>
+#include <MHZ19.h>
 #include <sps30.h>
 using namespace std;
 #include <vector>
@@ -50,7 +51,7 @@ class Sensors {
    public:
 
     /// Supported devices. Auto is for Honeywell and Plantower sensors and similars
-    enum SENSOR_TYPE { Auto, Panasonic, Sensirion };
+    enum SENSOR_TYPE { Auto, Panasonic, Sensirion, Mhz19 };
     
     /// SPS30 values. Only for Sensirion SPS30 sensor.
     struct sps_values val;
@@ -73,6 +74,8 @@ class Sensors {
     Adafruit_SHT31 sht31;
     // DHT sensor
     float dhthumi, dhttemp;
+    // Mhz19 sensor
+    MHZ19 myMHZ19;
 
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
     void loop();
@@ -135,6 +138,9 @@ class Sensors {
     float pres = 0.0;  // Pressure
     float alt = 0.0;
     float gas = 0.0;
+    
+    int CO2;
+    float CO2temp;
 
     void restart();
     void am2320Init();
@@ -145,19 +151,22 @@ class Sensors {
     void aht10Read();
     void sht31Init();
     void sht31Read();
+
     void dhtInit();
     void dhtRead();
     bool dhtIsReady(float *temperature, float *humidity);
  
-    bool pmSensorInit(int pms_type, int rx, int tx);
+    bool sensorSerialInit(int pms_type, int rx, int tx);
     bool pmSensorAutoDetect(int pms_type);
     bool pmSensorRead();
     bool pmGenericRead();
     bool pmPanasonicRead();
     bool pmSensirionRead();
+    bool pmMhz19Read();
     void onPmSensorError(const char *msg);
     void printValues();
     bool pmSensirionInit();
+    bool pmMhz19Init();
     void pmSensirionErrtoMess(char *mess, uint8_t r);
     void pmSensirionErrorloop(char *mess, uint8_t r);
     void getSensirionDeviceInfo();
