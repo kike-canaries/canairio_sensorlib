@@ -52,7 +52,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
 
     DEBUG("-->[SENSORS] sample time set to: ",String(sample_time).c_str());
     
-    if(!pmSensorInit(pms_type, pms_rx, pms_tx)){
+    if(!sensorSerialInit(pms_type, pms_rx, pms_tx)){
         DEBUG("-->[E][PMSENSOR] init failed!");
     }
 
@@ -129,6 +129,24 @@ String Sensors::getStringPM10() {
     char output[5];
     sprintf(output, "%03d", getPM10());
     return String(output);
+}
+
+uint16_t Sensors::getCO2() {
+    return CO2;
+}
+
+String Sensors::getStringCO2() {
+    char output[5];
+    sprintf(output, "%04d", getCO2());
+    return String(output);
+}
+
+float Sensors::getCO2humi() {
+    return CO2humi;
+}
+
+float Sensors::getCO2temp() {
+    return CO2temp;
 }
 
 float Sensors::getHumidity() {
@@ -269,6 +287,16 @@ bool Sensors::pmSensirionRead() {
     return true;
 }
 
+bool Sensors:: pmMhz19Read() {
+    CO2 = myMHZ19.getCO2();                             // Request CO2 (as ppm)
+    CO2temp = myMHZ19.getTemperature();                    // Request Temperature (as Celsius)
+    if(CO2>0){
+        DEBUG("-->[MHZ14-9] read > done!");
+        return true;
+    }
+    return false;
+}
+
 /**
  * @brief read sensor data. Sensor selected.
  * @return true if data is loaded from sensor
@@ -286,6 +314,12 @@ bool Sensors::pmSensorRead() {
         case Sensirion:
             return pmSensirionRead();
             break;
+
+        case Mhz19:
+            return pmMhz19Read();
+            break;
+
+
 
         default:
             return false;
@@ -385,7 +419,7 @@ void Sensors::pmSensirionErrorloop(char *mess, uint8_t r) {
  * @param pms_rx PMS RX pin.
  * @param pms_tx PMS TX pin.
  **/
-bool Sensors::pmSensorInit(int pms_type, int pms_rx, int pms_tx) {
+bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
     // set UART for autodetection sensors (Honeywell, Plantower, Panasonic)
     if (pms_type == Auto) {
         DEBUG("-->[PMSENSOR] detecting Generic PM sensor..");
@@ -399,6 +433,10 @@ bool Sensors::pmSensorInit(int pms_type, int pms_rx, int pms_tx) {
     else if (pms_type == Sensirion) {
         DEBUG("-->[PMSENSOR] detecting Sensirion PM sensor..");
         if(!serialInit(pms_type, 115200, pms_rx, pms_tx))return false;
+    }
+    else if (pms_type == Mhz19) {
+        DEBUG("-->[PMSENSOR] detecting Mhz19 sensor..");
+        if(!serialInit(pms_type, 9600, pms_rx, pms_tx))return false;
     }
 
     // starting auto detection loop 
@@ -432,6 +470,14 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
             return true;
         }
     } 
+
+    if (pms_type == Mhz19) {
+        if (pmMhz19Init()) {
+            device_selected = "MHZ19";
+            device_type = Mhz19;
+            return true;
+        }
+    }
     
     if (pms_type <= Panasonic) {
         if (pmGenericRead()) {
@@ -449,6 +495,12 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
     
 
     return false;
+}
+
+bool Sensors:: pmMhz19Init() {
+    myMHZ19.begin(*_serial);                                // *Serial(Stream) refence must be passed to library begin(). 
+    myMHZ19.autoCalibration();                              // Turn auto calibration ON (OFF autoCalibration(false))
+    return true;
 }
 
 bool Sensors::pmSensirionInit() {
@@ -557,8 +609,8 @@ void Sensors::dhtInit() {
 
 /// Print some sensors values
 void Sensors::printValues() {
-    char output[100];
-    sprintf(output, "PM1:%03d PM25:%03d PM10:%03d H:%03f%% T:%03f°C", pm1, pm25, pm10, humi, temp);
+    char output[200];
+    sprintf(output, "PM1:%03d PM25:%03d PM10:%03d CO2:%04d CO2humi:%03f%% CO2temp:%03f°C H:%03f%% T:%03f°C", pm1, pm25, pm10, CO2, CO2humi, CO2temp, humi, temp);
     DEBUG("-->[SENSORS]", output);
 }
 
