@@ -93,7 +93,11 @@ class Sensors {
     uint16_t getPM25();
     uint16_t getPM4();
     uint16_t getPM10();
-
+    uint16_t getCO2();
+    
+    float getCO2humi();
+    float getCO2temp();
+    
     float getTemperature();
     float getHumidity();
     float getPressure();
@@ -110,6 +114,8 @@ class Sensors {
     String getStringPM25();
     String getStringPM4();
     String getStringPM10();
+    String getStringCO2();
+    String getStringCO2temp();    
 
    private:
 
@@ -139,8 +145,9 @@ class Sensors {
     float alt = 0.0;
     float gas = 0.0;
     
-    int CO2;
-    float CO2temp;
+    uint16_t CO2;   // CO2 in ppm
+    float CO2humi = 0.0;    // temperature of the CO2 sensor
+    float CO2temp = 0.0;    // temperature of the CO2 sensor
 
     void restart();
     void am2320Init();

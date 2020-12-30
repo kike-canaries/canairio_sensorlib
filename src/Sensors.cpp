@@ -131,6 +131,24 @@ String Sensors::getStringPM10() {
     return String(output);
 }
 
+uint16_t Sensors::getCO2() {
+    return CO2;
+}
+
+String Sensors::getStringCO2() {
+    char output[5];
+    sprintf(output, "%04d", getCO2());
+    return String(output);
+}
+
+float Sensors::getCO2humi() {
+    return CO2humi;
+}
+
+float Sensors::getCO2temp() {
+    return CO2temp;
+}
+
 float Sensors::getHumidity() {
     return humi;
 }
@@ -273,7 +291,7 @@ bool Sensors:: pmMhz19Read() {
     CO2 = myMHZ19.getCO2();                             // Request CO2 (as ppm)
     CO2temp = myMHZ19.getTemperature();                    // Request Temperature (as Celsius)
     if(CO2>0){
-        DEBUG("-->[AM2320] read > done!");
+        DEBUG("-->[MHZ14-9] read > done!");
         return true;
     }
     return false;
@@ -591,8 +609,8 @@ void Sensors::dhtInit() {
 
 /// Print some sensors values
 void Sensors::printValues() {
-    char output[100];
-    sprintf(output, "PM1:%03d PM25:%03d PM10:%03d H:%03f%% T:%03f°C", pm1, pm25, pm10, humi, temp);
+    char output[200];
+    sprintf(output, "PM1:%03d PM25:%03d PM10:%03d CO2:%04d CO2humi:%03f%% CO2temp:%03f°C H:%03f%% T:%03f°C", pm1, pm25, pm10, CO2, CO2humi, CO2temp, humi, temp);
     DEBUG("-->[SENSORS]", output);
 }
 
