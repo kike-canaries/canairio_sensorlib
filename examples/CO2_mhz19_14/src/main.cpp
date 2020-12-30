@@ -19,16 +19,17 @@
 #include <Sensors.hpp>
 
 void onSensorDataOk() {
-    Serial.print ("-->[MAIN] PM1: "+sensors.getStringPM1());
+    Serial.print ("-->[MAIN] PM1: " + sensors.getStringPM1());
     Serial.print (" PM2.5: " + sensors.getStringPM25());
     Serial.print (" PM10: " + sensors.getStringPM10());
+//    Serial.print (" PM1: " + sensors.getStringPM1());
     Serial.print (" CO2: " + sensors.getStringCO2());
     
     Serial.print (" CO2humi: " + String(sensors.getCO2humi()));
     Serial.print (" CO2temp: " + String(sensors.getCO2temp()));
 
-    Serial.print (" T: " + String(sensors.getTemperature()));
-    Serial.println(" H: "+ String(sensors.getHumidity()));
+    Serial.print(" H: "+ String(sensors.getHumidity()));
+    Serial.println (" T: " + String(sensors.getTemperature()));
 }
 
 void onSensorDataError(const char * msg){ 
@@ -56,8 +57,7 @@ void setup() {
     // sensors.init(sensors.Panasonic);                   // Force detection to Panasonic sensor
     // sensors.init(sensors.Sensirion);                   // Force detection to Sensirion sensor
     // sensors.init(sensors.Auto,mRX,mTX);                // Auto detection and custom RX, TX pines
-    // sensors.init(sensors.Auto,PMS_RX,PMS_TX);          // Auto detection, custom RX,TX and custom DHT config
-    // sensors.init(sensors.Mhz19);                       // Selected Sensor CO2 Mhz19
+    // sensors.init(sensors.Auto,PMS_RX,PMS_TX); // Auto detection, custom RX,TX and custom DHT config
     sensors.init(sensors.Mhz19);
 
     if(sensors.isPmSensorConfigured())
