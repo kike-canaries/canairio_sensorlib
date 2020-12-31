@@ -43,7 +43,7 @@ using namespace std;
 #define DHT_SENSOR_PIN 23             // Digital pin connected to the DHT sensor
 #define DHT_SENSOR_TYPE DHT_TYPE_22   // DHT sensor type
 
-HardwareSerial co2cm1106(1);
+ HardwareSerial co2cm1106(1);
 
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
