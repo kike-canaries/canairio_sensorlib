@@ -58,7 +58,7 @@ void setup() {
     // sensors.init(sensors.Sensirion);                   // Force detection to Sensirion sensor
     // sensors.init(sensors.Auto,mRX,mTX);                // Auto detection and custom RX, TX pines
     // sensors.init(sensors.Auto,PMS_RX,PMS_TX); // Auto detection, custom RX,TX and custom DHT config
-    sensors.init(sensors.Mhz19);
+    sensors.init(sensors.CM1106);
 
     if(sensors.isPmSensorConfigured())
         Serial.println("-->[SETUP] Sensor configured: " + sensors.getPmDeviceSelected());
