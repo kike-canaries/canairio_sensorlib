@@ -547,7 +547,7 @@ bool Sensors:: CO2Mhz19Init() {
 }
 
 bool Sensors:: CO2CM1106Init() {
-    co2cm1106.begin(9600);                                // *Serial(Stream) refence must be passed to library begin(). 
+    co2cm1106.begin(9600);
     return true;
 }
 
