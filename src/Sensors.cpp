@@ -287,7 +287,7 @@ bool Sensors::pmSensirionRead() {
     return true;
 }
 
-bool Sensors:: CO2Mhz19Read() {
+bool Sensors::CO2Mhz19Read() {
     CO2 = myMHZ19.getCO2();                             // Request CO2 (as ppm)
     CO2temp = myMHZ19.getTemperature();                    // Request Temperature (as Celsius)
     if(CO2>0){
@@ -297,7 +297,7 @@ bool Sensors:: CO2Mhz19Read() {
     return false;
 }
 
-bool Sensors:: CO2CM1106Read() {
+bool Sensors::CO2CM1106Read() {
   CO2 = CO2CM1106val();
   Serial.print("CO2 ppm: ");
   Serial.println(CO2);
@@ -311,8 +311,8 @@ bool Sensors:: CO2CM1106Read() {
 int Sensors:: CO2CM1106val() {
   static byte cmd[4] = {0x11, 0x01, 0x01, 0xED}; // Commands 0x01 Read ppm, 0x10 open/close ABC, 0x03 Calibrate 
   static byte response[8] = {0};                 // response 0x16, 0x05, 0x01, DF1, DF2, DF3, DF4, CRC.  ppm=DF1*256+DF2
-  co2cm1106.write(cmd, 4);
-  co2cm1106.readBytes(response, 8);
+  _serial->write(cmd, 4);
+  _serial->readBytes(response, 8);
   int crc = 0;
   for (int i = 0; i < 7; i++) crc += response[i];
   crc = 256 - crc%256;
@@ -321,11 +321,10 @@ int Sensors:: CO2CM1106val() {
     unsigned int responseLow = (unsigned int) response[4];
     return (256 * responseHigh) + responseLow;
   } else {
-    while(co2cm1106.available() > 0)  char t = co2cm1106.read();  // Clear serial input buffer;
+    while(_serial->available() > 0)  char t = _serial->read();  // Clear serial input buffer;
     return -1; 
   }
 }
-
 /**
  * @brief read sensor data. Sensor selected.
  * @return true if data is loaded from sensor
@@ -540,14 +539,13 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
     return false;
 }
 
-bool Sensors:: CO2Mhz19Init() {
+bool Sensors::CO2Mhz19Init() {
     myMHZ19.begin(*_serial);                                // *Serial(Stream) refence must be passed to library begin(). 
     myMHZ19.autoCalibration();                              // Turn auto calibration ON (OFF autoCalibration(false))
     return true;
 }
 
-bool Sensors:: CO2CM1106Init() {
-    co2cm1106.begin(9600);
+bool Sensors::CO2CM1106Init() {
     return true;
 }
 
