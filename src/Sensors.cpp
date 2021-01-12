@@ -299,8 +299,6 @@ bool Sensors::CO2Mhz19Read() {
 
 bool Sensors::CO2CM1106Read() {
   CO2 = CO2CM1106val();
-  Serial.print("CO2 ppm: ");
-  Serial.println(CO2);
     if(CO2>0){
         DEBUG("-->[CM1106] read > done!");
         return true;
