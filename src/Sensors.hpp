@@ -9,6 +9,7 @@
 #include <dht_nonblocking.h>
 #include <MHZ19.h>
 #include <sps30.h>
+#include <SparkFun_SCD30_Arduino_Library.h>
 using namespace std;
 #include <vector>
 
@@ -77,7 +78,9 @@ class Sensors {
     // Mhz19 sensor
     MHZ19 myMHZ19;
     // CM1106
-    //HardwareSerial co2cm1106(1);
+    //uses the same HardwareSerial;
+    // SCD30 sensor
+    SCD30 scd30;
 
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
     void loop();
@@ -149,6 +152,7 @@ class Sensors {
     float gas = 0.0;
     
     uint16_t CO2;   // CO2 in ppm
+    uint16_t CO21;  // CO2 temp
     float CO2humi = 0.0;    // temperature of the CO2 sensor
     float CO2temp = 0.0;    // temperature of the CO2 sensor
 
@@ -161,6 +165,8 @@ class Sensors {
     void aht10Read();
     void sht31Init();
     void sht31Read();
+    void scd30Init();
+    void scd30Read();
 
     void dhtInit();
     void dhtRead();
