@@ -58,9 +58,10 @@ void setup() {
     // sensors.init(sensors.Sensirion);                   // Force detection to Sensirion sensor
     // sensors.init(sensors.Mhz19);                       // Force detection to Mhz14 or Mhz19 CO2 sensor 
     // sensors.init(sensors.CM1006);                      // Force detection to CM1106 CO2 sensor
+    // sensors.init(sensors.SCD30co2);                    // Force detection to SCD30 CO2 sensor
     // sensors.init(sensors.Auto,mRX,mTX);                // Auto detection and custom RX, TX pines
     // sensors.init(sensors.Auto,PMS_RX,PMS_TX); // Auto detection, custom RX,TX and custom DHT config
-    sensors.init(sensors.Auto);
+    sensors.init(sensors.SCD30co2);
 
     if(sensors.isPmSensorConfigured())
         Serial.println("-->[SETUP] Sensor configured: " + sensors.getPmDeviceSelected());
