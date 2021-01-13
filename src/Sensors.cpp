@@ -19,13 +19,8 @@ void Sensors::loop() {
             if(_onDataCb) _onDataCb();
             dataReady = true;            // only if the main sensor is ready
         }else{
-                if (isnan(scd30.getCO2())) {       
-                    if(_onErrorCb)_onErrorCb("-->[W][SENSORS] PM sensor not configured!");
-                    dataReady = false;
-                }
-                else {
-                dataReady = true;
-                }
+            if(_onErrorCb)_onErrorCb("-->[W][SENSORS] PM sensor not configured!");
+            dataReady = false;
         }
 
         am2320Read();

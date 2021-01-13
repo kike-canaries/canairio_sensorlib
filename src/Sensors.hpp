@@ -144,8 +144,8 @@ class Sensors {
 
     float humi = 0.0;  // % Relative humidity
     float temp = 0.0;  // Temperature (°C)
-    float humi1 = 0.0;  // tempo var
-    float temp1 = 0.0;  // tempo var
+    float humi1 = 0.0;  // % Relative humidity
+    float temp1 = 0.0;  // Temperature (°C)
     float pres = 0.0;  // Pressure
     float alt = 0.0;
     float gas = 0.0;
