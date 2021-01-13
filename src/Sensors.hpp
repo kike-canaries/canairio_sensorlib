@@ -117,7 +117,8 @@ class Sensors {
     String getStringPM4();
     String getStringPM10();
     String getStringCO2();
-    String getStringCO2temp();    
+ //   String getStringCO2humi();
+ //   String getStringCO2temp();    
 
    private:
 
