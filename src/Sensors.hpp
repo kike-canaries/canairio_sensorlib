@@ -51,7 +51,7 @@ class Sensors {
    public:
 
     /// Supported devices. Auto is for Honeywell and Plantower sensors and similars
-    enum SENSOR_TYPE { Auto, Panasonic, Sensirion, Mhz19 };
+    enum SENSOR_TYPE { Auto, Panasonic, Sensirion, Mhz19, CM1106 };
     
     /// SPS30 values. Only for Sensirion SPS30 sensor.
     struct sps_values val;
@@ -62,7 +62,7 @@ class Sensors {
     /// Initial sample time for all sensors
     int sample_time = 5;
     
-    /// Sensiriom library
+    /// Sensirion library
     SPS30 sps30;
     // Humidity sensor
     Adafruit_AM2320 am2320; 
@@ -76,6 +76,8 @@ class Sensors {
     float dhthumi, dhttemp;
     // Mhz19 sensor
     MHZ19 myMHZ19;
+    // CM1106
+    //HardwareSerial co2cm1106(1);
 
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
     void loop();
@@ -115,7 +117,8 @@ class Sensors {
     String getStringPM4();
     String getStringPM10();
     String getStringCO2();
-    String getStringCO2temp();    
+ //   String getStringCO2humi();
+ //   String getStringCO2temp();    
 
    private:
 
@@ -169,11 +172,14 @@ class Sensors {
     bool pmGenericRead();
     bool pmPanasonicRead();
     bool pmSensirionRead();
-    bool pmMhz19Read();
+    bool CO2Mhz19Read();
+    bool CO2CM1106Read();
+    int  CO2CM1106val();
     void onPmSensorError(const char *msg);
     void printValues();
     bool pmSensirionInit();
-    bool pmMhz19Init();
+    bool CO2Mhz19Init();
+    bool CO2CM1106Init();
     void pmSensirionErrtoMess(char *mess, uint8_t r);
     void pmSensirionErrorloop(char *mess, uint8_t r);
     void getSensirionDeviceInfo();
