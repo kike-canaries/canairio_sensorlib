@@ -19,14 +19,20 @@ void Sensors::loop() {
             if(_onDataCb) _onDataCb();
             dataReady = true;            // only if the main sensor is ready
         }else{
-            if(_onErrorCb)_onErrorCb("-->[W][SENSORS] PM sensor not configured!");
-            dataReady = false;
+                if (isnan(scd30.getCO2())) {       
+                    if(_onErrorCb)_onErrorCb("-->[W][SENSORS] PM sensor not configured!");
+                    dataReady = false;
+                }
+                else {
+                dataReady = true;
+                }
         }
 
         am2320Read();
         bme280Read();
         aht10Read();
         sht31Read();
+        scd30Read();
         printValues();
     }
 
@@ -59,6 +65,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     DEBUG("-->[SENSORS] try to load temp and humidity sensor..");
     am2320Init();
     sht31Init();
+    scd30Init();
     bme280Init();
     aht10Init();
     dhtInit();
@@ -395,6 +402,16 @@ void Sensors::sht31Read() {
     }
 }
 
+void Sensors::scd30Read() {
+    CO21 = scd30.getCO2();
+    if (!isnan(CO21)) {
+        CO2 = CO21;
+        CO2humi = scd30.getHumidity();
+        CO2temp = scd30.getTemperature();
+        DEBUG("-->[SCD30] read > done!");
+    }
+}
+
 bool Sensors::dhtIsReady(float *temperature, float *humidity) {
     static unsigned long measurement_timestamp = millis();
 
@@ -635,6 +652,21 @@ void Sensors::sht31Init() {
     DEBUG("-->[SHT31] starting SHT31 sensor..");
     sht31 = Adafruit_SHT31();
     sht31.begin(0x44);  // temp/humidity sensor
+}
+
+void Sensors::scd30Init() {
+    DEBUG("-->[SCD30] starting SCD30 sensor..");
+  if (scd30.begin() == true) {
+//OPTIONAL configuration
+  //Choose Measurement Interval 
+   //scd30.setMeasurementInterval(2); //Change number of seconds between measurements: 2 to 1800 (30 minutes)
+  //Sealevel
+   //scd30.setAltitudeCompensation(2600); //Set altitude of the sensor in m
+  //Pressure in Boulder, CO is 24.65inHg or 834.74mBar
+   //scd30.setAmbientPressure(1012); //Current ambient pressure in mBar: 700 to 1200
+  //Temperature offset
+   //scd30.setTemperatureOffset(5); //Optionally we can set temperature offset to 5°C
+  }
 }
 
 void Sensors::bme280Init() {
