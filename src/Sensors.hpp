@@ -1,15 +1,15 @@
 #ifndef Sensors_hpp
 #define Sensors_hpp
 
-#include <Adafruit_Sensor.h>
+#include <AHT10.h>
 #include <Adafruit_AM2320.h>
 #include <Adafruit_BME280.h>
-#include <AHT10.h>
 #include <Adafruit_SHT31.h>
-#include <dht_nonblocking.h>
+#include <Adafruit_Sensor.h>
 #include <MHZ19.h>
-#include <sps30.h>
 #include <SparkFun_SCD30_Arduino_Library.h>
+#include <dht_nonblocking.h>
+#include <sps30.h>
 using namespace std;
 #include <vector>
 
@@ -41,16 +41,14 @@ using namespace std;
 #define SEALEVELPRESSURE_HPA (1013.25)
 
 //DHT Library
-#define DHT_SENSOR_PIN 23             // Digital pin connected to the DHT sensor
-#define DHT_SENSOR_TYPE DHT_TYPE_22   // DHT sensor type
+#define DHT_SENSOR_PIN 23            // Digital pin connected to the DHT sensor
+#define DHT_SENSOR_TYPE DHT_TYPE_22  // DHT sensor type
 
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
 
 class Sensors {
-
    public:
-
     /// Supported devices. Auto is for Honeywell and Plantower sensors and similars
     enum SENSOR_TYPE { Auto, Panasonic, Sensirion, SDS011, Mhz19, CM1106, SCD30co2 };
     
@@ -62,11 +60,11 @@ class Sensors {
 
     /// Initial sample time for all sensors
     int sample_time = 5;
-    
+
     /// Sensirion library
     SPS30 sps30;
     // Humidity sensor
-    Adafruit_AM2320 am2320; 
+    Adafruit_AM2320 am2320;
     // BME280 I2C
     Adafruit_BME280 bme;
     // AHT10
@@ -90,7 +88,7 @@ class Sensors {
     void setOnDataCallBack(voidCbFn cb);
     void setOnErrorCallBack(errorCbFn cb);
     void setDebugMode(bool enable);
-    void setDHTparameters (int dht_sensor_pin = DHT_SENSOR_PIN, int dht_sensor_type = DHT_SENSOR_TYPE);
+    void setDHTparameters(int dht_sensor_pin = DHT_SENSOR_PIN, int dht_sensor_type = DHT_SENSOR_TYPE);
     int getPmDeviceTypeSelected();
     String getPmDeviceSelected();
 
@@ -99,10 +97,10 @@ class Sensors {
     uint16_t getPM4();
     uint16_t getPM10();
     uint16_t getCO2();
-    
+
     float getCO2humi();
     float getCO2temp();
-    
+
     float getTemperature();
     float getHumidity();
     float getPressure();
@@ -122,7 +120,6 @@ class Sensors {
     String getStringCO2();
 
    private:
-
     /// DHT library
     uint32_t delayMS;
     /// Generic PM sensors Serial.
@@ -138,21 +135,21 @@ class Sensors {
     
     uint16_t pm1;   // PM1
     uint16_t pm25;  // PM2.5
-    uint16_t pm4;  // PM4
+    uint16_t pm4;   // PM4
     uint16_t pm10;  // PM10
 
-    float humi = 0.0;  // % Relative humidity
-    float temp = 0.0;  // Temperature (°C)
+    float humi = 0.0;   // % Relative humidity
+    float temp = 0.0;   // Temperature (°C)
     float humi1 = 0.0;  // % Relative humidity
     float temp1 = 0.0;  // Temperature (°C)
-    float pres = 0.0;  // Pressure
+    float pres = 0.0;   // Pressure
     float alt = 0.0;
     float gas = 0.0;
-    
-    uint16_t CO2;   // CO2 in ppm
-    uint16_t CO21;  // CO2 temp
-    float CO2humi = 0.0;    // temperature of the CO2 sensor
-    float CO2temp = 0.0;    // temperature of the CO2 sensor
+
+    uint16_t CO2;         // CO2 in ppm
+    uint16_t CO21;        // CO2 temp
+    float CO2humi = 0.0;  // temperature of the CO2 sensor
+    float CO2temp = 0.0;  // temperature of the CO2 sensor
 
     void restart();
     void am2320Init();
@@ -167,7 +164,7 @@ class Sensors {
     void dhtInit();
     void dhtRead();
     bool dhtIsReady(float *temperature, float *humidity);
- 
+
     bool sensorSerialInit(int pms_type, int rx, int tx);
     bool pmSensorAutoDetect(int pms_type);
     bool pmSensorRead();
@@ -177,7 +174,7 @@ class Sensors {
     bool pmSDS011Read();
     bool CO2Mhz19Read();
     bool CO2CM1106Read();
-    int  CO2CM1106val();
+    int CO2CM1106val();
     bool CO2SCD30Read();
     void onPmSensorError(const char *msg);
     void printValues();
@@ -190,7 +187,7 @@ class Sensors {
     void getSensirionDeviceInfo();
     String hwSerialRead(int lenght_buffer);
     bool serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx);
-    void DEBUG(const char * text, const char * textb = "" );
+    void DEBUG(const char *text, const char *textb = "");
 
 // @todo use DEBUG_ESP_PORT ?
 #ifdef WM_DEBUG_PORT
@@ -198,7 +195,6 @@ class Sensors {
 #else
     Stream &_debugPort = Serial;  // debug output stream ref
 #endif
-
 };
 
 #if !defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_SENSORSHANDLER)
