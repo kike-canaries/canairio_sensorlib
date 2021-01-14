@@ -193,7 +193,7 @@ bool Sensors::pmGenericRead() {
     String txtMsg = hwSerialRead();
     if (txtMsg[0] == 66) {
         if (txtMsg[1] == 77) {
-            DEBUG("-->[HPMA] read > done!");
+            DEBUG("-->[PMS-HPMA] read > done!");
             pm25 = txtMsg[6] * 256 + byte(txtMsg[7]);
             pm10 = txtMsg[8] * 256 + byte(txtMsg[9]);
             if (pm25 > 1000 && pm10 > 1000) {
@@ -294,6 +294,8 @@ bool Sensors::CO2Mhz19Read() {
         DEBUG("-->[MHZ14-9] read > done!");
         return true;
     }
+    CO2 = 0;
+    CO2temp = 0;
     return false;
 }
 
@@ -306,9 +308,10 @@ bool Sensors::CO2SCD30Read() {
         DEBUG("-->[SCD30] read > done!");
         return true;
     }
-    else {
-        return false;
-    }
+    CO2 = 0;
+    CO2humi = 0;
+    CO2temp = 0;
+    return false;
 }
 
 bool Sensors::CO2CM1106Read() {
@@ -317,6 +320,7 @@ bool Sensors::CO2CM1106Read() {
         DEBUG("-->[CM1106] read > done!");
         return true;
     }
+    CO2 = 0;
     return false;
 }
 
@@ -564,18 +568,21 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
 }
 
 bool Sensors::CO2Mhz19Init() {
+    DEBUG("-->[MH-Z19] starting MH-Z14 or MH-Z19 sensor..");
     myMHZ19.begin(*_serial);                                // *Serial(Stream) refence must be passed to library begin(). 
     myMHZ19.autoCalibration();                              // Turn auto calibration ON (OFF autoCalibration(false))
     return true;
 }
 
 bool Sensors::CO2CM1106Init() {
+    DEBUG("-->[CM1106] starting CM1106 sensor..");
     return true;
 }
 
 bool Sensors::CO2SCD30Init() {
     DEBUG("-->[SCD30] starting SCD30 sensor..");
-    return scd30.begin();
+    scd30.begin();
+    return true;
 }
 
 bool Sensors::pmSensirionInit() {
