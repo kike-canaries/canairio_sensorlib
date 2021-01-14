@@ -581,15 +581,6 @@ bool Sensors::CO2CM1106Init() {
 bool Sensors::CO2SCD30Init() {
     DEBUG("-->[SCD30] starting SCD30 sensor..");
   if (scd30.begin() == true) {
-//OPTIONAL configuration
-  //Choose Measurement Interval 
-   //scd30.setMeasurementInterval(2); //Change number of seconds between measurements: 2 to 1800 (30 minutes)
-  //Sealevel
-   //scd30.setAltitudeCompensation(2600); //Set altitude of the sensor in m
-  //Pressure in Boulder, CO is 24.65inHg or 834.74mBar
-   //scd30.setAmbientPressure(1012); //Current ambient pressure in mBar: 700 to 1200
-  //Temperature offset
-   //scd30.setTemperatureOffset(5); //Optionally we can set temperature offset to 5°C
   }
 }
 
