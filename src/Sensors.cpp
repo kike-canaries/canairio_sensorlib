@@ -15,11 +15,11 @@ void Sensors::loop() {
     if ((millis() - pmLoopTimeStamp > sample_time * 1000)) {  // sample time for each capture
         dataReady = false;
         pmLoopTimeStamp = millis();
-        if(pmSensorRead()) {           
-            if(_onDataCb) _onDataCb();
-            dataReady = true;            // only if the main sensor is ready
-        }else{
-            if(_onErrorCb)_onErrorCb("-->[W][SENSORS] PM sensor not configured!");
+        if (pmSensorRead()) {
+            if (_onDataCb) _onDataCb();
+            dataReady = true;  // only if the main sensor is ready
+        } else {
+            if (_onErrorCb) _onErrorCb("-->[W][SENSORS] PM sensor not configured!");
             dataReady = false;
         }
 
@@ -43,16 +43,15 @@ void Sensors::loop() {
  * @param debug enable PMS log output.
  */
 void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
-
-    // override with debug INFO level (>=3)
-    #ifdef CORE_DEBUG_LEVEL
-    if (CORE_DEBUG_LEVEL>=3) devmode = true;  
-    #endif
+// override with debug INFO level (>=3)
+#ifdef CORE_DEBUG_LEVEL
+    if (CORE_DEBUG_LEVEL >= 3) devmode = true;
+#endif
     if (devmode) Serial.println("-->[SENSORS] debug is enable.");
 
-    DEBUG("-->[SENSORS] sample time set to: ",String(sample_time).c_str());
-    
-    if(!sensorSerialInit(pms_type, pms_rx, pms_tx)){
+    DEBUG("-->[SENSORS] sample time set to: ", String(sample_time).c_str());
+
+    if (!sensorSerialInit(pms_type, pms_rx, pms_tx)) {
         DEBUG("-->[E][PMSENSOR] init failed!");
     }
 
@@ -65,25 +64,25 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
 }
 
 /// set loop time interval for each sensor sample
-void Sensors::setSampleTime(int seconds){
+void Sensors::setSampleTime(int seconds) {
     sample_time = seconds;
 }
 
-void Sensors::restart(){
+void Sensors::restart() {
     _serial->flush();
     init();
     delay(100);
 }
 
-void Sensors::setOnDataCallBack(voidCbFn cb){
+void Sensors::setOnDataCallBack(voidCbFn cb) {
     _onDataCb = cb;
 }
 
-void Sensors::setOnErrorCallBack(errorCbFn cb){
+void Sensors::setOnErrorCallBack(errorCbFn cb) {
     _onErrorCb = cb;
 }
 
-void Sensors::setDebugMode(bool enable){
+void Sensors::setDebugMode(bool enable) {
     devmode = enable;
 }
 
@@ -169,15 +168,15 @@ float Sensors::getPressure() {
     return pres;
 }
 
-bool Sensors::isPmSensorConfigured(){
-    return device_type>=0;
+bool Sensors::isPmSensorConfigured() {
+    return device_type >= 0;
 }
 
-String Sensors::getPmDeviceSelected(){
+String Sensors::getPmDeviceSelected() {
     return device_selected;
 }
 
-int Sensors::getPmDeviceTypeSelected(){
+int Sensors::getPmDeviceTypeSelected() {
     return device_type;
 }
 
@@ -198,15 +197,14 @@ bool Sensors::pmGenericRead() {
             pm10 = txtMsg[8] * 256 + byte(txtMsg[9]);
             if (pm25 > 1000 && pm10 > 1000) {
                 onPmSensorError("-->[E][PMSENSOR] out of range pm25 > 1000");
-            }
-            else
+            } else
                 return true;
         } else {
             onPmSensorError("-->[E][PMSENSOR] invalid Generic sensor header!");
         }
     }
     return false;
-} 
+}
 
 /**
  *  @brief Panasonic SNGC particulate meter sensor read.
@@ -216,13 +214,12 @@ bool Sensors::pmPanasonicRead() {
     String txtMsg = hwSerialRead();
     if (txtMsg[0] == 02) {
         DEBUG("-->[PANASONIC] read > done!");
-        pm1  = txtMsg[2] * 256 + byte(txtMsg[1]);
+        pm1 = txtMsg[2] * 256 + byte(txtMsg[1]);
         pm25 = txtMsg[6] * 256 + byte(txtMsg[5]);
         pm10 = txtMsg[10] * 256 + byte(txtMsg[9]);
         if (pm25 > 2000 && pm10 > 2000) {
             onPmSensorError("-->[E][PMSENSOR] out of range pm25 > 2000");
-        }
-        else
+        } else
             return true;
     } else {
         onPmSensorError("-->[E][PMSENSOR] invalid Panasonic sensor header!");
@@ -274,9 +271,9 @@ bool Sensors::pmSensirionRead() {
 
     DEBUG("-->[SPS30] read > done!");
 
-    pm1  = round(val.MassPM1);
+    pm1 = round(val.MassPM1);
     pm25 = round(val.MassPM2);
-    pm4  = round(val.MassPM4);
+    pm4 = round(val.MassPM4);
     pm10 = round(val.MassPM10);
 
     if (pm25 > 1000 && pm10 > 1000) {
@@ -288,9 +285,9 @@ bool Sensors::pmSensirionRead() {
 }
 
 bool Sensors::CO2Mhz19Read() {
-    CO2 = myMHZ19.getCO2();                             // Request CO2 (as ppm)
-    CO2temp = myMHZ19.getTemperature();                    // Request Temperature (as Celsius)
-    if(CO2>0){
+    CO2 = myMHZ19.getCO2();              // Request CO2 (as ppm)
+    CO2temp = myMHZ19.getTemperature();  // Request Temperature (as Celsius)
+    if (CO2 > 0) {
         DEBUG("-->[MHZ14-9] read > done!");
         return true;
     }
@@ -305,37 +302,36 @@ bool Sensors::CO2SCD30Read() {
         CO2temp = scd30.getTemperature();
         DEBUG("-->[SCD30] read > done!");
         return true;
-    }
-    else {
+    } else {
         return false;
     }
 }
 
 bool Sensors::CO2CM1106Read() {
-  CO2 = CO2CM1106val();
-    if(CO2>0){
+    CO2 = CO2CM1106val();
+    if (CO2 > 0) {
         DEBUG("-->[CM1106] read > done!");
         return true;
     }
     return false;
 }
 
-int Sensors:: CO2CM1106val() {
-  static byte cmd[4] = {0x11, 0x01, 0x01, 0xED}; // Commands 0x01 Read ppm, 0x10 open/close ABC, 0x03 Calibrate 
-  static byte response[8] = {0};                 // response 0x16, 0x05, 0x01, DF1, DF2, DF3, DF4, CRC.  ppm=DF1*256+DF2
-  _serial->write(cmd, 4);
-  _serial->readBytes(response, 8);
-  int crc = 0;
-  for (int i = 0; i < 7; i++) crc += response[i];
-  crc = 256 - crc%256;
-  if (((int) response[0] == 0x16) && ((int)response[7] == crc)) {
-    unsigned int responseHigh = (unsigned int) response[3];
-    unsigned int responseLow = (unsigned int) response[4];
-    return (256 * responseHigh) + responseLow;
-  } else {
-    while(_serial->available() > 0)  char t = _serial->read();  // Clear serial input buffer;
-    return -1; 
-  }
+int Sensors::CO2CM1106val() {
+    static byte cmd[4] = {0x11, 0x01, 0x01, 0xED};  // Commands 0x01 Read ppm, 0x10 open/close ABC, 0x03 Calibrate
+    static byte response[8] = {0};                  // response 0x16, 0x05, 0x01, DF1, DF2, DF3, DF4, CRC.  ppm=DF1*256+DF2
+    _serial->write(cmd, 4);
+    _serial->readBytes(response, 8);
+    int crc = 0;
+    for (int i = 0; i < 7; i++) crc += response[i];
+    crc = 256 - crc % 256;
+    if (((int)response[0] == 0x16) && ((int)response[7] == crc)) {
+        unsigned int responseHigh = (unsigned int)response[3];
+        unsigned int responseLow = (unsigned int)response[4];
+        return (256 * responseHigh) + responseLow;
+    } else {
+        while (_serial->available() > 0) char t = _serial->read();  // Clear serial input buffer;
+        return -1;
+    }
 }
 /**
  * @brief read sensor data. Sensor selected.
@@ -394,7 +390,7 @@ void Sensors::bme280Read() {
 }
 
 void Sensors::aht10Read() {
-    humi1 = aht10.readHumidity(); 
+    humi1 = aht10.readHumidity();
     temp1 = aht10.readTemperature();
     if (humi1 != 255) humi = humi1;
     if (temp1 != 255) {
@@ -427,32 +423,34 @@ bool Sensors::dhtIsReady(float *temperature, float *humidity) {
     return (false);
 }
 
-void Sensors::setDHTparameters (int dht_sensor_pin, int dht_sensor_type) {
+void Sensors::setDHTparameters(int dht_sensor_pin, int dht_sensor_type) {
     DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
 }
 
 void Sensors::dhtRead() {
     if (dhtIsReady(&dhttemp, &dhthumi) == true) {
-        temp=dhttemp;
-        humi=dhthumi;
+        temp = dhttemp;
+        humi = dhthumi;
         DEBUG("-->[DHTXX] read > done!");
     }
 }
 
 void Sensors::onPmSensorError(const char *msg) {
     DEBUG(msg);
-    if(_onErrorCb)_onErrorCb(msg);
+    if (_onErrorCb) _onErrorCb(msg);
 }
 
 void Sensors::pmSensirionErrtoMess(char *mess, uint8_t r) {
     char buf[80];
     sps30.GetErrDescription(r, buf, 80);
-    DEBUG("-->[E][SENSIRION]",buf);
+    DEBUG("-->[E][SENSIRION]", buf);
 }
 
 void Sensors::pmSensirionErrorloop(char *mess, uint8_t r) {
-    if (r) pmSensirionErrtoMess(mess, r);
-    else DEBUG(mess);
+    if (r)
+        pmSensirionErrtoMess(mess, r);
+    else
+        DEBUG(mess);
 }
 
 /**
@@ -469,37 +467,35 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
     // set UART for autodetection sensors (Honeywell, Plantower, Panasonic)
     if (pms_type == Auto) {
         DEBUG("-->[PMSENSOR] detecting Generic PM sensor..");
-        if(!serialInit(pms_type, 9600, pms_rx, pms_tx))return false;
-    }
-    else if (pms_type == Panasonic) {
+        if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
+    } else if (pms_type == Panasonic) {
         DEBUG("-->[PMSENSOR] detecting Panasonic PM sensor..");
-        if(!serialInit(pms_type, 9600, pms_rx, pms_tx))return false;
+        if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     }
     // set UART for autodetection Sensirion sensor
     else if (pms_type == Sensirion) {
         DEBUG("-->[PMSENSOR] detecting Sensirion PM sensor..");
-        if(!serialInit(pms_type, 115200, pms_rx, pms_tx))return false;
-    }
-    else if (pms_type == Mhz19) {
+        if (!serialInit(pms_type, 115200, pms_rx, pms_tx)) return false;
+    } else if (pms_type == Mhz19) {
         DEBUG("-->[CO2SENSOR] detecting Mhz19 sensor..");
-        if(!serialInit(pms_type, 9600, pms_rx, pms_tx))return false;
-    }
-    else if (pms_type == CM1106) {
+        if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
+    } else if (pms_type == CM1106) {
         DEBUG("-->[CO2SENSOR] detecting CM1106 sensor..");
-        if(!serialInit(pms_type, 9600, pms_rx, pms_tx))return false;
+        if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     }
 
-    // starting auto detection loop 
+    // starting auto detection loop
     int try_sensor_init = 0;
-    while (!pmSensorAutoDetect(pms_type) && try_sensor_init++ < 2);
+    while (!pmSensorAutoDetect(pms_type) && try_sensor_init++ < 2)
+        ;
 
     // get device selected..
     if (device_type >= 0) {
-        DEBUG("-->[PMSENSOR] detected: ",device_selected.c_str());
+        DEBUG("-->[PMSENSOR] detected: ", device_selected.c_str());
         return true;
     } else {
         DEBUG("-->[E][PMSENSOR] detection failed!");
-        if(_onErrorCb)_onErrorCb("-->[E][PMSENSOR] detection failed!");
+        if (_onErrorCb) _onErrorCb("-->[E][PMSENSOR] detection failed!");
         return false;
     }
 }
@@ -510,7 +506,6 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
  * special header on Serial stream
  **/
 bool Sensors::pmSensorAutoDetect(int pms_type) {
-
     delay(1000);  // sync serial
 
     if (pms_type == Sensirion) {
@@ -519,7 +514,7 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
             device_type = Sensirion;
             return true;
         }
-    } 
+    }
 
     if (pms_type == Mhz19) {
         if (CO2Mhz19Init()) {
@@ -544,7 +539,7 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
             return true;
         }
     }
-    
+
     if (pms_type <= Panasonic) {
         if (pmGenericRead()) {
             device_selected = "GENERIC";
@@ -557,15 +552,14 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
             device_type = Panasonic;
             return true;
         }
-    } 
-    
+    }
 
     return false;
 }
 
 bool Sensors::CO2Mhz19Init() {
-    myMHZ19.begin(*_serial);                                // *Serial(Stream) refence must be passed to library begin(). 
-    myMHZ19.autoCalibration();                              // Turn auto calibration ON (OFF autoCalibration(false))
+    myMHZ19.begin(*_serial);    // *Serial(Stream) refence must be passed to library begin().
+    myMHZ19.autoCalibration();  // Turn auto calibration ON (OFF autoCalibration(false))
     return true;
 }
 
@@ -581,9 +575,9 @@ bool Sensors::CO2SCD30Init() {
 bool Sensors::pmSensirionInit() {
     // Begin communication channel
     DEBUG("-->[SPS30] starting SPS30 sensor..");
-    if(!devmode) sps30.EnableDebugging(0);
+    if (!devmode) sps30.EnableDebugging(0);
     // Begin communication channel;
-    if (!sps30.begin(SENSOR_COMMS)){
+    if (!sps30.begin(SENSOR_COMMS)) {
         pmSensirionErrorloop((char *)"-->[E][SPS30] could not initialize communication channel.", 0);
         return false;
     }
@@ -599,7 +593,7 @@ bool Sensors::pmSensirionInit() {
         pmSensirionErrorloop((char *)"-->[E][SPS30] could not reset.", 0);
 
     // start measurement
-    if (sps30.start()==true) {
+    if (sps30.start() == true) {
         DEBUG("-->[SPS30] Measurement OK");
         return true;
     } else
@@ -614,46 +608,48 @@ bool Sensors::pmSensirionInit() {
 /**
  * @brief : read and display Sensirion device info
  */
-void Sensors::getSensirionDeviceInfo() { 
-  char buf[32];
-  uint8_t ret;
-  SPS30_version v;
+void Sensors::getSensirionDeviceInfo() {
+    char buf[32];
+    uint8_t ret;
+    SPS30_version v;
 
-  //try to read serial number
-  ret = sps30.GetSerialNumber(buf, 32);
-  if (ret == ERR_OK) {
-    if(strlen(buf) > 0) DEBUG("-->[SPS30] Serial number : ",buf);
-    else DEBUG("not available");
-  }
-  else
-    DEBUG("[SPS30] could not get serial number");
+    //try to read serial number
+    ret = sps30.GetSerialNumber(buf, 32);
+    if (ret == ERR_OK) {
+        if (strlen(buf) > 0)
+            DEBUG("-->[SPS30] Serial number : ", buf);
+        else
+            DEBUG("not available");
+    } else
+        DEBUG("[SPS30] could not get serial number");
 
-  // try to get product name
-  ret = sps30.GetProductName(buf, 32);
-  if (ret == ERR_OK)  {
-    if(strlen(buf) > 0) DEBUG("-->[SPS30] Product name  : ",buf);
-    else DEBUG("not available");
-  }
-  else
-    DEBUG("[SPS30] could not get product name.");
+    // try to get product name
+    ret = sps30.GetProductName(buf, 32);
+    if (ret == ERR_OK) {
+        if (strlen(buf) > 0)
+            DEBUG("-->[SPS30] Product name  : ", buf);
+        else
+            DEBUG("not available");
+    } else
+        DEBUG("[SPS30] could not get product name.");
 
-  // try to get version info
-  ret = sps30.GetVersion(&v);
-  if (ret != ERR_OK) {
-    DEBUG("[SPS30] Can not read version info");
-    return;
-  }
-  sprintf(buf,"%d.%d",v.major,v.minor);
-  DEBUG("-->[SPS30] Firmware level: ", buf);
+    // try to get version info
+    ret = sps30.GetVersion(&v);
+    if (ret != ERR_OK) {
+        DEBUG("[SPS30] Can not read version info");
+        return;
+    }
+    sprintf(buf, "%d.%d", v.major, v.minor);
+    DEBUG("-->[SPS30] Firmware level: ", buf);
 
-  if (SENSOR_COMMS != I2C_COMMS) {
-    sprintf(buf,"%d.%d",v.SHDLC_major,v.SHDLC_minor);
-    DEBUG("-->[SPS30] Hardware level: ",String(v.HW_version).c_str());
-    DEBUG("-->[SPS30] SHDLC protocol: ",buf);
-  }
+    if (SENSOR_COMMS != I2C_COMMS) {
+        sprintf(buf, "%d.%d", v.SHDLC_major, v.SHDLC_minor);
+        DEBUG("-->[SPS30] Hardware level: ", String(v.HW_version).c_str());
+        DEBUG("-->[SPS30] SHDLC protocol: ", buf);
+    }
 
-  sprintf(buf, "%d.%d", v.DRV_major, v.DRV_minor);
-  DEBUG("-->[SPS30] Library level : ",buf); 
+    sprintf(buf, "%d.%d", v.DRV_major, v.DRV_minor);
+    DEBUG("-->[SPS30] Library level : ", buf);
 }
 
 void Sensors::am2320Init() {
@@ -701,7 +697,6 @@ void Sensors::DEBUG(const char *text, const char *textb) {
 }
 
 bool Sensors::serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx) {
-    
     switch (SENSOR_COMMS) {
         case SERIALPORT:
             Serial.begin(speed_baud);
@@ -724,7 +719,7 @@ bool Sensors::serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx) 
             _serial = &Serial3;
             break;
 #endif
-#if defined(__AVR_ATmega32U4__) 
+#if defined(__AVR_ATmega32U4__)
         case SERIALPORT1:
             Serial1.begin(speed_baud);
             _serial = &Serial1;
@@ -733,9 +728,9 @@ bool Sensors::serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx) 
 
 #if defined(ARDUINO_ARCH_ESP32)
         //on a Sparkfun ESP32 Thing the default pins for serial1 are used for acccessing flash memory
-        //you have to define different pins upfront in order to use serial1 port. 
+        //you have to define different pins upfront in order to use serial1 port.
         case SERIALPORT1:
-            if (pms_rx == 0 || pms_tx== 0) {
+            if (pms_rx == 0 || pms_tx == 0) {
                 DEBUG("TX/RX line not defined");
                 return false;
             }
@@ -764,17 +759,16 @@ bool Sensors::serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx) 
                 _serial = &Serial1;
             }
 
-            else 
-            {
+            else {
 #if defined(INCLUDE_SOFTWARE_SERIAL)
-                DEBUG("-->[SENSORS] swSerial init on pin: ",String(pms_rx).c_str());
+                DEBUG("-->[SENSORS] swSerial init on pin: ", String(pms_rx).c_str());
                 static SoftwareSerial swSerial(pms_rx, pms_tx);
                 if (pms_type == Sensirion)
                     swSerial.begin(speed_baud);
                 else if (pms_type == Panasonic)
-                    swSerial.begin(speed_baud,SWSERIAL_8E1,pms_rx,pms_tx,false);
+                    swSerial.begin(speed_baud, SWSERIAL_8E1, pms_rx, pms_tx, false);
                 else
-                    swSerial.begin(speed_baud,SWSERIAL_8N1,pms_rx,pms_tx,false);
+                    swSerial.begin(speed_baud, SWSERIAL_8N1, pms_rx, pms_tx, false);
                 _serial = &swSerial;
 #else
                 DEBUG("SoftWareSerial not enabled\n");
