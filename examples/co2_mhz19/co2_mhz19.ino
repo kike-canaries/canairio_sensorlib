@@ -19,9 +19,6 @@
 #include <Sensors.hpp>
 
 void onSensorDataOk() {
-    Serial.print ("-->[MAIN] PM1: "+sensors.getStringPM1());
-    Serial.print (" PM2.5: " + sensors.getStringPM25());
-    Serial.print (" PM10: " + sensors.getStringPM10());
     
     Serial.print (" CO2: " + sensors.getStringCO2());
     Serial.print (" CO2humi: " + String(sensors.getCO2humi()));
