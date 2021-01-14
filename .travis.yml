@@ -38,9 +38,9 @@ install:
     - platformio update
 
 script:
+    - platformio run
     - cd examples/platformio
     - platformio run
-
 
 #
 # Template #2: The project is intended to by used as a library with examples
