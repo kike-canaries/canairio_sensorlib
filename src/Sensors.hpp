@@ -52,7 +52,7 @@ class Sensors {
    public:
 
     /// Supported devices. Auto is for Honeywell and Plantower sensors and similars
-    enum SENSOR_TYPE { Auto, Panasonic, Sensirion, Mhz19, CM1106 };
+    enum SENSOR_TYPE { Auto, Panasonic, Sensirion, Mhz19, CM1106, SCD30co2 };
     
     /// SPS30 values. Only for Sensirion SPS30 sensor.
     struct sps_values val;
@@ -165,8 +165,6 @@ class Sensors {
     void aht10Read();
     void sht31Init();
     void sht31Read();
-    void scd30Init();
-    void scd30Read();
 
     void dhtInit();
     void dhtRead();
@@ -181,11 +179,13 @@ class Sensors {
     bool CO2Mhz19Read();
     bool CO2CM1106Read();
     int  CO2CM1106val();
+    bool CO2SCD30Read();
     void onPmSensorError(const char *msg);
     void printValues();
     bool pmSensirionInit();
     bool CO2Mhz19Init();
     bool CO2CM1106Init();
+    bool CO2SCD30Init();
     void pmSensirionErrtoMess(char *mess, uint8_t r);
     void pmSensirionErrorloop(char *mess, uint8_t r);
     void getSensirionDeviceInfo();

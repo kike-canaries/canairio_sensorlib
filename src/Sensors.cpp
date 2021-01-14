@@ -27,7 +27,6 @@ void Sensors::loop() {
         bme280Read();
         aht10Read();
         sht31Read();
-        scd30Read();
         printValues();
     }
 
@@ -60,7 +59,6 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     DEBUG("-->[SENSORS] try to load temp and humidity sensor..");
     am2320Init();
     sht31Init();
-    scd30Init();
     bme280Init();
     aht10Init();
     dhtInit();
@@ -299,6 +297,20 @@ bool Sensors::CO2Mhz19Read() {
     return false;
 }
 
+bool Sensors::CO2SCD30Read() {
+    CO21 = scd30.getCO2();
+    if (!isnan(CO21)) {
+        CO2 = CO21;
+        CO2humi = scd30.getHumidity();
+        CO2temp = scd30.getTemperature();
+        DEBUG("-->[SCD30] read > done!");
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 bool Sensors::CO2CM1106Read() {
   CO2 = CO2CM1106val();
     if(CO2>0){
@@ -351,6 +363,10 @@ bool Sensors::pmSensorRead() {
             return CO2CM1106Read();
             break;
 
+        case SCD30co2:
+            return CO2SCD30Read();
+            break;
+
         default:
             return false;
             break;
@@ -394,16 +410,6 @@ void Sensors::sht31Read() {
     if (!isnan(temp1)) {
         temp = temp1;
         DEBUG("-->[SHT31] read > done!");
-    }
-}
-
-void Sensors::scd30Read() {
-    CO21 = scd30.getCO2();
-    if (!isnan(CO21)) {
-        CO2 = CO21;
-        CO2humi = scd30.getHumidity();
-        CO2temp = scd30.getTemperature();
-        DEBUG("-->[SCD30] read > done!");
     }
 }
 
@@ -530,6 +536,14 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
             return true;
         }
     }
+
+    if (pms_type == SCD30co2) {
+        if (CO2SCD30Init()) {
+            device_selected = "SCD30co2";
+            device_type = SCD30co2;
+            return true;
+        }
+    }
     
     if (pms_type <= Panasonic) {
         if (pmGenericRead()) {
@@ -557,6 +571,11 @@ bool Sensors::CO2Mhz19Init() {
 
 bool Sensors::CO2CM1106Init() {
     return true;
+}
+
+bool Sensors::CO2SCD30Init() {
+    DEBUG("-->[SCD30] starting SCD30 sensor..");
+    return scd30.begin();
 }
 
 bool Sensors::pmSensirionInit() {
@@ -647,12 +666,6 @@ void Sensors::sht31Init() {
     DEBUG("-->[SHT31] starting SHT31 sensor..");
     sht31 = Adafruit_SHT31();
     sht31.begin(0x44);  // temp/humidity sensor
-}
-
-void Sensors::scd30Init() {
-    DEBUG("-->[SCD30] starting SCD30 sensor..");
-  if (scd30.begin() == true) {
-  }
 }
 
 void Sensors::bme280Init() {
