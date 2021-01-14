@@ -668,12 +668,6 @@ void Sensors::sht31Init() {
     sht31.begin(0x44);  // temp/humidity sensor
 }
 
-void Sensors::scd30Init() {
-    DEBUG("-->[SCD30] starting SCD30 sensor..");
-  if (scd30.begin() == true) {
-  }
-}
-
 void Sensors::bme280Init() {
     DEBUG("-->[BME280] starting BME280 sensor..");
     bme.begin(0x76);  // temp/humidity sensor
