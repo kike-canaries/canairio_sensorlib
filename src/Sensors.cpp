@@ -580,8 +580,7 @@ bool Sensors::CO2CM1106Init() {
 
 bool Sensors::CO2SCD30Init() {
     DEBUG("-->[SCD30] starting SCD30 sensor..");
-  if (scd30.begin() == true) {
-  }
+    return scd30.begin();
 }
 
 bool Sensors::pmSensirionInit() {
