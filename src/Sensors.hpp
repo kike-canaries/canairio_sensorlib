@@ -135,9 +135,7 @@ class Sensors {
     String device_selected;
     int device_type = -1;
     bool dataReady;
-
-    uint16_t lenght_buffer = 0;
-
+    
     uint16_t pm1;   // PM1
     uint16_t pm25;  // PM2.5
     uint16_t pm4;  // PM4
@@ -190,7 +188,7 @@ class Sensors {
     void pmSensirionErrtoMess(char *mess, uint8_t r);
     void pmSensirionErrorloop(char *mess, uint8_t r);
     void getSensirionDeviceInfo();
-    String hwSerialRead();
+    String hwSerialRead(int lenght_buffer);
     bool serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx);
     void DEBUG(const char * text, const char * textb = "" );
 

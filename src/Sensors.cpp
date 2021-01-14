@@ -190,8 +190,8 @@ int Sensors::getPmDeviceTypeSelected(){
  *  @return true if header and sensor data is right
  */
 bool Sensors::pmGenericRead() {
-    lenght_buffer = 32;
-    String txtMsg = hwSerialRead();
+    int lenght_buffer = 32;
+    String txtMsg = hwSerialRead(lenght_buffer);
     if (txtMsg[0] == 66) {
         if (txtMsg[1] == 77) {
             DEBUG("-->[PMS-HPMA] read > done!");
@@ -214,8 +214,8 @@ bool Sensors::pmGenericRead() {
  *  @return true if header and sensor data is right
  */
 bool Sensors::pmPanasonicRead() {
-    lenght_buffer = 32;
-    String txtMsg = hwSerialRead();
+    int lenght_buffer = 32;
+    String txtMsg = hwSerialRead(lenght_buffer);
     if (txtMsg[0] == 02) {
         DEBUG("-->[PANASONIC] read > done!");
         pm1  = txtMsg[2] * 256 + byte(txtMsg[1]);
@@ -237,8 +237,8 @@ bool Sensors::pmPanasonicRead() {
  *  @return true if header and sensor data is right
  */
 bool Sensors::pmSDS011Read() {
-    lenght_buffer = 10;
-    String txtMsg = hwSerialRead();
+    int lenght_buffer = 10;
+    String txtMsg = hwSerialRead(lenght_buffer);
     if (txtMsg[0] == 170) {
         if (txtMsg[1] == 192) {
             DEBUG("-->[SDS011] read > done!");
@@ -262,7 +262,7 @@ bool Sensors::pmSDS011Read() {
  * @param SENSOR_RETRY attempts before failure
  * @return String buffer
  **/
-String Sensors::hwSerialRead() {
+String Sensors::hwSerialRead(int lenght_buffer) {
     int try_sensor_read = 0;
     String txtMsg = "";
     while (txtMsg.length() < lenght_buffer && try_sensor_read++ < SENSOR_RETRY) {
