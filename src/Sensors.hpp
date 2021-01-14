@@ -52,7 +52,7 @@ class Sensors {
    public:
 
     /// Supported devices. Auto is for Honeywell and Plantower sensors and similars
-    enum SENSOR_TYPE { Auto, Panasonic, Sensirion, Mhz19, CM1106, SCD30co2 };
+    enum SENSOR_TYPE { Auto, Panasonic, Sensirion, SDS011, Mhz19, CM1106, SCD30co2 };
     
     /// SPS30 values. Only for Sensirion SPS30 sensor.
     struct sps_values val;
@@ -120,8 +120,6 @@ class Sensors {
     String getStringPM4();
     String getStringPM10();
     String getStringCO2();
- //   String getStringCO2humi();
- //   String getStringCO2temp();    
 
    private:
 
@@ -137,7 +135,7 @@ class Sensors {
     String device_selected;
     int device_type = -1;
     bool dataReady;
-
+    
     uint16_t pm1;   // PM1
     uint16_t pm25;  // PM2.5
     uint16_t pm4;  // PM4
@@ -176,6 +174,7 @@ class Sensors {
     bool pmGenericRead();
     bool pmPanasonicRead();
     bool pmSensirionRead();
+    bool pmSDS011Read();
     bool CO2Mhz19Read();
     bool CO2CM1106Read();
     int  CO2CM1106val();
@@ -189,7 +188,7 @@ class Sensors {
     void pmSensirionErrtoMess(char *mess, uint8_t r);
     void pmSensirionErrorloop(char *mess, uint8_t r);
     void getSensirionDeviceInfo();
-    String hwSerialRead();
+    String hwSerialRead(int lenght_buffer);
     bool serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx);
     void DEBUG(const char * text, const char * textb = "" );
 
