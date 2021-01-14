@@ -19,13 +19,8 @@ void Sensors::loop() {
             if(_onDataCb) _onDataCb();
             dataReady = true;            // only if the main sensor is ready
         }else{
-                if (isnan(scd30.getCO2())) {       
-                    if(_onErrorCb)_onErrorCb("-->[W][SENSORS] PM sensor not configured!");
-                    dataReady = false;
-                }
-                else {
-                dataReady = true;
-                }
+            if(_onErrorCb)_onErrorCb("-->[W][SENSORS] PM sensor not configured!");
+            dataReady = false;
         }
 
         am2320Read();
@@ -672,6 +667,12 @@ void Sensors::sht31Init() {
     DEBUG("-->[SHT31] starting SHT31 sensor..");
     sht31 = Adafruit_SHT31();
     sht31.begin(0x44);  // temp/humidity sensor
+}
+
+void Sensors::scd30Init() {
+    DEBUG("-->[SCD30] starting SCD30 sensor..");
+  if (scd30.begin() == true) {
+  }
 }
 
 void Sensors::bme280Init() {
