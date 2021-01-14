@@ -190,6 +190,7 @@ int Sensors::getPmDeviceTypeSelected(){
  *  @return true if header and sensor data is right
  */
 bool Sensors::pmGenericRead() {
+    lenght_buffer = 32;
     String txtMsg = hwSerialRead();
     if (txtMsg[0] == 66) {
         if (txtMsg[1] == 77) {
@@ -213,6 +214,7 @@ bool Sensors::pmGenericRead() {
  *  @return true if header and sensor data is right
  */
 bool Sensors::pmPanasonicRead() {
+    lenght_buffer = 32;
     String txtMsg = hwSerialRead();
     if (txtMsg[0] == 02) {
         DEBUG("-->[PANASONIC] read > done!");
@@ -231,6 +233,30 @@ bool Sensors::pmPanasonicRead() {
 }
 
 /**
+ *  @brief Nova SDS011 particulate meter sensor read.
+ *  @return true if header and sensor data is right
+ */
+bool Sensors::pmSDS011Read() {
+    lenght_buffer = 10;
+    String txtMsg = hwSerialRead();
+    if (txtMsg[0] == 170) {
+        if (txtMsg[1] == 192) {
+            DEBUG("-->[SDS011] read > done!");
+            pm25 = (txtMsg[3] * 256 + byte(txtMsg[2]))/10;
+            pm10 = (txtMsg[5] * 256 + byte(txtMsg[4]))/10;
+            if (pm25 > 1000 && pm10 > 1000) {
+                onPmSensorError("-->[E][PMSENSOR] out of range pm25 > 1000");
+            }
+            else
+                return true;
+        } else {
+            onPmSensorError("-->[E][PMSENSOR] invalid Generic sensor header!");
+        }
+    }
+    return false;
+} 
+
+/**
  * @brief PMSensor Serial read to basic string
  * 
  * @param SENSOR_RETRY attempts before failure
@@ -239,7 +265,7 @@ bool Sensors::pmPanasonicRead() {
 String Sensors::hwSerialRead() {
     int try_sensor_read = 0;
     String txtMsg = "";
-    while (txtMsg.length() < 32 && try_sensor_read++ < SENSOR_RETRY) {
+    while (txtMsg.length() < lenght_buffer && try_sensor_read++ < SENSOR_RETRY) {
         while (_serial->available() > 0) {
             char inChar = _serial->read();
             txtMsg += inChar;
@@ -358,6 +384,10 @@ bool Sensors::pmSensorRead() {
         case Sensirion:
             return pmSensirionRead();
             break;
+
+        case SDS011:
+            return pmSDS011Read();
+            break;    
 
         case Mhz19:
             return CO2Mhz19Read();
@@ -484,6 +514,10 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
         DEBUG("-->[PMSENSOR] detecting Sensirion PM sensor..");
         if(!serialInit(pms_type, 115200, pms_rx, pms_tx))return false;
     }
+    else if (pms_type == SDS011) {
+        DEBUG("-->[PMSENSOR] detecting Sensirion PM sensor..");
+        if(!serialInit(pms_type, 9600, pms_rx, pms_tx))return false;
+    }
     else if (pms_type == Mhz19) {
         DEBUG("-->[CO2SENSOR] detecting Mhz19 sensor..");
         if(!serialInit(pms_type, 9600, pms_rx, pms_tx))return false;
@@ -521,6 +555,14 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
         if (pmSensirionInit()) {
             device_selected = "SENSIRION";
             device_type = Sensirion;
+            return true;
+        }
+    } 
+
+    if (pms_type == SDS011) {
+        if (pmSDS011Read()) {
+            device_selected = "SDS011";
+            device_type = SDS011;
             return true;
         }
     } 
