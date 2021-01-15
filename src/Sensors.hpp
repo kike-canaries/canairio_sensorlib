@@ -50,7 +50,7 @@ typedef void (*voidCbFn)();
 class Sensors {
    public:
     /// Supported devices. Auto is for Honeywell and Plantower sensors and similars
-    enum SENSOR_TYPE { Auto, Panasonic, Sensirion, SDS011, Mhz19, CM1106, SCD30co2 };
+    enum SENSOR_TYPE { Auto, Panasonic, Sensirion, SDS011, Mhz19, CM1106 };
     
     /// SPS30 values. Only for Sensirion SPS30 sensor.
     struct sps_values val;
@@ -118,6 +118,7 @@ class Sensors {
     String getStringPM4();
     String getStringPM10();
     String getStringCO2();
+    String getStringCO2temp(); 
 
    private:
     /// DHT library
@@ -160,6 +161,8 @@ class Sensors {
     void aht10Read();
     void sht31Init();
     void sht31Read();
+    void CO2scd30Init();
+    void CO2scd30Read();
 
     void dhtInit();
     void dhtRead();
@@ -175,13 +178,11 @@ class Sensors {
     bool CO2Mhz19Read();
     bool CO2CM1106Read();
     int CO2CM1106val();
-    bool CO2SCD30Read();
     void onPmSensorError(const char *msg);
     void printValues();
     bool pmSensirionInit();
     bool CO2Mhz19Init();
     bool CO2CM1106Init();
-    bool CO2SCD30Init();
     void pmSensirionErrtoMess(char *mess, uint8_t r);
     void pmSensirionErrorloop(char *mess, uint8_t r);
     void getSensirionDeviceInfo();
