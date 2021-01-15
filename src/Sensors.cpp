@@ -22,8 +22,10 @@ void Sensors::loop() {
         sht31Read();
         CO2scd30Read();
 
-        if (dataReady && _onDataCb) _onDataCb();  // if any sensor reached any data, dataReady is true.
-        else if (!dataReady && _onDataCb) _onErrorCb("-->[W][SENSORS] PM sensor not configured!");
+        if (dataReady && _onDataCb)
+            _onDataCb();  // if any sensor reached any data, dataReady is true.
+        else if (!dataReady && _onDataCb)
+            _onErrorCb("-->[W][SENSORS] PM sensor not configured!");
         printValues();
     }
 
@@ -237,19 +239,18 @@ bool Sensors::pmSDS011Read() {
     if (txtMsg[0] == 170) {
         if (txtMsg[1] == 192) {
             DEBUG("-->[SDS011] read > done!");
-            pm25 = (txtMsg[3] * 256 + byte(txtMsg[2]))/10;
-            pm10 = (txtMsg[5] * 256 + byte(txtMsg[4]))/10;
+            pm25 = (txtMsg[3] * 256 + byte(txtMsg[2])) / 10;
+            pm10 = (txtMsg[5] * 256 + byte(txtMsg[4])) / 10;
             if (pm25 > 1000 && pm10 > 1000) {
                 onPmSensorError("-->[E][PMSENSOR] out of range pm25 > 1000");
-            }
-            else
+            } else
                 return true;
         } else {
             onPmSensorError("-->[E][PMSENSOR] invalid Generic sensor header!");
         }
     }
     return false;
-} 
+}
 
 /**
  * @brief PMSensor Serial read to basic string
@@ -257,8 +258,8 @@ bool Sensors::pmSDS011Read() {
  * @param SENSOR_RETRY attempts before failure
  * @return String buffer
  **/
-String Sensors::hwSerialRead(int lenght_buffer) {
-    int try_sensor_read = 0;
+String Sensors::hwSerialRead(unsigned int lenght_buffer) {
+    unsigned int try_sensor_read = 0;
     String txtMsg = "";
     while (txtMsg.length() < lenght_buffer && try_sensor_read++ < SENSOR_RETRY) {
         while (_serial->available() > 0) {
@@ -367,7 +368,7 @@ bool Sensors::pmSensorRead() {
 
         case SDS011:
             return pmSDS011Read();
-            break;    
+            break;
 
         case Mhz19:
             return CO2Mhz19Read();
@@ -436,12 +437,11 @@ void Sensors::CO2scd30Read() {
         dataReady = true;
         DEBUG("-->[SCD30] read > done!");
         //return true;
-    }
-    else {
-          CO2 = 0;
-          CO2humi = 0;
-          CO2temp = 0;
-          //return false;
+    } else {
+        CO2 = 0;
+        CO2humi = 0;
+        CO2temp = 0;
+        //return false;
     }
 }
 
@@ -562,7 +562,7 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
             device_type = SDS011;
             return true;
         }
-    } 
+    }
 
     if (pms_type == Mhz19) {
         if (CO2Mhz19Init()) {
