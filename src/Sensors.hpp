@@ -186,7 +186,7 @@ class Sensors {
     void pmSensirionErrtoMess(char *mess, uint8_t r);
     void pmSensirionErrorloop(char *mess, uint8_t r);
     void getSensirionDeviceInfo();
-    String hwSerialRead(int lenght_buffer);
+    String hwSerialRead(unsigned int lenght_buffer);
     bool serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx);
     void DEBUG(const char *text, const char *textb = "");
 
