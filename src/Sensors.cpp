@@ -27,6 +27,7 @@ void Sensors::loop() {
         bme280Read();
         aht10Read();
         sht31Read();
+        CO2scd30Read();
         printValues();
     }
 
@@ -61,6 +62,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     bme280Init();
     aht10Init();
     dhtInit();
+    CO2scd30Init();
 }
 
 /// set loop time interval for each sensor sample
@@ -322,21 +324,6 @@ bool Sensors::CO2Mhz19Read() {
     return false;
 }
 
-bool Sensors::CO2SCD30Read() {
-    CO21 = scd30.getCO2();
-    if (!isnan(CO21)) {
-        CO2 = CO21;
-        CO2humi = scd30.getHumidity();
-        CO2temp = scd30.getTemperature();
-        DEBUG("-->[SCD30] read > done!");
-        return true;
-    }
-    CO2 = 0;
-    CO2humi = 0;
-    CO2temp = 0;
-    return false;
-}
-
 bool Sensors::CO2CM1106Read() {
     CO2 = CO2CM1106val();
     if (CO2 > 0) {
@@ -394,9 +381,9 @@ bool Sensors::pmSensorRead() {
             return CO2CM1106Read();
             break;
 
-        case SCD30co2:
-            return CO2SCD30Read();
-            break;
+        //case SCD30co2:
+          //  return CO2SCD30Read();
+            //break;
 
         default:
             return false;
@@ -441,6 +428,23 @@ void Sensors::sht31Read() {
     if (!isnan(temp1)) {
         temp = temp1;
         DEBUG("-->[SHT31] read > done!");
+    }
+}
+
+void Sensors::CO2scd30Read() {
+    CO21 = scd30.getCO2();
+    if (!isnan(CO21)) {
+        CO2 = CO21;
+        CO2humi = scd30.getHumidity();
+        CO2temp = scd30.getTemperature();
+        DEBUG("-->[SCD30] read > done!");
+        //return true;
+    }
+    else {
+          CO2 = 0;
+          CO2humi = 0;
+          CO2temp = 0;
+          //return false;
     }
 }
 
@@ -578,13 +582,13 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
         }
     }
 
-    if (pms_type == SCD30co2) {
-        if (CO2SCD30Init()) {
-            device_selected = "SCD30co2";
-            device_type = SCD30co2;
-            return true;
-        }
-    }
+//    if (pms_type == SCD30co2) {
+  //      if (CO2SCD30Init()) {
+    //        device_selected = "SCD30co2";
+      //      device_type = SCD30co2;
+        //    return true;
+//        }
+  //  }
 
     if (pms_type <= Panasonic) {
         if (pmGenericRead()) {
@@ -612,12 +616,6 @@ bool Sensors::CO2Mhz19Init() {
 
 bool Sensors::CO2CM1106Init() {
     DEBUG("-->[CM1106] starting CM1106 sensor..");
-    return true;
-}
-
-bool Sensors::CO2SCD30Init() {
-    DEBUG("-->[SCD30] starting SCD30 sensor..");
-    scd30.begin();
     return true;
 }
 
@@ -722,6 +720,12 @@ void Sensors::aht10Init() {
     DEBUG("-->[AHT10] starting AHT10 sensor..");
     aht10 = AHT10(AHT10_ADDRESS_0X38);
     aht10.begin();  // temp/humidity sensor
+}
+
+void Sensors::CO2scd30Init() {
+    DEBUG("-->[SCD30] starting SCD30 sensor..");
+    scd30.begin();
+//    return true;
 }
 
 void Sensors::dhtInit() {
