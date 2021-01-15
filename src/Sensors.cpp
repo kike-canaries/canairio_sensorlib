@@ -13,21 +13,17 @@ DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
 void Sensors::loop() {
     static uint_fast64_t pmLoopTimeStamp = 0;                 // timestamp for sensor loop check data
     if ((millis() - pmLoopTimeStamp > sample_time * 1000)) {  // sample time for each capture
-        dataReady = false;
         pmLoopTimeStamp = millis();
-        if (pmSensorRead()) {
-            if (_onDataCb) _onDataCb();
-            dataReady = true;  // only if the main sensor is ready
-        } else {
-            if (_onErrorCb) _onErrorCb("-->[W][SENSORS] PM sensor not configured!");
-            dataReady = false;
-        }
-
+        dataReady = false;
+        dataReady = pmSensorRead();
         am2320Read();
         bme280Read();
         aht10Read();
         sht31Read();
         CO2scd30Read();
+
+        if (dataReady && _onDataCb) _onDataCb();  // if any sensor reached any data, dataReady is true.
+        else if (!dataReady && _onDataCb) _onErrorCb("-->[W][SENSORS] PM sensor not configured!");
         printValues();
     }
 
@@ -347,7 +343,7 @@ int Sensors::CO2CM1106val() {
         unsigned int responseLow = (unsigned int)response[4];
         return (256 * responseHigh) + responseLow;
     } else {
-        while (_serial->available() > 0) char t = _serial->read();  // Clear serial input buffer;
+        while (_serial->available() > 0) _serial->read();  // Clear serial input buffer;
         return -1;
     }
 }
@@ -393,6 +389,7 @@ void Sensors::am2320Read() {
     if (!isnan(humi1)) humi = humi1;
     if (!isnan(temp1)) {
         temp = temp1;
+        dataReady = true;
         DEBUG("-->[AM2320] read > done!");
     }
 }
@@ -403,6 +400,7 @@ void Sensors::bme280Read() {
     if (humi1 != 0) humi = humi1;
     if (temp1 != 0) {
         temp = temp1;
+        dataReady = true;
         DEBUG("-->[BME280] read > done!");
     }
 }
@@ -413,6 +411,7 @@ void Sensors::aht10Read() {
     if (humi1 != 255) humi = humi1;
     if (temp1 != 255) {
         temp = temp1;
+        dataReady = true;
         DEBUG("-->[AHT10] read > done!");
     }
 }
@@ -423,6 +422,7 @@ void Sensors::sht31Read() {
     if (!isnan(humi1)) humi = humi1;
     if (!isnan(temp1)) {
         temp = temp1;
+        dataReady = true;
         DEBUG("-->[SHT31] read > done!");
     }
 }
@@ -433,6 +433,7 @@ void Sensors::CO2scd30Read() {
         CO2 = CO21;
         CO2humi = scd30.getHumidity();
         CO2temp = scd30.getTemperature();
+        dataReady = true;
         DEBUG("-->[SCD30] read > done!");
         //return true;
     }
@@ -466,6 +467,7 @@ void Sensors::dhtRead() {
     if (dhtIsReady(&dhttemp, &dhthumi) == true) {
         temp = dhttemp;
         humi = dhthumi;
+        dataReady = true;
         DEBUG("-->[DHTXX] read > done!");
     }
 }
