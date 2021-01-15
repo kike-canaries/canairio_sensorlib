@@ -430,7 +430,7 @@ void Sensors::sht31Read() {
 
 void Sensors::CO2scd30Read() {
     CO21 = scd30.getCO2();
-    if (!isnan(CO21)) {
+    if (CO21 > 0) {
         CO2 = CO21;
         CO2humi = scd30.getHumidity();
         CO2temp = scd30.getTemperature();
