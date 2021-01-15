@@ -381,10 +381,6 @@ bool Sensors::pmSensorRead() {
             return CO2CM1106Read();
             break;
 
-        //case SCD30co2:
-          //  return CO2SCD30Read();
-            //break;
-
         default:
             return false;
             break;
@@ -582,14 +578,6 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
         }
     }
 
-//    if (pms_type == SCD30co2) {
-  //      if (CO2SCD30Init()) {
-    //        device_selected = "SCD30co2";
-      //      device_type = SCD30co2;
-        //    return true;
-//        }
-  //  }
-
     if (pms_type <= Panasonic) {
         if (pmGenericRead()) {
             device_selected = "GENERIC";
@@ -725,7 +713,6 @@ void Sensors::aht10Init() {
 void Sensors::CO2scd30Init() {
     DEBUG("-->[SCD30] starting SCD30 sensor..");
     scd30.begin();
-//    return true;
 }
 
 void Sensors::dhtInit() {

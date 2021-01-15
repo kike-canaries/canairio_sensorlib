@@ -178,13 +178,11 @@ class Sensors {
     bool CO2Mhz19Read();
     bool CO2CM1106Read();
     int CO2CM1106val();
-//    bool CO2SCD30Read();
     void onPmSensorError(const char *msg);
     void printValues();
     bool pmSensirionInit();
     bool CO2Mhz19Init();
     bool CO2CM1106Init();
-//    bool CO2SCD30Init();
     void pmSensirionErrtoMess(char *mess, uint8_t r);
     void pmSensirionErrorloop(char *mess, uint8_t r);
     void getSensirionDeviceInfo();
