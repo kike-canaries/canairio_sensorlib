@@ -1,8 +1,9 @@
 /**
  * @file main.cpp
- * @author Antonio Vanegas @hpsaturn
- * @date June 2018 - 2020
- * @brief Particle meter sensor tests
+ * @date June 2018 - 2021
+ * @brief CO2 mhz19 sensor example
+ * @license GPL3
+ *
  * @license GPL3
  * 
  * Full documentation:
@@ -16,20 +17,19 @@
  */
 
 #include <Arduino.h>
+
 #include <Sensors.hpp>
 
 void onSensorDataOk() {
-    
-    Serial.print (" CO2: " + sensors.getStringCO2());
-    Serial.print (" CO2humi: " + String(sensors.getCO2humi()));
-    Serial.print (" CO2temp: " + String(sensors.getCO2temp()));
+    Serial.print(" CO2: " + sensors.getStringCO2());
+    Serial.print(" CO2humi: " + String(sensors.getCO2humi()));
+    Serial.print(" CO2temp: " + String(sensors.getCO2temp()));
 
-    Serial.print (" H: "+ String(sensors.getHumidity()));
-    Serial.println (" T: " + String(sensors.getTemperature()));
-    
+    Serial.print(" H: " + String(sensors.getHumidity()));
+    Serial.println(" T: " + String(sensors.getTemperature()));
 }
 
-void onSensorDataError(const char * msg){ 
+void onSensorDataError(const char* msg) {
     Serial.println(msg);
 }
 
@@ -44,10 +44,10 @@ void setup() {
 
     Serial.println("-->[SETUP] Detecting sensors..");
 
-    sensors.setSampleTime(5);                       // config sensors sample time interval
-    sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
-    sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
-    sensors.setDebugMode(true);                     // [optional] debug mode
+    sensors.setSampleTime(5);                        // config sensors sample time interval
+    sensors.setOnDataCallBack(&onSensorDataOk);      // all data read callback
+    sensors.setOnErrorCallBack(&onSensorDataError);  // [optional] error callback
+    sensors.setDebugMode(true);                      // [optional] debug mode
 
     // sensors.init();                                    // Auto detection of PM sensors (Honeywell, Plantower, Panasonic)
     // sensors.init(sensors.Auto);                        // Auto detection of PM sensors (Honeywell, Plantower, Panasonic)
@@ -57,7 +57,7 @@ void setup() {
     // sensors.init(sensors.Auto,PMS_RX,PMS_TX); // Auto detection, custom RX,TX and custom DHT config
     sensors.init(sensors.Mhz19);
 
-    if(sensors.isPmSensorConfigured())
+    if (sensors.isPmSensorConfigured())
         Serial.println("-->[SETUP] Sensor configured: " + sensors.getPmDeviceSelected());
 
     delay(500);
