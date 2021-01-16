@@ -10,10 +10,11 @@ Particle meter (PM) sensor manager for multiple (PM) sensors: Honeywell, Plantow
 - [x] Auto detection for Generic sensors (Honeywell, Panasonic and Plantower sensors)
 - [x] Implemented `Sensirion` autodection flow (for original library)
 - [x] Disable/enable logs (debug mode flag)
-- [x] Debugging compatible with ESP32 log level
 - [x] Added bme280, aht10, sht31, am2320 i2c sensors
 - [x] Exposed public sub-libraries objects, sps30, aht10, etc.
 - [x] Added old DHT sensors 
+- [x] Added CO2 sensors: MHZ19, SCD30, CM1106
+- [x] Added SDS011 particle metter
 - [ ] BME680 support (from TTGO-T7 CanAirIO version)
 
 ## Usage
@@ -56,10 +57,15 @@ void setup() {
                                                     // force to try autodetection,
                                                     // you can try to select one:
                                                     // sensors.init(sensors.Sensirion);
+                                                    // All i2c sensors are autodetected.
 
-    // Also you can access to special public objects, for example:
+    // Also you can access to special library objects, for example some calls:
+
     // sensors.sps30.sleep()
     // sensors.bme.readPressure();
+    // sensors.mhz19.getRange();
+    // sensors.scd30.getTemperatureOffset();
+    // sensors.aht10.readRawData();
 
 
     if(sensors.isPmSensorConfigured())
@@ -74,6 +80,8 @@ void loop() {
 ```
 
 ### Custom RX/TX pines
+
+Also for UART sensors, you can pass the custom pins if it isn't autodected:
 
 ```javascript
 void setup() {
@@ -103,11 +111,11 @@ CanAirIO sensorlib auto configuration demo on [Youtube](https://www.youtube.com/
 
 ## Examples
 
-### PlatformIO
+### PlatformIO (recommended)
 
 #### Compiling and Installing
 
-Please install first [PlatformIO](http://platformio.org/) open source ecosystem for IoT development compatible with **Arduino** IDE and its command line tools (Windows, MacOs and Linux), then connect your compatible board to the USB and run the next command:
+We recommended PlatformIO because is more easy than Arduino IDE. For this, please install first [PlatformIO](http://platformio.org/) and its command line tools (Windows, MacOs and Linux), **pio** command, then connect your compatible board to the USB and run the next command:
 
 ```python
 pio run --target upload
@@ -117,17 +125,7 @@ pio run --target upload
 
 #### Prerequisites
 
-You first need to run the examples, install **arduino-cli** or the **Arduino IDE** with the following libraries:
-
-adafruit/Adafruit Unified Sensor @ 1.1.4  
-adafruit/Adafruit AM2320 sensor library @ 1.1.4  
-adafruit/Adafruit BME280 Library @ 2.1.2  
-adafruit/Adafruit BusIO @ 1.6.0  
-adafruit/Adafruit SHT31 Library @ 2.0.0  
-enjoyneering/AHT10 @ ^1.1.0  
-[DTH_nonblocking](https://github.com/hpsaturn/DHT_nonblocking.git)  
-[Sensirion library sps30](https://github.com/paulvha/sps30) @ 1.4.9  
-`CanAirIO Air Quality Sensors Library` (this library).  
+For run the examples, you first need to  install **arduino-cli** or the **Arduino IDE** with the libraries referenced en **lib_deps** on the file platformio.ini, becuase **Arduino don't install it automatically** like PlatformIO. Then put CanAirIO sensor library in your library directory.
 
 Also you need to add the **alternative links** for supporting the ESP32 boards:
 
