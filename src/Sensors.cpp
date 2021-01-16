@@ -16,16 +16,21 @@ void Sensors::loop() {
         pmLoopTimeStamp = millis();
         dataReady = false;
         dataReady = pmSensorRead();
+        DEBUG("-->[SENSORS] enable data from UART sensors: ",String(dataReady).c_str());
+        dhtRead();
         am2320Read();
         bme280Read();
         aht10Read();
         sht31Read();
         CO2scd30Read();
 
-        if (dataReady && _onDataCb)
+        if(!dataReady)DEBUG("-->[SENSORS] Any data from sensors? check your wirings!");
+
+        if (dataReady && (_onDataCb != nullptr)) {
             _onDataCb();  // if any sensor reached any data, dataReady is true.
-        else if (!dataReady && _onDataCb)
-            _onErrorCb("-->[W][SENSORS] PM sensor not configured!");
+        } else if (!dataReady && (_onDataCb != nullptr))
+            _onErrorCb("-->[W][SENSORS] No data from any sensor!");
+
         printValues();
     }
 

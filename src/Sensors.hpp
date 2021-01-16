@@ -126,9 +126,9 @@ class Sensors {
     /// Generic PM sensors Serial.
     Stream *_serial;
     /// Callback on some sensors error.
-    errorCbFn _onErrorCb;
+    errorCbFn _onErrorCb = nullptr;
     /// Callback when sensor data is ready.
-    voidCbFn _onDataCb;
+    voidCbFn _onDataCb = nullptr;
 
     String device_selected;
     int device_type = -1;
