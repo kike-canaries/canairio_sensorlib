@@ -68,6 +68,8 @@
     {"name":"AHT10", "owner":"enjoyneering","version":"1.1.0"},
     {"name":"Adafruit BusIO", "owner":"adafruit","version":"1.6.0"},
     {"name":"Adafruit SHT31 Library", "owner":"adafruit","version":"2.0.0"},
-    {"name":"DHT_nonblocking", "version":"https://github.com/hpsaturn/DHT_nonblocking/archive/master.zip"}
+    {"name":"DHT_nonblocking", "version":"https://github.com/hpsaturn/DHT_nonblocking/archive/master.zip"},
+    {"name":"MH-Z19", "owner":"wifwaf", "version":"1.5.3"},
+    {"name":"SparkFun SCD30 Arduino Library","owner":"sparkfun","version":"1.0.10"}
   ]
 }
