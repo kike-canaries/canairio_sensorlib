@@ -315,8 +315,8 @@ bool Sensors::pmSensirionRead() {
 }
 
 bool Sensors::CO2Mhz19Read() {
-    CO2 = myMHZ19.getCO2();              // Request CO2 (as ppm)
-    CO2temp = myMHZ19.getTemperature();  // Request Temperature (as Celsius)
+    CO2 = mhz19.getCO2();              // Request CO2 (as ppm)
+    CO2temp = mhz19.getTemperature();  // Request Temperature (as Celsius)
     if (CO2 > 0) {
         DEBUG("-->[MHZ14-9] read > done!");
         return true;
@@ -604,8 +604,8 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
 
 bool Sensors::CO2Mhz19Init() {
     DEBUG("-->[MH-Z19] starting MH-Z14 or MH-Z19 sensor..");
-    myMHZ19.begin(*_serial);    // *Serial(Stream) refence must be passed to library begin().
-    myMHZ19.autoCalibration();  // Turn auto calibration ON (OFF autoCalibration(false))
+    mhz19.begin(*_serial);    // *Serial(Stream) refence must be passed to library begin().
+    mhz19.autoCalibration();  // Turn auto calibration ON (OFF autoCalibration(false))
     return true;
 }
 
@@ -628,7 +628,7 @@ bool Sensors::pmSensirionInit() {
         pmSensirionErrorloop((char *)"-->[E][SPS30] could not probe / connect with SPS30.", 0);
     else {
         DEBUG("-->[SPS30] Detected SPS30.");
-        getSensirionDeviceInfo();
+        pmSensirionDeviceInfo();
     }
     // reset SPS30 connection
     if (!sps30.reset())
@@ -650,7 +650,7 @@ bool Sensors::pmSensirionInit() {
 /**
  * @brief : read and display Sensirion device info
  */
-void Sensors::getSensirionDeviceInfo() {
+void Sensors::pmSensirionDeviceInfo() {
     char buf[32];
     uint8_t ret;
     SPS30_version v;

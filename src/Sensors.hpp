@@ -16,7 +16,7 @@ using namespace std;
 /******************************************************************************
 * S E T U P  B O A R D   A N D  F I E L D S
 * -------------------------------------------
-* please select board on platformio.ini file
+* if you need, please select board on platformio.ini file
 ******************************************************************************/
 #ifdef WEMOSOLED
 #define PMS_RX 13  // config for Wemos board & TTGO18650
@@ -28,7 +28,7 @@ using namespace std;
 #define PMS_RX 13  // config for TTGO_TQ board
 #define PMS_TX 18
 #else
-#define PMS_RX 17  // config for D1MIN1 board
+#define PMS_RX 17  // config for D1MIN1 board (Default for main ESP32 dev boards)
 #define PMS_TX 16
 #endif
 
@@ -74,9 +74,9 @@ class Sensors {
     // DHT sensor
     float dhthumi, dhttemp;
     // Mhz19 sensor
-    MHZ19 myMHZ19;
+    MHZ19 mhz19;
     // CM1106
-    //uses the same HardwareSerial;
+    // it using the auto detected hardware serial;
     // SCD30 sensor
     SCD30 scd30;
 
@@ -123,7 +123,7 @@ class Sensors {
    private:
     /// DHT library
     uint32_t delayMS;
-    /// Generic PM sensors Serial.
+    /// For UART sensors (autodetected available serial)
     Stream *_serial;
     /// Callback on some sensors error.
     errorCbFn _onErrorCb = nullptr;
@@ -152,15 +152,18 @@ class Sensors {
     float CO2humi = 0.0;  // temperature of the CO2 sensor
     float CO2temp = 0.0;  // temperature of the CO2 sensor
 
-    void restart();
     void am2320Init();
     void am2320Read();
+
     void bme280Init();
     void bme280Read();
+
     void aht10Init();
     void aht10Read();
+
     void sht31Init();
     void sht31Read();
+
     void CO2scd30Init();
     void CO2scd30Read();
 
@@ -168,27 +171,35 @@ class Sensors {
     void dhtRead();
     bool dhtIsReady(float *temperature, float *humidity);
 
+    // UART sensors methods:
+
     bool sensorSerialInit(int pms_type, int rx, int tx);
     bool pmSensorAutoDetect(int pms_type);
     bool pmSensorRead();
     bool pmGenericRead();
     bool pmPanasonicRead();
-    bool pmSensirionRead();
+    
     bool pmSDS011Read();
     bool CO2Mhz19Read();
     bool CO2CM1106Read();
     int CO2CM1106val();
-    void onPmSensorError(const char *msg);
-    void printValues();
-    bool pmSensirionInit();
     bool CO2Mhz19Init();
     bool CO2CM1106Init();
+
+    bool pmSensirionInit();
+    bool pmSensirionRead();
     void pmSensirionErrtoMess(char *mess, uint8_t r);
     void pmSensirionErrorloop(char *mess, uint8_t r);
-    void getSensirionDeviceInfo();
-    String hwSerialRead(unsigned int lenght_buffer);
+    void pmSensirionDeviceInfo();
+
+    void onPmSensorError(const char *msg);
+
     bool serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx);
+    String hwSerialRead(unsigned int lenght_buffer);
+    void restart();  // restart serial (it isn't works sometimes)
     void DEBUG(const char *text, const char *textb = "");
+
+    void printValues();
 
 // @todo use DEBUG_ESP_PORT ?
 #ifdef WM_DEBUG_PORT
