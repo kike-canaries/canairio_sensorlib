@@ -15,12 +15,16 @@
     "PMS7003",
     "PMS5003",
     "AM2320",
+    "mhz19",
+    "scd30",
+    "cm1106",
+    "sds011",
     "particulate matter",
     "PM2.5",
     "PM1.0",
     "PM10"
   ],
-  "description":"Particle meter sensor manager for multiple sensors: Honeywell, Plantower, Panasonic, Sensirion, etc, also it handling other kind sensors like AM2320, bme280, aht10, sht31, DHT. Autodetection via UART of each particle meter sensor. ESP32/8266 compatible",
+  "description":"Air quality sensors manager: Honeywell, Plantower, Panasonic, Sensirion, SDS011, SCD30, etc, also it handling other kind sensors like AM2320, bme280, aht10, sht31, DHT and CO2 sensors like MHZ19, CM1106 and others. Autodetection via UART and i2c. ESP32/8266/Avr compatible. Other than examples, you can review a full implementation on CanAirIO proyect.",
   "repository":
   {
     "type": "git",
