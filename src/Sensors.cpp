@@ -318,6 +318,7 @@ bool Sensors::CO2Mhz19Read() {
     CO2 = mhz19.getCO2();              // Request CO2 (as ppm)
     CO2temp = mhz19.getTemperature();  // Request Temperature (as Celsius)
     if (CO2 > 0) {
+        dataReady = true;
         DEBUG("-->[MHZ14-9] read > done!");
         return true;
     }
@@ -329,6 +330,7 @@ bool Sensors::CO2Mhz19Read() {
 bool Sensors::CO2CM1106Read() {
     CO2 = CO2CM1106val();
     if (CO2 > 0) {
+        dataReady = true;
         DEBUG("-->[CM1106] read > done!");
         return true;
     }
