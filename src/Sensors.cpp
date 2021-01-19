@@ -335,6 +335,8 @@ bool Sensors::CO2CM1106Read() {
         return true;
     }
     CO2 = 0;
+    Serial.print("CO2 error:");
+    Serial.println(CO2);
     return false;
 }
 
@@ -443,12 +445,6 @@ void Sensors::CO2scd30Read() {
         CO2temp = scd30.getTemperature();
         dataReady = true;
         DEBUG("-->[SCD30] read > done!");
-        //return true;
-    } else {
-        CO2 = 0;
-        CO2humi = 0;
-        CO2temp = 0;
-        //return false;
     }
 }
 
