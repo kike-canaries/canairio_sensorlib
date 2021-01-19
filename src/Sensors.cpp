@@ -322,8 +322,6 @@ bool Sensors::CO2Mhz19Read() {
         DEBUG("-->[MHZ14-9] read > done!");
         return true;
     }
-    CO2 = 0;
-    CO2temp = 0;
     return false;
 }
 
@@ -334,7 +332,6 @@ bool Sensors::CO2CM1106Read() {
         DEBUG("-->[CM1106] read > done!");
         return true;
     }
-    CO2 = 0;
     return false;
 }
 
