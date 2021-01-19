@@ -23,9 +23,9 @@ void onSensorDataOk() {
     Serial.print (" PM2.5: " + sensors.getStringPM25());
     Serial.print (" PM10: " + sensors.getStringPM10());
     
-//    Serial.print (" CO2: " + sensors.getStringCO2());
-//    Serial.print (" CO2humi: " + String(sensors.getCO2humi()));
-//    Serial.print (" CO2temp: " + String(sensors.getCO2temp()));
+    Serial.print (" CO2: " + sensors.getStringCO2());
+    Serial.print (" CO2humi: " + String(sensors.getCO2humi()));
+    Serial.print (" CO2temp: " + String(sensors.getCO2temp()));
 
     Serial.print (" H: "+ String(sensors.getHumidity()));
     Serial.println (" T: " + String(sensors.getTemperature()));

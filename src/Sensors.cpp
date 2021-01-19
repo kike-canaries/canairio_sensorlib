@@ -335,8 +335,6 @@ bool Sensors::CO2CM1106Read() {
         return true;
     }
     CO2 = 0;
-    Serial.print("CO2 error:");
-    Serial.println(CO2);
     return false;
 }
 
