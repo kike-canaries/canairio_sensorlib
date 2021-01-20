@@ -16,16 +16,21 @@ void Sensors::loop() {
         pmLoopTimeStamp = millis();
         dataReady = false;
         dataReady = pmSensorRead();
+        DEBUG("-->[SENSORS] enable data from UART sensors: ",String(dataReady).c_str());
+        dhtRead();
         am2320Read();
         bme280Read();
         aht10Read();
         sht31Read();
         CO2scd30Read();
 
-        if (dataReady && _onDataCb)
+        if(!dataReady)DEBUG("-->[SENSORS] Any data from sensors? check your wirings!");
+
+        if (dataReady && (_onDataCb != nullptr)) {
             _onDataCb();  // if any sensor reached any data, dataReady is true.
-        else if (!dataReady && _onDataCb)
-            _onErrorCb("-->[W][SENSORS] PM sensor not configured!");
+        } else if (!dataReady && (_onDataCb != nullptr))
+            _onErrorCb("-->[W][SENSORS] No data from any sensor!");
+
         printValues();
     }
 
@@ -310,24 +315,23 @@ bool Sensors::pmSensirionRead() {
 }
 
 bool Sensors::CO2Mhz19Read() {
-    CO2 = myMHZ19.getCO2();              // Request CO2 (as ppm)
-    CO2temp = myMHZ19.getTemperature();  // Request Temperature (as Celsius)
+    CO2 = mhz19.getCO2();              // Request CO2 (as ppm)
+    CO2temp = mhz19.getTemperature();  // Request Temperature (as Celsius)
     if (CO2 > 0) {
+        dataReady = true;
         DEBUG("-->[MHZ14-9] read > done!");
         return true;
     }
-    CO2 = 0;
-    CO2temp = 0;
     return false;
 }
 
 bool Sensors::CO2CM1106Read() {
     CO2 = CO2CM1106val();
     if (CO2 > 0) {
+        dataReady = true;
         DEBUG("-->[CM1106] read > done!");
         return true;
     }
-    CO2 = 0;
     return false;
 }
 
@@ -436,12 +440,6 @@ void Sensors::CO2scd30Read() {
         CO2temp = scd30.getTemperature();
         dataReady = true;
         DEBUG("-->[SCD30] read > done!");
-        //return true;
-    } else {
-        CO2 = 0;
-        CO2humi = 0;
-        CO2temp = 0;
-        //return false;
     }
 }
 
@@ -599,8 +597,8 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
 
 bool Sensors::CO2Mhz19Init() {
     DEBUG("-->[MH-Z19] starting MH-Z14 or MH-Z19 sensor..");
-    myMHZ19.begin(*_serial);    // *Serial(Stream) refence must be passed to library begin().
-    myMHZ19.autoCalibration();  // Turn auto calibration ON (OFF autoCalibration(false))
+    mhz19.begin(*_serial);    // *Serial(Stream) refence must be passed to library begin().
+    mhz19.autoCalibration();  // Turn auto calibration ON (OFF autoCalibration(false))
     return true;
 }
 
@@ -623,7 +621,7 @@ bool Sensors::pmSensirionInit() {
         pmSensirionErrorloop((char *)"-->[E][SPS30] could not probe / connect with SPS30.", 0);
     else {
         DEBUG("-->[SPS30] Detected SPS30.");
-        getSensirionDeviceInfo();
+        pmSensirionDeviceInfo();
     }
     // reset SPS30 connection
     if (!sps30.reset())
@@ -645,7 +643,7 @@ bool Sensors::pmSensirionInit() {
 /**
  * @brief : read and display Sensirion device info
  */
-void Sensors::getSensirionDeviceInfo() {
+void Sensors::pmSensirionDeviceInfo() {
     char buf[32];
     uint8_t ret;
     SPS30_version v;
