@@ -322,8 +322,6 @@ bool Sensors::CO2Mhz19Read() {
         DEBUG("-->[MHZ14-9] read > done!");
         return true;
     }
-    CO2 = 0;
-    CO2temp = 0;
     return false;
 }
 
@@ -334,7 +332,6 @@ bool Sensors::CO2CM1106Read() {
         DEBUG("-->[CM1106] read > done!");
         return true;
     }
-    CO2 = 0;
     return false;
 }
 
@@ -443,12 +440,6 @@ void Sensors::CO2scd30Read() {
         CO2temp = scd30.getTemperature();
         dataReady = true;
         DEBUG("-->[SCD30] read > done!");
-        //return true;
-    } else {
-        CO2 = 0;
-        CO2humi = 0;
-        CO2temp = 0;
-        //return false;
     }
 }
 
