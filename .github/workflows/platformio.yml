@@ -29,6 +29,9 @@ jobs:
           platformio update
       - name: Build test
         run: |
-          cd examples/platformio/
           pio run
+          cd examples/platformio
+          pio run
+
+
       
