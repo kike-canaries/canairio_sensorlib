@@ -79,16 +79,6 @@ void loop() {
 }
 ```
 
-### Custom RX/TX pines
-
-Also for UART sensors, you can pass the custom pins if it isn't autodected:
-
-```javascript
-void setup() {
-    sensors.init(sensors.Auto,RX,TX); // generic sensor(default), custom RX, custom TX pines.
-}
-```
-
 ### Output
 
 On your serial monitor you should have something like that:
@@ -154,6 +144,48 @@ arduino-cli upload --fqbn esp32:esp32:lolin32:UploadSpeed=115200 -p /dev/ttyUSB0
 ```
 
 where `basic` is the basic example on examples directory.
+
+## Wiring
+
+The current version of library supports 3 kinds of wiring connection, UART, i2c and TwoWire, in the main boards the library using the defaults pins of each board, but in some special cases the pins are:
+
+### UART
+
+```cpp
+#ifdef WEMOSOLED
+#define PMS_RX 13  // config for Wemos board & TTGO18650
+#define PMS_TX 15  // some old TTGO18650 have PMS_RX 18 & PMS_TX 17
+#elif HELTEC
+#define PMS_RX 13  // config for Heltec board, ESP32Sboard & ESPDUINO-32
+#define PMS_TX 12  // some old ESP32Sboard have PMS_RX 27 & PMS_TX 25
+#elif TTGO_TQ
+#define PMS_RX 13  // config for TTGO_TQ board
+#define PMS_TX 18
+#else
+#define PMS_RX 17  // config for D1MIN1 board (Default for main ESP32 dev boards)
+#define PMS_TX 16
+#endif
+```
+Also you can define the UART pins in the init() method, please see below.  
+
+#### Custom UART RX/TX:
+
+You can pass the custom pins if it isn't autodected:
+
+```cpp
+sensors.init(sensors.Auto,RX,TX); // custom RX, custom TX pines.
+```
+
+
+
+### i2c (recommended)
+
+We are using the default pins for each board, some times it's pins are 21,22, please check your board schematic.
+
+### TwoWire
+
+For now we are using it only for DHT sensors in PIN 23. For more info please review the next lines [here](https://github.com/kike-canaries/canairio_sensorlib/blob/01ae9e976aa2985bb66856c0d6fae2a03100f552/src/Sensors.hpp#L16-L45).
+
 
 ---
 
