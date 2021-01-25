@@ -534,7 +534,6 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
     } else {
         DEBUG("-->[E][PMSENSOR] detection failed!");
         if (_onErrorCb) _onErrorCb("-->[E][PMSENSOR] detection failed!");
-
         return false;
     }
 }
