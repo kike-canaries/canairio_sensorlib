@@ -711,8 +711,15 @@ void Sensors::aht10Init() {
 }
 
 void Sensors::CO2scd30Init() {
-    DEBUG("-->[SCD30] starting SCD30 sensor..");
+    DEBUG("-->[SCD30] starting CO2 SCD30 sensor..");
     scd30.begin();
+    delay(5);
+    CO2scd30Read();
+    if (CO2 > 0) {
+        DEBUG("-->[SCD30] detected!");      
+        device_selected = "SCD30";
+        device_type = 6;
+    }
 }
 
 void Sensors::dhtInit() {
