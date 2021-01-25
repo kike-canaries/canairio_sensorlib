@@ -716,7 +716,7 @@ void Sensors::CO2scd30Init() {
     delay(5);
     CO2scd30Read();
     if (CO2 > 0) {
-        Serial.println("-->[SCD30] detected!");      
+        DEBUG("-->[SCD30] detected!");      
         device_selected = "SCD30";
         device_type = 6;
     }
