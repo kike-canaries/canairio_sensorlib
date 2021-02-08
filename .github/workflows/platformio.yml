@@ -30,8 +30,4 @@ jobs:
       - name: Build test
         run: |
           pio run
-          cd examples/platformio
-          pio run
-
-
       
