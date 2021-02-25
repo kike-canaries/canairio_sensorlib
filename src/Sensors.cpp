@@ -598,7 +598,7 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
 bool Sensors::CO2Mhz19Init() {
     DEBUG("-->[MH-Z19] starting MH-Z14 or MH-Z19 sensor..");
     mhz19.begin(*_serial);    // *Serial(Stream) refence must be passed to library begin().
-    mhz19.autoCalibration();  // Turn auto calibration ON (OFF autoCalibration(false))
+    mhz19.autoCalibration(false);  // Turn auto calibration ON (OFF autoCalibration(false))
     return true;
 }
 
@@ -711,8 +711,15 @@ void Sensors::aht10Init() {
 }
 
 void Sensors::CO2scd30Init() {
-    DEBUG("-->[SCD30] starting SCD30 sensor..");
+    DEBUG("-->[SCD30] starting CO2 SCD30 sensor..");
     scd30.begin();
+    delay(5);
+    CO2scd30Read();
+    if (CO2 > 0) {
+        DEBUG("-->[SCD30] detected!");      
+        device_selected = "SCD30";
+        device_type = 6;
+    }
 }
 
 void Sensors::dhtInit() {

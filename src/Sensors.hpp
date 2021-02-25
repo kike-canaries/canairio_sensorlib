@@ -22,8 +22,8 @@ using namespace std;
 #define PMS_RX 13  // config for Wemos board & TTGO18650
 #define PMS_TX 15  // some old TTGO18650 have PMS_RX 18 & PMS_TX 17
 #elif HELTEC
-#define PMS_RX 13  // config for Heltec board, ESP32Sboard & ESPDUINO-32
-#define PMS_TX 12  // some old ESP32Sboard have PMS_RX 27 & PMS_TX 25
+#define PMS_RX 17 // config for Heltec board, ESP32Sboard & ESPDUINO-32. Use Uart2
+#define PMS_TX 18  // some old ESP32Sboard have PMS_RX 27 & PMS_TX 25. Jump Uart2 tx from 16 to 18. !6 used by Oled.
 #elif TTGO_TQ
 #define PMS_RX 13  // config for TTGO_TQ board
 #define PMS_TX 18
