@@ -28,7 +28,7 @@ void Sensors::loop() {
 
         if (dataReady && (_onDataCb != nullptr)) {
             _onDataCb();  // if any sensor reached any data, dataReady is true.
-        } else if (!dataReady && (_onDataCb != nullptr))
+        } else if (!dataReady && (_onErrorCb != nullptr))
             _onErrorCb("-->[W][SENSORS] No data from any sensor!");
 
         printValues();
