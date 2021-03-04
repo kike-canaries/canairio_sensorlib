@@ -326,7 +326,7 @@ bool Sensors::CO2Mhz19Read() {
 }
 
 bool Sensors::CO2CM1106Read() {
-    CO2 = CO2CM1106val();
+    CO2 = sensor_CM1106->get_co2();;
     if (CO2 > 0) {
         dataReady = true;
         DEBUG("-->[CM1106] read > done!");
@@ -335,23 +335,6 @@ bool Sensors::CO2CM1106Read() {
     return false;
 }
 
-int Sensors::CO2CM1106val() {
-    static byte cmd[4] = {0x11, 0x01, 0x01, 0xED};  // Commands 0x01 Read ppm, 0x10 open/close ABC, 0x03 Calibrate
-    static byte response[8] = {0};                  // response 0x16, 0x05, 0x01, DF1, DF2, DF3, DF4, CRC.  ppm=DF1*256+DF2
-    _serial->write(cmd, 4);
-    _serial->readBytes(response, 8);
-    int crc = 0;
-    for (int i = 0; i < 7; i++) crc += response[i];
-    crc = 256 - crc % 256;
-    if (((int)response[0] == 0x16) && ((int)response[7] == crc)) {
-        unsigned int responseHigh = (unsigned int)response[3];
-        unsigned int responseLow = (unsigned int)response[4];
-        return (256 * responseHigh) + responseLow;
-    } else {
-        while (_serial->available() > 0) _serial->read();  // Clear serial input buffer;
-        return -1;
-    }
-}
 /**
  * @brief read sensor data. Sensor selected.
  * @return true if data is loaded from sensor
@@ -524,8 +507,7 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
 
     // starting auto detection loop
     int try_sensor_init = 0;
-    while (!pmSensorAutoDetect(pms_type) && try_sensor_init++ < 2)
-        ;
+    while (!pmSensorAutoDetect(pms_type) && try_sensor_init++ < 2);
 
     // get device selected..
     if (device_type >= 0) {
@@ -604,6 +586,50 @@ bool Sensors::CO2Mhz19Init() {
 
 bool Sensors::CO2CM1106Init() {
     DEBUG("-->[CM1106] starting CM1106 sensor..");
+    sensor_CM1106 = new CM1106_UART(*_serial);
+
+    // Check if CM1106 is available
+    sensor_CM1106->get_software_version(sensor.softver);
+    int len = strlen(sensor.softver);
+    if (len > 0) {
+        if (len >= 10 && !strncmp(sensor.softver+len-5, "SL-NS", 5)) {
+            DEBUG("-->[CM1106] CM1106SL-NS version detected");
+        } else if (!strncmp(sensor.softver, "CM", 2)) {
+            DEBUG("-->[CM1106] CM1106 version detected");
+        } else {
+            DEBUG("-->[CM1106] unknown version");
+        }
+    } else {
+        DEBUG("-->[E][CM1106] not detected!");
+        return false;
+    }     
+
+    // Show sensor info
+    DEBUG("-->[CM1106] Cubic CM1106 NDIR CO2 sensor <<<");  
+    sensor_CM1106->get_serial_number(sensor.sn);
+    DEBUG("-->[CM1106] Serial number:", sensor.sn);
+    DEBUG("-->[CM1106] Software version:", sensor.softver);
+
+    // Setup ABC parameters
+    DEBUG("-->[CM1106] Setting ABC parameters...");
+    sensor_CM1106->set_ABC(CM1106_ABC_OPEN, 7, 415);    // 7 days cycle, 415 ppm for base
+
+    // Getting ABC parameters
+    if (sensor_CM1106->get_ABC(&abc)) {
+        DEBUG("-->[CM1106] ABC parameters:");
+        if (abc.open_close == CM1106_ABC_OPEN) {
+            DEBUG("-->[CM1106] Auto calibration is enabled");
+        } else if (abc.open_close == CM1106_ABC_CLOSE) {
+            DEBUG("-->[CM1106] Auto calibration is disabled");
+        }
+        DEBUG("-->[CM1106] Calibration cycle: ", String(abc.cycle).c_str());
+        DEBUG("-->[CM1106] Calibration baseline: ", String(abc.base).c_str());
+    }
+
+    // Start calibration
+    DEBUG("Starting calibration...");
+    sensor_CM1106->start_calibration(400);
+
     return true;
 }
 
