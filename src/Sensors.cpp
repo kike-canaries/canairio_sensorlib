@@ -610,25 +610,25 @@ bool Sensors::CO2CM1106Init() {
     DEBUG("-->[CM1106] Serial number:", sensor.sn);
     DEBUG("-->[CM1106] Software version:", sensor.softver);
 
-    // Setup ABC parameters
-    DEBUG("-->[CM1106] Setting ABC parameters...");
-    sensor_CM1106->set_ABC(CM1106_ABC_OPEN, 7, 415);    // 7 days cycle, 415 ppm for base
+    // // Setup ABC parameters
+    // DEBUG("-->[CM1106] Setting ABC parameters...");
+    // sensor_CM1106->set_ABC(CM1106_ABC_OPEN, 7, 415);    // 7 days cycle, 415 ppm for base
 
-    // Getting ABC parameters
-    if (sensor_CM1106->get_ABC(&abc)) {
-        DEBUG("-->[CM1106] ABC parameters:");
-        if (abc.open_close == CM1106_ABC_OPEN) {
-            DEBUG("-->[CM1106] Auto calibration is enabled");
-        } else if (abc.open_close == CM1106_ABC_CLOSE) {
-            DEBUG("-->[CM1106] Auto calibration is disabled");
-        }
-        DEBUG("-->[CM1106] Calibration cycle: ", String(abc.cycle).c_str());
-        DEBUG("-->[CM1106] Calibration baseline: ", String(abc.base).c_str());
-    }
+    // // Getting ABC parameters
+    // if (sensor_CM1106->get_ABC(&abc)) {
+    //     DEBUG("-->[CM1106] ABC parameters:");
+    //     if (abc.open_close == CM1106_ABC_OPEN) {
+    //         DEBUG("-->[CM1106] Auto calibration is enabled");
+    //     } else if (abc.open_close == CM1106_ABC_CLOSE) {
+    //         DEBUG("-->[CM1106] Auto calibration is disabled");
+    //     }
+    //     DEBUG("-->[CM1106] Calibration cycle: ", String(abc.cycle).c_str());
+    //     DEBUG("-->[CM1106] Calibration baseline: ", String(abc.base).c_str());
+    // }
 
-    // Start calibration
-    DEBUG("Starting calibration...");
-    sensor_CM1106->start_calibration(400);
+    // // Start calibration
+    // DEBUG("Starting calibration...");
+    // sensor_CM1106->start_calibration(400);
 
     return true;
 }
