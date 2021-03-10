@@ -10,6 +10,8 @@
 #include <SparkFun_SCD30_Arduino_Library.h>
 #include <dht_nonblocking.h>
 #include <sps30.h>
+#include <cm1106_uart.h>
+
 using namespace std;
 #include <vector>
 
@@ -79,6 +81,10 @@ class Sensors {
     // it using the auto detected hardware serial;
     // SCD30 sensor
     SCD30 scd30;
+    // CM1106 UART
+    CM1106_UART *sensor_CM1106;
+    CM1106_sensor sensor;
+    CM1106_ABC abc;
 
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
     void loop();
