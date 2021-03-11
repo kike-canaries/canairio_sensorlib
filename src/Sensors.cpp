@@ -610,9 +610,12 @@ bool Sensors::CO2CM1106Init() {
     DEBUG("-->[CM1106] Serial number:", sensor.sn);
     DEBUG("-->[CM1106] Software version:", sensor.softver);
 
-    // // Setup ABC parameters
-    // DEBUG("-->[CM1106] Setting ABC parameters...");
-    // sensor_CM1106->set_ABC(CM1106_ABC_OPEN, 7, 415);    // 7 days cycle, 415 ppm for base
+    // Setup ABC parameters
+    DEBUG("-->[CM1106] Setting ABC parameters...");
+    sensor_CM1106->set_ABC(CM1106_ABC_OPEN, 7, 415);    // 7 days cycle, 415 ppm for base
+
+    // Force mode continous B for CM1106SL-NS
+    sensor_CM1106->set_working_status(1);
 
     // // Getting ABC parameters
     // if (sensor_CM1106->get_ABC(&abc)) {
