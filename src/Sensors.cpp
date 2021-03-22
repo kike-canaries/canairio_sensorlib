@@ -738,7 +738,15 @@ void Sensors::aht10Init() {
 
 void Sensors::CO2scd30Init() {
     DEBUG("-->[SCD30] starting CO2 SCD30 sensor..");
+#ifdef M5COREINK
+    Wire.begin(25,26);
+    if (scd30.begin(Wire) == false) {
+        Serial.println("Air sensor not detected. Please check wiring. Freezing...");
+        while (1);
+    }
+#else
     scd30.begin();
+#endif
     delay(5);
     CO2scd30Read();
     if (CO2 > 0) {
