@@ -29,6 +29,9 @@ using namespace std;
 #elif TTGO_TQ
 #define PMS_RX 13  // config for TTGO_TQ board
 #define PMS_TX 18
+#elif M5COREINK
+#define PMS_RX 13  // config for backward header in M5CoreInk
+#define PMS_TX 14
 #else
 #define PMS_RX 17  // config for D1MIN1 board (Default for main ESP32 dev boards)
 #define PMS_TX 16
