@@ -372,8 +372,8 @@ bool Sensors::pmSensorRead() {
 }
 
 void Sensors::am2320Read() {
-    humi1 = am2320.readHumidity();
-    temp1 = am2320.readTemperature();
+    float humi1 = am2320.readHumidity();
+    float temp1 = am2320.readTemperature();
     if (!isnan(humi1)) humi = humi1;
     if (!isnan(temp1)) {
         temp = temp1;
@@ -383,8 +383,8 @@ void Sensors::am2320Read() {
 }
 
 void Sensors::bme280Read() {
-    humi1 = bme.readHumidity();
-    temp1 = bme.readTemperature();
+    float humi1 = bme.readHumidity();
+    float temp1 = bme.readTemperature();
     if (humi1 != 0) humi = humi1;
     if (temp1 != 0) {
         temp = temp1;
@@ -394,8 +394,8 @@ void Sensors::bme280Read() {
 }
 
 void Sensors::aht10Read() {
-    humi1 = aht10.readHumidity();
-    temp1 = aht10.readTemperature();
+    float humi1 = aht10.readHumidity();
+    float temp1 = aht10.readTemperature();
     if (humi1 != 255) humi = humi1;
     if (temp1 != 255) {
         temp = temp1;
@@ -405,8 +405,8 @@ void Sensors::aht10Read() {
 }
 
 void Sensors::sht31Read() {
-    humi1 = sht31.readHumidity();
-    temp1 = sht31.readTemperature();
+    float humi1 = sht31.readHumidity();
+    float temp1 = sht31.readTemperature();
     if (!isnan(humi1)) humi = humi1;
     if (!isnan(temp1)) {
         temp = temp1;
@@ -416,9 +416,9 @@ void Sensors::sht31Read() {
 }
 
 void Sensors::CO2scd30Read() {
-    CO21 = scd30.getCO2();
-    if (CO21 > 0) {
-        CO2 = CO21;
+    uint16_t tco2 = scd30.getCO2();
+    if (tco2 > 0) {
+        CO2 = tco2;
         CO2humi = scd30.getHumidity();
         CO2temp = scd30.getTemperature();
         dataReady = true;
@@ -740,14 +740,11 @@ void Sensors::CO2scd30Init() {
     DEBUG("-->[SCD30] starting CO2 SCD30 sensor..");
 #ifdef M5COREINK
     Wire.begin(25,26);
-    if (scd30.begin(Wire) == false) {
-        Serial.println("Air sensor not detected. Please check wiring. Freezing...");
-        while (1);
-    }
+    scd30.begin(Wire);
 #else
     scd30.begin();
 #endif
-    delay(5);
+    delay(10);
     CO2scd30Read();
     if (CO2 > 0) {
         DEBUG("-->[SCD30] detected!");      
