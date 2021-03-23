@@ -59,6 +59,10 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
         DEBUG("-->[E][PMSENSOR] init failed!");
     }
 
+#ifdef M5COREINK
+    Wire.begin(25,26);  // M5CoreInk hat pines (header on top)
+#endif
+
     DEBUG("-->[SENSORS] try to load temp and humidity sensor..");
     am2320Init();
     sht31Init();
@@ -738,12 +742,7 @@ void Sensors::aht10Init() {
 
 void Sensors::CO2scd30Init() {
     DEBUG("-->[SCD30] starting CO2 SCD30 sensor..");
-#ifdef M5COREINK
-    Wire.begin(25,26);
-    scd30.begin(Wire);
-#else
     scd30.begin();
-#endif
     delay(10);
     CO2scd30Read();
     if (CO2 > 0) {
