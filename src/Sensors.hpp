@@ -4,6 +4,7 @@
 #include <AHT10.h>
 #include <Adafruit_AM2320.h>
 #include <Adafruit_BME280.h>
+#include <Adafruit_BME680.h>
 #include <Adafruit_SHT31.h>
 #include <Adafruit_Sensor.h>
 #include <MHZ19.h>
@@ -38,12 +39,14 @@ using namespace std;
 #define DHT_SENSOR_PIN 17
 #else
 #define DHT_SENSOR_PIN 23            // DHT default pin
-#define DHT_SENSOR_TYPE DHT_TYPE_22  // DHT sensor type
 #define PMS_RX 17  // config for D1MIN1 board (Default for main ESP32 dev boards)
 #define PMS_TX 16
 #endif
 
-// Sensor read retry. 
+// DHT sensor type
+#define DHT_SENSOR_TYPE DHT_TYPE_22  
+
+// Read UART sensor retry. 
 #define SENSOR_RETRY 1000         // Max Serial characters
 
 // Sensirion SPS30 sensor
@@ -72,10 +75,17 @@ class Sensors {
 
     /// Sensirion library
     SPS30 sps30;
-    // Humidity sensor
+
+    /*****************************************
+     * I2C sensors:
+     ****************************************/
+
+    // AM2320 (Humidity and temperature)
     Adafruit_AM2320 am2320;
-    // BME280 I2C
-    Adafruit_BME280 bme;
+    // BME280 (Humidity, Pressure, Altitude and Temperature)
+    Adafruit_BME280 bme280;
+    // BME680 (Humidity, Gas, IAQ, Pressure, Altitude and Temperature)
+    Adafruit_BME680 bme680; 
     // AHT10
     AHT10 aht10;
     // SHT31
@@ -167,6 +177,9 @@ class Sensors {
 
     void bme280Init();
     void bme280Read();
+
+    void bme680Init();
+    void bme680Read();
 
     void aht10Init();
     void aht10Read();
