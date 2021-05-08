@@ -143,6 +143,8 @@ class Sensors {
     String getStringCO2();
     String getStringCO2temp(); 
 
+    void setCO2RecalibrationFactor(int ppmValue);
+
    private:
     /// DHT library
     uint32_t delayMS;

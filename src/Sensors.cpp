@@ -77,6 +77,18 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
 /// set loop time interval for each sensor sample
 void Sensors::setSampleTime(int seconds) {
     sample_time = seconds;
+    if(getPmDeviceSelected().equals("SCD30")){
+        Serial.println("-->[SENSORS] SCD30 interval time to (2x): " + String(seconds * 2));
+        scd30.setMeasurementInterval(seconds * 2);
+    }
+}
+
+/// set CO2 recalibration PPM value (400 to 2000)
+void Sensors::setCO2RecalibrationFactor(int ppmValue) {
+    if (getPmDeviceSelected().equals("SCD30")) {
+        Serial.println("-->[SENSORS] SCD30 setting calibration factor: " + String(ppmValue));
+        scd30.setForcedRecalibrationFactor(400);
+    }
 }
 
 void Sensors::restart() {
@@ -789,7 +801,7 @@ void Sensors::CO2scd30Init() {
     CO2scd30Read();
     if (CO2 > 0) {
         DEBUG("-->[SCD30] detected!");      
-        device_selected = "SCD30";
+        device_selected = "SCD30";  // TODO: sync this constants with app
         device_type = 6;
     }
 }
