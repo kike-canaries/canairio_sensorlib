@@ -20,6 +20,7 @@ void Sensors::loop() {
         dhtRead();
         am2320Read();
         bme280Read();
+        bme680Read();
         aht10Read();
         sht31Read();
         CO2scd30Read();
@@ -67,6 +68,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     am2320Init();
     sht31Init();
     bme280Init();
+    bme680Init();
     aht10Init();
     dhtInit();
     CO2scd30Init();
@@ -387,13 +389,32 @@ void Sensors::am2320Read() {
 }
 
 void Sensors::bme280Read() {
-    float humi1 = bme.readHumidity();
-    float temp1 = bme.readTemperature();
+    float humi1 = bme280.readHumidity();
+    float temp1 = bme280.readTemperature();
     if (humi1 != 0) humi = humi1;
     if (temp1 != 0) {
         temp = temp1;
         dataReady = true;
         DEBUG("-->[BME280] read > done!");
+    }
+}
+
+void Sensors::bme680Read() {
+    unsigned long endTime = bme680.beginReading();
+    if (endTime == 0) return;
+    if (!bme680.endReading()) return;
+
+    float temp1 = bme680.temperature;
+
+    if (temp1 != 0) {
+        temp = temp1;
+        humi = bme680.humidity;
+        pres = bme680.pressure / 100.0;
+        gas  = bme680.gas_resistance / 1000.0;
+        alt  = bme680.readAltitude(SEALEVELPRESSURE_HPA);
+
+        dataReady = true;
+        DEBUG("-->[BME680] read > done!");
     }
 }
 
@@ -734,7 +755,25 @@ void Sensors::sht31Init() {
 
 void Sensors::bme280Init() {
     DEBUG("-->[BME280] starting BME280 sensor..");
-    bme.begin(0x76);  // temp/humidity sensor
+    bme280.begin(0x76);  // temp/humidity sensor
+}
+
+void Sensors::bme680Init() {
+    DEBUG("-->[BME280] starting BME680 sensor..");
+    if (!bme680.begin()) return;
+    
+    // Set up oversampling and filter in// There's no need to delay() until millis() >= endTime: bme.endReading()
+    // takes care of that. It's okay for parallel work to take longer than
+    // BME680's measurement time.
+
+    // Obtain measurement results from BME680. Note that this operation isn't
+    // instantaneous even if milli() >= endTime due to I2C/SPI latency.itialization
+    bme680.setTemperatureOversampling(BME680_OS_8X);
+    bme680.setHumidityOversampling(BME680_OS_2X);
+    bme680.setPressureOversampling(BME680_OS_4X);
+    bme680.setIIRFilterSize(BME680_FILTER_SIZE_3);
+    bme680.setGasHeater(320, 150);  // 320*C for 150 ms
+    DEBUG("BME680 set sea level pressure ", String(SEALEVELPRESSURE_HPA).c_str());
 }
 
 void Sensors::aht10Init() {

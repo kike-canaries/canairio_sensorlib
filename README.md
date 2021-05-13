@@ -15,7 +15,8 @@ Particle meter (PM) sensor manager for multiple (PM) sensors: Honeywell, Plantow
 - [x] Added old DHT sensors 
 - [x] Added CO2 sensors: MHZ19, SCD30, CM1106
 - [x] Added SDS011 particle metter
-- [ ] BME680 support (from TTGO-T7 CanAirIO version)
+- [x] BME680 support (from TTGO-T7 CanAirIO version)
+- [ ] IAQ indicator from BME680 Bosch library
 
 ## Usage
 
