@@ -59,6 +59,10 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
         DEBUG("-->[E][PMSENSOR] init failed!");
     }
 
+#ifdef M5COREINK
+    Wire.begin(25,26);  // M5CoreInk hat pines (header on top)
+#endif
+
     DEBUG("-->[SENSORS] try to load temp and humidity sensor..");
     am2320Init();
     sht31Init();
@@ -372,8 +376,8 @@ bool Sensors::pmSensorRead() {
 }
 
 void Sensors::am2320Read() {
-    humi1 = am2320.readHumidity();
-    temp1 = am2320.readTemperature();
+    float humi1 = am2320.readHumidity();
+    float temp1 = am2320.readTemperature();
     if (!isnan(humi1)) humi = humi1;
     if (!isnan(temp1)) {
         temp = temp1;
@@ -383,8 +387,8 @@ void Sensors::am2320Read() {
 }
 
 void Sensors::bme280Read() {
-    humi1 = bme.readHumidity();
-    temp1 = bme.readTemperature();
+    float humi1 = bme.readHumidity();
+    float temp1 = bme.readTemperature();
     if (humi1 != 0) humi = humi1;
     if (temp1 != 0) {
         temp = temp1;
@@ -394,8 +398,8 @@ void Sensors::bme280Read() {
 }
 
 void Sensors::aht10Read() {
-    humi1 = aht10.readHumidity();
-    temp1 = aht10.readTemperature();
+    float humi1 = aht10.readHumidity();
+    float temp1 = aht10.readTemperature();
     if (humi1 != 255) humi = humi1;
     if (temp1 != 255) {
         temp = temp1;
@@ -405,8 +409,8 @@ void Sensors::aht10Read() {
 }
 
 void Sensors::sht31Read() {
-    humi1 = sht31.readHumidity();
-    temp1 = sht31.readTemperature();
+    float humi1 = sht31.readHumidity();
+    float temp1 = sht31.readTemperature();
     if (!isnan(humi1)) humi = humi1;
     if (!isnan(temp1)) {
         temp = temp1;
@@ -416,9 +420,9 @@ void Sensors::sht31Read() {
 }
 
 void Sensors::CO2scd30Read() {
-    CO21 = scd30.getCO2();
-    if (CO21 > 0) {
-        CO2 = CO21;
+    uint16_t tco2 = scd30.getCO2();
+    if (tco2 > 0) {
+        CO2 = tco2;
         CO2humi = scd30.getHumidity();
         CO2temp = scd30.getTemperature();
         dataReady = true;
@@ -610,9 +614,12 @@ bool Sensors::CO2CM1106Init() {
     DEBUG("-->[CM1106] Serial number:", sensor.sn);
     DEBUG("-->[CM1106] Software version:", sensor.softver);
 
-    // // Setup ABC parameters
-    // DEBUG("-->[CM1106] Setting ABC parameters...");
-    // sensor_CM1106->set_ABC(CM1106_ABC_OPEN, 7, 415);    // 7 days cycle, 415 ppm for base
+    // Setup ABC parameters
+    DEBUG("-->[CM1106] Setting ABC parameters...");
+    sensor_CM1106->set_ABC(CM1106_ABC_OPEN, 7, 415);    // 7 days cycle, 415 ppm for base
+
+    // Force mode continous B for CM1106SL-NS
+    sensor_CM1106->set_working_status(1);
 
     // // Getting ABC parameters
     // if (sensor_CM1106->get_ABC(&abc)) {
@@ -739,7 +746,7 @@ void Sensors::aht10Init() {
 void Sensors::CO2scd30Init() {
     DEBUG("-->[SCD30] starting CO2 SCD30 sensor..");
     scd30.begin();
-    delay(5);
+    delay(10);
     CO2scd30Read();
     if (CO2 > 0) {
         DEBUG("-->[SCD30] detected!");      

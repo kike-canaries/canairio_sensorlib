@@ -24,17 +24,27 @@ using namespace std;
 #define PMS_RX 13  // config for Wemos board & TTGO18650
 #define PMS_TX 15  // some old TTGO18650 have PMS_RX 18 & PMS_TX 17
 #elif HELTEC
-#define PMS_RX 17 // config for Heltec board, ESP32Sboard & ESPDUINO-32. Use Uart2
+#define PMS_RX 17  // config for Heltec board, ESP32Sboard & ESPDUINO-32. Use Uart2
 #define PMS_TX 18  // some old ESP32Sboard have PMS_RX 27 & PMS_TX 25. Jump Uart2 tx from 16 to 18. !6 used by Oled.
 #elif TTGO_TQ
 #define PMS_RX 13  // config for TTGO_TQ board
 #define PMS_TX 18
+#elif M5COREINK
+#define PMS_RX 13  // config for backward header in M5CoreInk
+#define PMS_TX 14
+#elif TTGO_TDISPLAY
+#define PMS_RX 13  // config for TTGO T-Display board
+#define PMS_TX 12
+#define DHT_SENSOR_PIN 17
 #else
+#define DHT_SENSOR_PIN 23            // DHT default pin
+#define DHT_SENSOR_TYPE DHT_TYPE_22  // DHT sensor type
 #define PMS_RX 17  // config for D1MIN1 board (Default for main ESP32 dev boards)
 #define PMS_TX 16
 #endif
 
-#define SENSOR_RETRY 1000  // Sensor read retry. (unit chars)
+// Sensor read retry. 
+#define SENSOR_RETRY 1000         // Max Serial characters
 
 // Sensirion SPS30 sensor
 #define SENSOR_COMMS SERIALPORT2  // UART OR I2C
@@ -42,9 +52,6 @@ using namespace std;
 //H&T definitions
 #define SEALEVELPRESSURE_HPA (1013.25)
 
-//DHT Library
-#define DHT_SENSOR_PIN 23            // Digital pin connected to the DHT sensor
-#define DHT_SENSOR_TYPE DHT_TYPE_22  // DHT sensor type
 
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
@@ -147,14 +154,11 @@ class Sensors {
 
     float humi = 0.0;   // % Relative humidity
     float temp = 0.0;   // Temperature (°C)
-    float humi1 = 0.0;  // % Relative humidity
-    float temp1 = 0.0;  // Temperature (°C)
     float pres = 0.0;   // Pressure
     float alt = 0.0;
     float gas = 0.0;
 
     uint16_t CO2;         // CO2 in ppm
-    uint16_t CO21;        // CO2 temp
     float CO2humi = 0.0;  // temperature of the CO2 sensor
     float CO2temp = 0.0;  // temperature of the CO2 sensor
 
