@@ -22,25 +22,29 @@ using namespace std;
 * if you need, please select board on platformio.ini file
 ******************************************************************************/
 #ifdef WEMOSOLED
-#define PMS_RX 13  // config for Wemos board & TTGO18650
-#define PMS_TX 15  // some old TTGO18650 have PMS_RX 18 & PMS_TX 17
+#define PMS_RX 13           // config for Wemos board & TTGO18650
+#define PMS_TX 15           // some old TTGO18650 have PMS_RX 18 & PMS_TX 17
+#define DHT_SENSOR_PIN 23  
 #elif HELTEC
-#define PMS_RX 17  // config for Heltec board, ESP32Sboard & ESPDUINO-32. Use Uart2
-#define PMS_TX 18  // some old ESP32Sboard have PMS_RX 27 & PMS_TX 25. Jump Uart2 tx from 16 to 18. !6 used by Oled.
+#define PMS_RX 17           // config for Heltec board, ESP32Sboard & ESPDUINO-32. Use Uart2
+#define PMS_TX 18           // some old ESP32Sboard have PMS_RX 27 & PMS_TX 25. Jump Uart2 tx from 16 to 18. !6 used by Oled.
+#define DHT_SENSOR_PIN 23    
 #elif TTGO_TQ
-#define PMS_RX 13  // config for TTGO_TQ board
+#define PMS_RX 13  
 #define PMS_TX 18
+#define DHT_SENSOR_PIN 23    
 #elif M5COREINK
-#define PMS_RX 13  // config for backward header in M5CoreInk
+#define PMS_RX 13           // config for backward header in M5CoreInk
 #define PMS_TX 14
+#define DHT_SENSOR_PIN 25
 #elif TTGO_TDISPLAY
-#define PMS_RX 13  // config for TTGO T-Display board
+#define PMS_RX 13  
 #define PMS_TX 12
 #define DHT_SENSOR_PIN 17
 #else
-#define DHT_SENSOR_PIN 23            // DHT default pin
-#define PMS_RX 17  // config for D1MIN1 board (Default for main ESP32 dev boards)
+#define PMS_RX 17           // config for D1MIN1 / TTGO T7 / Default for main ESP32 dev boards
 #define PMS_TX 16
+#define DHT_SENSOR_PIN 23      
 #endif
 
 // DHT sensor type
