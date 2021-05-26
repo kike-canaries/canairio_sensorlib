@@ -215,13 +215,14 @@ class Sensors {
     bool CO2Mhz19Init();
     bool CO2CM1106Init();
 
-    bool pmSensirionInit();
-    bool pmSensirionRead();
-    void pmSensirionErrtoMess(char *mess, uint8_t r);
-    void pmSensirionErrorloop(char *mess, uint8_t r);
-    void pmSensirionDeviceInfo();
+    bool sps30I2CInit();
+    bool sps30UARTInit();
+    bool sps30Read();
+    void sps30ErrToMess(char *mess, uint8_t r);
+    void sps30Errorloop(char *mess, uint8_t r);
+    void sps30DeviceInfo();
 
-    void onPmSensorError(const char *msg);
+    void onSensorError(const char *msg);
 
     bool serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx);
     String hwSerialRead(unsigned int lenght_buffer);
