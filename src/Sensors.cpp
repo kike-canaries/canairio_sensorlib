@@ -56,8 +56,8 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
 
     DEBUG("-->[SENSORS] sample time set to: ", String(sample_time).c_str());
 
-    if (!sensorSerialInit(pms_type, pms_rx, pms_tx)) {
-        DEBUG("-->[E][PMSENSOR] init failed!");
+    if (!_only_i2c_sensors && !sensorSerialInit(pms_type, pms_rx, pms_tx)) {
+        DEBUG("-->[PMSENSOR] not found any PM sensor via UART");
     }
 
 #ifdef M5COREINK
@@ -65,7 +65,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
 #endif
     Wire.begin();
     
-    DEBUG("-->[SENSORS] try to load I2C sensor..");
+    DEBUG("-->[SENSORS] trying to load I2C sensors..");
     sps30I2CInit();
     am2320Init();
     sht31Init();
@@ -203,6 +203,10 @@ String Sensors::getPmDeviceSelected() {
 
 int Sensors::getPmDeviceTypeSelected() {
     return device_type;
+}
+
+void Sensors::detectI2COnly(bool enable) {
+    _only_i2c_sensors = enable;
 }
 
 /******************************************************************************
@@ -527,24 +531,24 @@ void Sensors::sps30Errorloop(char *mess, uint8_t r) {
 bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
     // set UART for autodetection sensors (Honeywell, Plantower)
     if (pms_type == Auto) {
-        DEBUG("-->[PMSENSOR] detecting Generic PM sensor..");
+        DEBUG("-->[PMSENSOR][UART] detecting Generic PM sensor..");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     }
     // set UART for custom sensors
     else if (pms_type == Panasonic) {
-        DEBUG("-->[PMSENSOR] detecting Panasonic PM sensor..");
+        DEBUG("-->[PMSENSOR][UART] detecting Panasonic PM sensor..");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     } else if (pms_type == Sensirion) {
-        DEBUG("-->[PMSENSOR] detecting Sensirion PM sensor..");
+        DEBUG("-->[PMSENSOR][UART] detecting SPS30 PM sensor..");
         if (!serialInit(pms_type, 115200, pms_rx, pms_tx)) return false;
     } else if (pms_type == SDS011) {
-        DEBUG("-->[PMSENSOR] detecting SDS011 PM sensor..");
+        DEBUG("-->[PMSENSOR][UART] detecting SDS011 PM sensor..");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     } else if (pms_type == Mhz19) {
-        DEBUG("-->[CO2SENSOR] detecting Mhz19 sensor..");
+        DEBUG("-->[CO2SENSOR][UART] detecting MHZ19 sensor..");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     } else if (pms_type == CM1106) {
-        DEBUG("-->[CO2SENSOR] detecting CM1106 sensor..");
+        DEBUG("-->[CO2SENSOR][UART] detecting CM1106 sensor..");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     }
 
@@ -556,11 +560,9 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
     if (device_type >= 0) {
         DEBUG("-->[PMSENSOR] detected: ", device_selected.c_str());
         return true;
-    } else {
-        DEBUG("-->[E][PMSENSOR] detection failed!");
-        if (_onErrorCb) _onErrorCb("-->[E][PMSENSOR] detection failed!");
-        return false;
     }
+
+    return false;
 }
 /**
  * @brief Generic PM sensor auto detection. 

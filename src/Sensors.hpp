@@ -149,6 +149,8 @@ class Sensors {
 
     void setCO2RecalibrationFactor(int ppmValue);
 
+    void detectI2COnly(bool enable);
+
    private:
     /// DHT library
     uint32_t delayMS;
@@ -177,6 +179,8 @@ class Sensors {
     uint16_t CO2;         // CO2 in ppm
     float CO2humi = 0.0;  // temperature of the CO2 sensor
     float CO2temp = 0.0;  // temperature of the CO2 sensor
+
+    bool _only_i2c_sensors;
 
     void am2320Init();
     void am2320Read();

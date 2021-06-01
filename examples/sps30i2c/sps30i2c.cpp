@@ -35,17 +35,18 @@ void onSensorDataError(const char * msg){
 
 void setup() {
     Serial.begin(115200);
-    delay(200);
-    Serial.println("\n== Sensor test setup ==\n");
+    delay(1000);
 
+    Serial.println("\n== Sensor test setup ==\n");
     Serial.println("-->[SETUP] Detecting sensors..");
 
     sensors.setSampleTime(5);                       // config sensors sample time interval
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
-    sensors.setDebugMode(true);                     // [optional] debug mode
+    sensors.setDebugMode(false);                    // [optional] debug mode
+    sensors.detectI2COnly(true);                    // skip UART detection
 
-    sensors.init(sensors.Auto);
+    sensors.init();  
 
     if(sensors.isPmSensorConfigured())
         Serial.println("-->[SETUP] Sensor configured: " + sensors.getPmDeviceSelected());
