@@ -64,7 +64,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     Wire.begin(25,26);  // M5CoreInk hat pines (header on top)
 #endif
     Wire.begin();
-
+    
     DEBUG("-->[SENSORS] try to load I2C sensor..");
     sps30I2CInit();
     am2320Init();
