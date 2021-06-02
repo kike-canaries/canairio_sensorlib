@@ -223,8 +223,8 @@ bool Sensors::pmGenericRead() {
     if (txtMsg[0] == 66) {
         if (txtMsg[1] == 77) {
             DEBUG("-->[PMS-HPMA] read > done!");
-            pm25 = txtMsg[6] * 256 + byte(txtMsg[7]);
-            pm10 = txtMsg[8] * 256 + byte(txtMsg[9]);
+            pm25 = txtMsg[6] * 256 + (char)(txtMsg[7]);
+            pm10 = txtMsg[8] * 256 + (char)(txtMsg[9]);
             if (pm25 > 1000 && pm10 > 1000) {
                 onSensorError("-->[E][PMSENSOR] out of range pm25 > 1000");
             } else
@@ -245,9 +245,9 @@ bool Sensors::pmPanasonicRead() {
     String txtMsg = hwSerialRead(lenght_buffer);
     if (txtMsg[0] == 02) {
         DEBUG("-->[PANASONIC] read > done!");
-        pm1 = txtMsg[2] * 256 + byte(txtMsg[1]);
-        pm25 = txtMsg[6] * 256 + byte(txtMsg[5]);
-        pm10 = txtMsg[10] * 256 + byte(txtMsg[9]);
+        pm1 = txtMsg[2] * 256 + (char)(txtMsg[1]);
+        pm25 = txtMsg[6] * 256 + (char)(txtMsg[5]);
+        pm10 = txtMsg[10] * 256 + (char)(txtMsg[9]);
         if (pm25 > 2000 && pm10 > 2000) {
             onSensorError("-->[E][PMSENSOR] out of range pm25 > 2000");
         } else
@@ -268,8 +268,8 @@ bool Sensors::pmSDS011Read() {
     if (txtMsg[0] == 170) {
         if (txtMsg[1] == 192) {
             DEBUG("-->[SDS011] read > done!");
-            pm25 = (txtMsg[3] * 256 + byte(txtMsg[2])) / 10;
-            pm10 = (txtMsg[5] * 256 + byte(txtMsg[4])) / 10;
+            pm25 = (txtMsg[3] * 256 + (char)(txtMsg[2])) / 10;
+            pm10 = (txtMsg[5] * 256 + (char)(txtMsg[4])) / 10;
             if (pm25 > 1000 && pm10 > 1000) {
                 onSensorError("-->[E][PMSENSOR] out of range pm25 > 1000");
             } else
