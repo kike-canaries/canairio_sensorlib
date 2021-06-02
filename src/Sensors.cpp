@@ -316,7 +316,7 @@ bool Sensors::sps30Read() {
                 DEBUG("-->[E][SPS30] Error during reading values: ", String(ret).c_str());
                 return false;
             }
-            delay(1000);
+            delay(500);
         } else if (ret != ERR_OK) {
             sps30ErrToMess((char *)"-->[W][SPS30] Error during reading values: ", ret);
             return false;
@@ -745,7 +745,6 @@ bool Sensors::sps30I2CInit() {
 
     // start measurement
     if (sps30.start()) {
-        delay(100);
         sps30Read();
         DEBUG("-->[SPS30] Measurement OK");
         device_selected = "SENSIRION";
@@ -956,7 +955,7 @@ bool Sensors::serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx) 
             break;
     }
 
-    delay(100);
+    delay(10);
     return true;
 }
 
