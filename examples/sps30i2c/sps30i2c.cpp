@@ -1,7 +1,7 @@
 /**
  * @file main.cpp
  * @author Antonio Vanegas @hpsaturn
- * @date June 2018 - 2020
+ * @date June 2018 - 2021
  * @brief Particle meter sensor tests
  * @license GPL3
  * 
@@ -13,6 +13,10 @@
  * 
  * CanAirIO project:
  * https://canair.io
+ * 
+ * CanAirIO Docs:
+ * https://canair.io/docs
+ * 
  */
 
 #include <Arduino.h>
@@ -44,7 +48,7 @@ void setup() {
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
     sensors.setDebugMode(false);                    // [optional] debug mode
-    sensors.detectI2COnly(true);                    // skip UART detection
+    sensors.detectI2COnly(true);                    // [optional] skip UART detection
 
     sensors.init();  
 
