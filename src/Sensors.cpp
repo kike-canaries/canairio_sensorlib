@@ -11,8 +11,8 @@ DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
  * All sensors are read here, please call it on main loop.
  */
 void Sensors::loop() {
-    static uint_fast64_t pmLoopTimeStamp = 0;                 // timestamp for sensor loop check data
-    if ((millis() - pmLoopTimeStamp > sample_time * 1000)) {  // sample time for each capture
+    static uint32_t pmLoopTimeStamp = 0;                 // timestamp for sensor loop check data
+    if ((millis() - pmLoopTimeStamp > sample_time * (uint32_t)1000)) {  // sample time for each capture
         pmLoopTimeStamp = millis();
         dataReady = false;
         dataReady = pmSensorRead();
