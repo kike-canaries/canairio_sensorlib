@@ -149,6 +149,8 @@ class Sensors {
 
     void setCO2RecalibrationFactor(int ppmValue);
 
+    void detectI2COnly(bool enable);
+
    private:
     /// DHT library
     uint32_t delayMS;
@@ -177,6 +179,8 @@ class Sensors {
     uint16_t CO2;         // CO2 in ppm
     float CO2humi = 0.0;  // temperature of the CO2 sensor
     float CO2temp = 0.0;  // temperature of the CO2 sensor
+
+    bool _only_i2c_sensors;
 
     void am2320Init();
     void am2320Read();
@@ -215,13 +219,14 @@ class Sensors {
     bool CO2Mhz19Init();
     bool CO2CM1106Init();
 
-    bool pmSensirionInit();
-    bool pmSensirionRead();
-    void pmSensirionErrtoMess(char *mess, uint8_t r);
-    void pmSensirionErrorloop(char *mess, uint8_t r);
-    void pmSensirionDeviceInfo();
+    bool sps30I2CInit();
+    bool sps30UARTInit();
+    bool sps30Read();
+    void sps30ErrToMess(char *mess, uint8_t r);
+    void sps30Errorloop(char *mess, uint8_t r);
+    void sps30DeviceInfo();
 
-    void onPmSensorError(const char *msg);
+    void onSensorError(const char *msg);
 
     bool serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx);
     String hwSerialRead(unsigned int lenght_buffer);
