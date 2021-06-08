@@ -15,8 +15,10 @@ void Sensors::loop() {
     if ((millis() - pmLoopTimeStamp > sample_time * (uint32_t)1000)) {  // sample time for each capture
         pmLoopTimeStamp = millis();
         dataReady = false;
-        dataReady = pmSensorRead();
-        DEBUG("-->[SENSORS] enable data from UART sensors: ",String(dataReady).c_str());
+        if(!_only_i2c_sensors ) {
+            dataReady = pmSensorRead();
+            DEBUG("-->[SENSORS] able data from UART sensors: ",String(dataReady).c_str());
+        }
         dhtRead();
         am2320Read();
         bme280Read();
@@ -24,6 +26,7 @@ void Sensors::loop() {
         aht10Read();
         sht31Read();
         CO2scd30Read();
+        PMGCJA5Read();
 
         if(!dataReady)DEBUG("-->[SENSORS] Any data from sensors? check your wirings!");
 
@@ -67,6 +70,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     
     DEBUG("-->[SENSORS] trying to load I2C sensors..");
     sps30I2CInit();
+    PMGCJA5Init();
     am2320Init();
     sht31Init();
     bme280Init();
@@ -473,6 +477,14 @@ void Sensors::CO2scd30Read() {
     }
 }
 
+void Sensors::PMGCJA5Read() {
+    if (getPmDeviceSelected().equals("PANASONIC")) {
+        pm10 = pmGCJA5.getPC1_0();
+        pm25 = pmGCJA5.getPC2_5();
+        pm10 = pmGCJA5.getPC10();
+    }
+}
+
 bool Sensors::dhtIsReady(float *temperature, float *humidity) {
     static unsigned long measurement_timestamp = millis();
 
@@ -849,6 +861,17 @@ void Sensors::CO2scd30Init() {
         DEBUG("-->[SCD30] detected!");      
         device_selected = "SCD30";  // TODO: sync this constants with app
         device_type = 6;
+    }
+}
+
+void Sensors::PMGCJA5Init() {
+    DEBUG("-->[GCJA5] starting PANASONIC GCJA5 sensor..");
+    if (pmGCJA5.begin()) {
+        DEBUG("-->[GCJA5] PANASONIC via I2C detected!");
+        device_selected = "PANASONIC";
+        device_type = Panasonic;
+        uint8_t status = pmGCJA5.getStatusFan();
+        DEBUG("-->[GCJA5] FAN status: ",String(status).c_str());
     }
 }
 

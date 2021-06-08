@@ -9,6 +9,7 @@
 #include <Adafruit_Sensor.h>
 #include <MHZ19.h>
 #include <SparkFun_SCD30_Arduino_Library.h>
+#include <SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h>
 #include <dht_nonblocking.h>
 #include <sps30.h>
 #include <cm1106_uart.h>
@@ -106,6 +107,8 @@ class Sensors {
     CM1106_UART *sensor_CM1106;
     CM1106_sensor sensor;
     CM1106_ABC abc;
+    // Panasonic SN-GCJA5
+    SFE_PARTICLE_SENSOR pmGCJA5;
 
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
     void loop();
@@ -199,6 +202,9 @@ class Sensors {
 
     void CO2scd30Init();
     void CO2scd30Read();
+
+    void PMGCJA5Init();
+    void PMGCJA5Read();
 
     void dhtInit();
     void dhtRead();
