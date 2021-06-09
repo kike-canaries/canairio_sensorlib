@@ -705,18 +705,10 @@ bool Sensors::sps30UARTInit() {
         sps30Errorloop((char *)"-->[E][SPS30] could not initialize communication channel.", 0);
         return false;
     }
-    // check for SPS30 connection
-    if (!sps30.probe()) {
-        sps30Errorloop((char *)"-->[E][SPS30] could not probe with SPS30.", 0);
-        return false;
+
+    if (devmode) {
+        if (sps30tests()) return false;
     }
-    else {
-        DEBUG("-->[SPS30] Detected SPS30 via UART.");
-        sps30DeviceInfo();
-    }
-    // reset SPS30 connection
-    if (!sps30.reset())
-        sps30Errorloop((char *)"-->[E][SPS30] could not reset.", 0);
 
     // start measurement
     if (sps30.start() == true) {
@@ -740,21 +732,11 @@ bool Sensors::sps30I2CInit() {
         sps30Errorloop((char *)"-->[E][SPS30] Could not set I2C communication channel.", 0);
         return false;
     }
+    Serial.println("-->[I2CS] detected SPS30 sensor :)");
 
-    // check for SPS30 connection
-    if (!sps30.probe()) {
-        sps30Errorloop((char *)"-->[E][SPS30] Could not probe with SPS30.", 0);
-        return false;
+    if (devmode) {
+        if (sps30tests()) return false;
     }
-    else {
-        DEBUG("-->[SPS30] Detected SPS30 via I2C.");
-        sps30DeviceInfo();
-    }
-
-    // reset SPS30 connection
-    if (!sps30.reset()) 
-        sps30Errorloop((char *)"-->[E][SPS30] could not reset.", 0);
-
 
     // start measurement
     if (sps30.start()) {
@@ -769,6 +751,23 @@ bool Sensors::sps30I2CInit() {
         sps30Errorloop((char *)"-->[E][SPS30] Could NOT start measurement.", 0);
 
     return false;
+}
+
+bool Sensors::sps30tests() {
+    // check for SPS30 connection
+    if (!sps30.probe()) {
+        sps30Errorloop((char *)"-->[E][SPS30] Could not probe with SPS30.", 0);
+        return false;
+    } else {
+        DEBUG("-->[SPS30] Detected SPS30 via I2C.");
+        sps30DeviceInfo();
+    }
+    // reset SPS30 connection
+    if (!sps30.reset()) {
+        sps30Errorloop((char *)"-->[E][SPS30] could not reset.", 0);
+        return false;
+    }
+    return true;
 }
 
 /**
@@ -821,23 +820,24 @@ void Sensors::sps30DeviceInfo() {
 void Sensors::am2320Init() {
     DEBUG("-->[AM2320] starting AM2320 sensor..");
     am2320 = Adafruit_AM2320();
-    am2320.begin();  // temp/humidity sensor
+    if (am2320.begin()) Serial.println("-->[I2CS] detected AM2330 sensor :)");
 }
 
 void Sensors::sht31Init() {
     DEBUG("-->[SHT31] starting SHT31 sensor..");
     sht31 = Adafruit_SHT31();
-    sht31.begin(0x44);  // temp/humidity sensor
+    if (sht31.begin(0x44)) Serial.println("-->[I2CS] detected SHT31 sensor :)");
 }
 
 void Sensors::bme280Init() {
     DEBUG("-->[BME280] starting BME280 sensor..");
-    bme280.begin(0x76);  // temp/humidity sensor
+    if (bme280.begin(0x76)) Serial.println("-->[I2CS] detected BME280 sensor :)");
 }
 
 void Sensors::bme680Init() {
-    DEBUG("-->[BME280] starting BME680 sensor..");
+    DEBUG("-->[BME680] starting BME680 sensor..");
     if (!bme680.begin()) return;
+    Serial.println("-->[I2CS] detected BME680 sensor :)");
     bme680.setTemperatureOversampling(BME680_OS_8X);
     bme680.setHumidityOversampling(BME680_OS_2X);
     bme680.setPressureOversampling(BME680_OS_4X);
@@ -849,30 +849,27 @@ void Sensors::bme680Init() {
 void Sensors::aht10Init() {
     DEBUG("-->[AHT10] starting AHT10 sensor..");
     aht10 = AHT10(AHT10_ADDRESS_0X38);
-    aht10.begin();  // temp/humidity sensor
+    if (aht10.begin()) Serial.println("-->[I2CS] detected AHT10 sensor :)");
 }
 
 void Sensors::CO2scd30Init() {
     DEBUG("-->[SCD30] starting CO2 SCD30 sensor..");
-    scd30.begin();
+    if (!scd30.begin()) return;
+    Serial.println("-->[I2CS] detected SCD30 sensor :)");
     delay(10);
     CO2scd30Read();
-    if (CO2 > 0) {
-        DEBUG("-->[SCD30] detected!");      
-        device_selected = "SCD30";  // TODO: sync this constants with app
-        device_type = 6;
-    }
+    device_selected = "SCD30";  // TODO: sync this constants with app
+    device_type = 6;
 }
 
 void Sensors::PMGCJA5Init() {
     DEBUG("-->[GCJA5] starting PANASONIC GCJA5 sensor..");
-    if (pmGCJA5.begin()) {
-        DEBUG("-->[GCJA5] PANASONIC via I2C detected!");
-        device_selected = "PANASONIC";
-        device_type = Panasonic;
-        uint8_t status = pmGCJA5.getStatusFan();
-        DEBUG("-->[GCJA5] FAN status: ",String(status).c_str());
-    }
+    if (!pmGCJA5.begin()) return;
+    Serial.println("-->[I2CS] detected SN-GCJA5 sensor :)");
+    device_selected = "PANASONIC";
+    device_type = Panasonic;
+    uint8_t status = pmGCJA5.getStatusFan();
+    DEBUG("-->[GCJA5] FAN status: ", String(status).c_str());
 }
 
 void Sensors::dhtInit() {

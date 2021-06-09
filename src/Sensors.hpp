@@ -228,6 +228,7 @@ class Sensors {
     bool sps30I2CInit();
     bool sps30UARTInit();
     bool sps30Read();
+    bool sps30tests();
     void sps30ErrToMess(char *mess, uint8_t r);
     void sps30Errorloop(char *mess, uint8_t r);
     void sps30DeviceInfo();
