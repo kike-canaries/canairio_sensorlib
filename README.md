@@ -3,20 +3,62 @@
 
 # CanAirIO Air Quality Sensors Library
 
-Particle meter (PM) sensor manager for multiple (PM) sensors: Honeywell, Plantower, Panasonic, Sensirion, etc, also it handling others like AM2320 sensor.
+Particle meter (PM) sensor manager for multiple (PM) sensors: Honeywell, Plantower, Panasonic, Sensirion, etc, CO2 sensors also it handling others environment sensors like AM2320 sensor.
 
-## Features
+# Supported sensors
 
-- [x] Auto detection for Generic sensors (Honeywell, Panasonic and Plantower sensors)
-- [x] Implemented `Sensirion` autodection flow (for original library)
+### PM sensors
+
+| Sensor model  | UART  | I2C  | Detection mode | Status |  
+|:----------------------- |:-----:|:-----:|:-------:|:----------:|
+| Honeywell HPMA115S0 | Yes | --- | Auto | DEPRECATED |
+| Panasonic SN-GCJA5L | Yes | Yes | Auto | STABLE |
+| Plantower models    | Yes | --- | Auto | STABLE |
+| Nova SDS011         | Yes | --- | Auto | STABLE |
+| Sensirion SPS30     | Yes | Yes | Select / Auto | STABLE |
+| | | | |
+
+NOTE: Panasonic via UART in ESP8266 maybe needs select in detection
+
+### CO2 sensors
+
+| Sensor model  | UART  | i2c  | Detection mode | Status |  
+|:----------------------- |:-----:|:-----:|:-------:|:----------:|
+| Sensirion SCD30    | --- | Yes | Auto | STABLE |
+| MHZ19      | Yes | --- | Select | TESTING |
+| CMS1106    | Yes | --- | Select | TESTING |
+| | | | |
+
+
+### Environmental sensors
+
+| Sensor model  | Protocol  | Detection mode | Status |  
+|:----------------------- |:-----:|:-------:|:----------:|
+| AM2320      | i2c |  Auto | STABLE |
+| SHT31       | i2c |  Auto | STABLE |
+| AHT10       | i2c |  Auto | STABLE |
+| BME280      | i2c |  Auto | STABLE |
+| BME680      | i2c |  Auto | STABLE |
+| DHT2x       | TwoWire |  Auto | DEPRECATED |
+| | | | |
+
+NOTE: DHT22 is supported but is not recommended
+
+## TODO
+
+- [x] Auto detection for UART sensors (Honeywell, Panasonic and Plantower)
+- [x] Added SPS30 library with auto UART detection
 - [x] Disable/enable logs (debug mode flag)
 - [x] Added bme280, aht10, sht31, am2320 i2c sensors
 - [x] Exposed public sub-libraries objects, sps30, aht10, etc.
 - [x] Added old DHT sensors 
-- [x] Added CO2 sensors: MHZ19, SCD30, CM1106
+- [x] Added CO2 sensors: MHZ19, SCD30, CM1106 via UART
 - [x] Added SDS011 particle metter
 - [x] BME680 support (from TTGO-T7 CanAirIO version)
+- [x] Added Sensirion SPS30 and Panasonic SN-GCJA5 via i2c
+- [x] Enable/Disable UART detection for force only i2c
 - [ ] IAQ indicator from BME680 Bosch library
+
 
 ## Usage
 
@@ -146,27 +188,14 @@ arduino-cli upload --fqbn esp32:esp32:lolin32:UploadSpeed=115200 -p /dev/ttyUSB0
 
 where `basic` is the basic example on examples directory.
 
-## Wiring
+# Wiring
 
 The current version of library supports 3 kinds of wiring connection, UART, i2c and TwoWire, in the main boards the library using the defaults pins of each board, but in some special cases the pins are:
 
 ### UART
 
-```cpp
-#ifdef WEMOSOLED
-#define PMS_RX 13  // config for Wemos board & TTGO18650
-#define PMS_TX 15  // some old TTGO18650 have PMS_RX 18 & PMS_TX 17
-#elif HELTEC
-#define PMS_RX 17  // config for Heltec board, ESP32Sboard & ESPDUINO-32
-#define PMS_TX 18  // some old ESP32Sboard have PMS_RX 27 & PMS_TX 25
-#elif TTGO_TQ
-#define PMS_RX 13  // config for TTGO_TQ board
-#define PMS_TX 18
-#else
-#define PMS_RX 17  // config for D1MIN1 board (Default for main ESP32 dev boards)
-#define PMS_TX 16
-#endif
-```
+The library has [pre-defined some UART pin configs](https://github.com/kike-canaries/canairio_sensorlib/blob/master/src/Sensors.hpp#L19-L52), these are selected on compiling time. Maybe you don't need change anything with your board.  
+
 Also you can define the UART pins in the init() method, please see below.  
 
 #### Custom UART RX/TX:
@@ -177,19 +206,18 @@ You can pass the custom pins if it isn't autodected:
 sensors.init(sensors.Auto,RX,TX); // custom RX, custom TX pines.
 ```
 
-
-
-### i2c (recommended)
+### I2C (recommended)
 
 We are using the default pins for each board, some times it's pins are 21,22, please check your board schematic.
 
-### TwoWire
+### TwoWire (deprecated soon)
 
-For now we are using it only for DHT sensors in PIN 23. For more info please review the next lines [here](https://github.com/kike-canaries/canairio_sensorlib/blob/01ae9e976aa2985bb66856c0d6fae2a03100f552/src/Sensors.hpp#L16-L45).
+For now we are using it only for DHT sensors in PIN 23. For more info please review the next lines [here](https://github.com/kike-canaries/canairio_sensorlib/blob/master/src/Sensors.hpp#L19-L52).
 
 
----
 
-## Credits
+# Credits
 
 Thanks to all collaborators and [CanAirIO](https://canair.io) community for testing and reports.
+
+---

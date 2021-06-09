@@ -18,9 +18,9 @@ using namespace std;
 #include <vector>
 
 /******************************************************************************
-* S E T U P  B O A R D   A N D  F I E L D S
+* S E T U P  ESP32 B O A R D S  A N D  F I E L D S
 * -------------------------------------------
-* if you need, please select board on platformio.ini file
+* Please select the board on platformio.ini file or pass it via build flag
 ******************************************************************************/
 #ifdef WEMOSOLED
 #define PMS_RX 13           // config for Wemos board & TTGO18650
@@ -42,7 +42,7 @@ using namespace std;
 #define PMS_RX 13  
 #define PMS_TX 12
 #define DHT_SENSOR_PIN 17
-#else
+#else                       // ** DEFAULT **
 #define PMS_RX 17           // config for D1MIN1 / TTGO T7 / Default for main ESP32 dev boards
 #define PMS_TX 16
 #define DHT_SENSOR_PIN 23      
