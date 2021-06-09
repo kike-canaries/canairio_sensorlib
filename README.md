@@ -41,21 +41,6 @@ NOTE: Panasonic via UART in ESP8266 maybe needs select in detection
 
 NOTE: DHT22 is supported but is not recommended
 
-## TODO
-
-- [x] Auto detection for UART sensors (Honeywell, Panasonic and Plantower)
-- [x] Added SPS30 library with auto UART detection
-- [x] Disable/enable logs (debug mode flag)
-- [x] Added bme280, aht10, sht31, am2320 i2c sensors
-- [x] Exposed public sub-libraries objects, sps30, aht10, etc.
-- [x] Added old DHT sensors 
-- [x] Added CO2 sensors: MHZ19, SCD30, CM1106 via UART
-- [x] Added SDS011 particle metter
-- [x] BME680 support (from TTGO-T7 CanAirIO version)
-- [x] Added Sensirion SPS30 and Panasonic SN-GCJA5 via i2c
-- [x] Enable/Disable UART detection for force only i2c
-- [ ] IAQ indicator from BME680 Bosch library
-
 
 ## Usage
 
@@ -92,7 +77,9 @@ void setup() {
     sensors.setSampleTime(5);                       // config sensors sample time interval
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
-    sensors.setDebugMode(true);                     // [optional] debug mode
+    sensors.setSampleTime(15);                      // [optional] sensors sample time (default 5s)
+    sensors.setDebugMode(false);                    // [optional] debug mode enable/disable
+    sensors.detectI2COnly(true);                    // [optional] force to only i2c sensors
     sensors.init();                                 // start all sensors and
                                                     // force to try autodetection,
                                                     // you can try to select one:
@@ -131,15 +118,41 @@ On your serial monitor you should have something like that:
 -->[MAIN] PM1.0: 002 PM2.5: 002 PM10: 002
 ```
 
-## Demo
+# Demo
 
 [![CanAirIO auto configuration demo](https://img.youtube.com/vi/hmukAmG5Eec/0.jpg)](https://www.youtube.com/watch?v=hmukAmG5Eec)
 
 CanAirIO sensorlib auto configuration demo on [Youtube](https://www.youtube.com/watch?v=hmukAmG5Eec)
 
----
 
-## Examples
+# Wiring
+
+The current version of library supports 3 kinds of wiring connection, UART, i2c and TwoWire, in the main boards the library using the defaults pins of each board, but in some special cases the pins are:
+
+### UART
+
+The library has [pre-defined some UART pin configs](https://github.com/kike-canaries/canairio_sensorlib/blob/master/src/Sensors.hpp#L19-L52), these are selected on compiling time. Maybe you don't need change anything with your board.  
+
+Also you can define the UART pins in the init() method, please see below.  
+
+#### Custom UART RX/TX:
+
+You can pass the custom pins if it isn't autodected:
+
+```cpp
+sensors.init(sensors.Auto,RX,TX); // custom RX, custom TX pines.
+```
+
+### I2C (recommended)
+
+We are using the default pins for each board, some times it's pins are 21,22, please check your board schematic.
+
+### TwoWire (deprecated soon)
+
+For now we are using it only for DHT sensors in PIN 23. For more info please review the next lines [here](https://github.com/kike-canaries/canairio_sensorlib/blob/master/src/Sensors.hpp#L19-L52).
+
+
+# Examples
 
 ### PlatformIO (recommended)
 
@@ -185,31 +198,21 @@ arduino-cli upload --fqbn esp32:esp32:lolin32:UploadSpeed=115200 -p /dev/ttyUSB0
 
 where `basic` is the basic example on examples directory.
 
-# Wiring
+# TODO
 
-The current version of library supports 3 kinds of wiring connection, UART, i2c and TwoWire, in the main boards the library using the defaults pins of each board, but in some special cases the pins are:
+- [x] Auto detection for UART sensors (Honeywell, Panasonic and Plantower)
+- [x] Added SPS30 library with auto UART detection
+- [x] Disable/enable logs (debug mode flag)
+- [x] Added bme280, aht10, sht31, am2320 i2c sensors
+- [x] Exposed public sub-libraries objects, sps30, aht10, etc.
+- [x] Added old DHT sensors 
+- [x] Added CO2 sensors: MHZ19, SCD30, CM1106 via UART
+- [x] Added SDS011 particle metter
+- [x] BME680 support (from TTGO-T7 CanAirIO version)
+- [x] Added Sensirion SPS30 and Panasonic SN-GCJA5 via i2c
+- [x] Enable/Disable UART detection for force only i2c
+- [ ] IAQ indicator from BME680 Bosch library
 
-### UART
-
-The library has [pre-defined some UART pin configs](https://github.com/kike-canaries/canairio_sensorlib/blob/master/src/Sensors.hpp#L19-L52), these are selected on compiling time. Maybe you don't need change anything with your board.  
-
-Also you can define the UART pins in the init() method, please see below.  
-
-#### Custom UART RX/TX:
-
-You can pass the custom pins if it isn't autodected:
-
-```cpp
-sensors.init(sensors.Auto,RX,TX); // custom RX, custom TX pines.
-```
-
-### I2C (recommended)
-
-We are using the default pins for each board, some times it's pins are 21,22, please check your board schematic.
-
-### TwoWire (deprecated soon)
-
-For now we are using it only for DHT sensors in PIN 23. For more info please review the next lines [here](https://github.com/kike-canaries/canairio_sensorlib/blob/master/src/Sensors.hpp#L19-L52).
 
 
 
