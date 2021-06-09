@@ -45,7 +45,8 @@ void setup() {
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
     sensors.setDebugMode(true);                     // [optional] debug mode
 
-    sensors.init(sensors.Sensirion);
+    sensors.init(sensors.Sensirion);                // forced Sensirion via UART.
+                                                    // for i2c only leave empty this parameter
 
     if(sensors.isPmSensorConfigured())
         Serial.println("-->[SETUP] Sensor configured: " + sensors.getPmDeviceSelected());

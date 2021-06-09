@@ -9,6 +9,7 @@
 #include <Adafruit_Sensor.h>
 #include <MHZ19.h>
 #include <SparkFun_SCD30_Arduino_Library.h>
+#include <SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h>
 #include <dht_nonblocking.h>
 #include <sps30.h>
 #include <cm1106_uart.h>
@@ -17,9 +18,9 @@ using namespace std;
 #include <vector>
 
 /******************************************************************************
-* S E T U P  B O A R D   A N D  F I E L D S
+* S E T U P  ESP32 B O A R D S  A N D  F I E L D S
 * -------------------------------------------
-* if you need, please select board on platformio.ini file
+* Please select the board on platformio.ini file or pass it via build flag
 ******************************************************************************/
 #ifdef WEMOSOLED
 #define PMS_RX 13           // config for Wemos board & TTGO18650
@@ -41,7 +42,7 @@ using namespace std;
 #define PMS_RX 13  
 #define PMS_TX 12
 #define DHT_SENSOR_PIN 17
-#else
+#else                       // ** DEFAULT **
 #define PMS_RX 17           // config for D1MIN1 / TTGO T7 / Default for main ESP32 dev boards
 #define PMS_TX 16
 #define DHT_SENSOR_PIN 23      
@@ -106,6 +107,8 @@ class Sensors {
     CM1106_UART *sensor_CM1106;
     CM1106_sensor sensor;
     CM1106_ABC abc;
+    // Panasonic SN-GCJA5
+    SFE_PARTICLE_SENSOR pmGCJA5;
 
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
     void loop();
@@ -200,6 +203,9 @@ class Sensors {
     void CO2scd30Init();
     void CO2scd30Read();
 
+    void PMGCJA5Init();
+    void PMGCJA5Read();
+
     void dhtInit();
     void dhtRead();
     bool dhtIsReady(float *temperature, float *humidity);
@@ -222,6 +228,7 @@ class Sensors {
     bool sps30I2CInit();
     bool sps30UARTInit();
     bool sps30Read();
+    bool sps30tests();
     void sps30ErrToMess(char *mess, uint8_t r);
     void sps30Errorloop(char *mess, uint8_t r);
     void sps30DeviceInfo();
