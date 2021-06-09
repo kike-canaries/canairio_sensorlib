@@ -3,7 +3,7 @@
 
 # CanAirIO Air Quality Sensors Library
 
-Particle meter (PM) sensor manager for multiple (PM) sensors: Honeywell, Plantower, Panasonic, Sensirion, etc, CO2 sensors also it handling others environment sensors like AM2320 sensor.
+Particle meter (PM) sensor manager for multiple (PM) sensors: Honeywell, Plantower, Panasonic, Sensirion, etc and CO2 sensors. Also it handling others environment sensors.
 
 # Supported sensors
 
@@ -16,7 +16,6 @@ Particle meter (PM) sensor manager for multiple (PM) sensors: Honeywell, Plantow
 | Plantower models    | Yes | --- | Auto | STABLE |
 | Nova SDS011         | Yes | --- | Auto | STABLE |
 | Sensirion SPS30     | Yes | Yes | Select / Auto | STABLE |
-| | | | |
 
 NOTE: Panasonic via UART in ESP8266 maybe needs select in detection
 
@@ -27,7 +26,6 @@ NOTE: Panasonic via UART in ESP8266 maybe needs select in detection
 | Sensirion SCD30    | --- | Yes | Auto | STABLE |
 | MHZ19      | Yes | --- | Select | TESTING |
 | CMS1106    | Yes | --- | Select | TESTING |
-| | | | |
 
 
 ### Environmental sensors
@@ -40,7 +38,6 @@ NOTE: Panasonic via UART in ESP8266 maybe needs select in detection
 | BME280      | i2c |  Auto | STABLE |
 | BME680      | i2c |  Auto | STABLE |
 | DHT2x       | TwoWire |  Auto | DEPRECATED |
-| | | | |
 
 NOTE: DHT22 is supported but is not recommended
 
