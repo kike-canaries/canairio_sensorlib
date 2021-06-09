@@ -730,15 +730,13 @@ bool Sensors::sps30I2CInit() {
         sps30Errorloop((char *)"-->[E][SPS30] Could not set I2C communication channel.", 0);
         return false;
     }
-    Serial.println("-->[I2CS] detected SPS30 sensor :)");
 
-    if (devmode) {
-        if (!sps30tests()) return false;
-    }
+    if (!sps30tests()) return false;
 
     // start measurement
     if (sps30.start()) {
         DEBUG("-->[SPS30] Measurement OK");
+        Serial.println("-->[I2CS] detected SPS30 sensor :)");
         device_selected = "SENSIRION";
         device_type = Sensirion;
         if (sps30.I2C_expect() == 4)
