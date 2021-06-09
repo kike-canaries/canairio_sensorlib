@@ -61,7 +61,5 @@ void setup() {
 uint64_t counter = 0;
 
 void loop() {
-
     sensors.loop();  // read sensor data and showed it
-    
 }
