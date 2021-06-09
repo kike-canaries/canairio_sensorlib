@@ -25,7 +25,7 @@ NOTE: Panasonic via UART in ESP8266 maybe needs select in detection
 |:----------------------- |:-----:|:-----:|:-------:|:----------:|
 | Sensirion SCD30    | --- | Yes | Auto | STABLE |
 | MHZ19      | Yes | --- | Select | TESTING |
-| CMS1106    | Yes | --- | Select | TESTING |
+| CM1106    | Yes | --- | Select | TESTING |
 
 
 ### Environmental sensors
@@ -37,7 +37,7 @@ NOTE: Panasonic via UART in ESP8266 maybe needs select in detection
 | AHT10       | i2c |  Auto | STABLE |
 | BME280      | i2c |  Auto | STABLE |
 | BME680      | i2c |  Auto | STABLE |
-| DHT2x       | TwoWire |  Auto | DEPRECATED |
+| DHTxx       | TwoWire |  Auto | DEPRECATED |
 
 NOTE: DHT22 is supported but is not recommended
 
