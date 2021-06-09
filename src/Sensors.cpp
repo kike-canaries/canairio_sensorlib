@@ -27,6 +27,7 @@ void Sensors::loop() {
         sht31Read();
         CO2scd30Read();
         PMGCJA5Read();
+        if(_only_i2c_sensors && device_type == Sensirion) sps30Read();
 
         if(!dataReady)DEBUG("-->[SENSORS] Any data from sensors? check your wirings!");
 
@@ -757,7 +758,6 @@ bool Sensors::sps30I2CInit() {
 
     // start measurement
     if (sps30.start()) {
-        sps30Read();
         DEBUG("-->[SPS30] Measurement OK");
         device_selected = "SENSIRION";
         device_type = Sensirion;
