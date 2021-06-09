@@ -706,9 +706,7 @@ bool Sensors::sps30UARTInit() {
         return false;
     }
 
-    if (devmode) {
-        if (sps30tests()) return false;
-    }
+    if (!sps30tests()) return false;
 
     // start measurement
     if (sps30.start() == true) {
@@ -735,7 +733,7 @@ bool Sensors::sps30I2CInit() {
     Serial.println("-->[I2CS] detected SPS30 sensor :)");
 
     if (devmode) {
-        if (sps30tests()) return false;
+        if (!sps30tests()) return false;
     }
 
     // start measurement
@@ -843,7 +841,7 @@ void Sensors::bme680Init() {
     bme680.setPressureOversampling(BME680_OS_4X);
     bme680.setIIRFilterSize(BME680_FILTER_SIZE_3);
     bme680.setGasHeater(320, 150);  // 320*C for 150 ms
-    DEBUG("BME680 set sea level pressure ", String(SEALEVELPRESSURE_HPA).c_str());
+    DEBUG("-->[BME680] BME680 set sea level pressure ", String(SEALEVELPRESSURE_HPA).c_str());
 }
 
 void Sensors::aht10Init() {
