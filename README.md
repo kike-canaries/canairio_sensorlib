@@ -198,6 +198,30 @@ arduino-cli upload --fqbn esp32:esp32:lolin32:UploadSpeed=115200 -p /dev/ttyUSB0
 
 where `basic` is the basic example on examples directory.
 
+# Supporting the project
+
+If you want to contribute to the code or documentation, consider posting a bug report, feature request or a pull request.
+
+When creating a pull request, we recommend that you do the following:
+
+- Clone the repository
+- Create a new branch for your fix or feature. For example, git checkout -b fix/my-fix or git checkout -b feat/my-feature.
+- Run to any clang formatter if it is a code, for example using the `vscode` formatter. We are using Google style. More info [here](https://clang.llvm.org/docs/ClangFormatStyleOptions.html)
+- Document the PR description or code will be great
+- Target your pull request to be merged with `devel` branch
+
+Also you can make a donation, be a patreon or buy a device:  
+
+<a href="https://raw.githubusercontent.com/kike-canaries/canairio_firmware/master/images/ethereum_donation_address.png" target="_blank"><img src="https://raw.githubusercontent.com/kike-canaries/canairio_firmware/master/images/ethereum_donation_address.png" align="right" width="220" margin-left="10px" ></a>
+
+- Via **Ethereum**: `0x1779cD3b85b6D8Cf1A5886B2CF5C53a0E072C108`
+- Via **Liberapay**: [CanAirIO in LiberaPay](https://liberapay.com/CanAirIO)
+- **Buy a device**: [CanAirIO Bike in Tindie](https://www.tindie.com/products/hpsaturn/canairio-bike/)
+- [Inviting us **a coffee**](https://www.buymeacoffee.com/hpsaturn) 
+
+
+
+
 # TODO
 
 - [x] Auto detection for UART sensors (Honeywell, Panasonic and Plantower)
