@@ -26,7 +26,7 @@ void Sensors::loop() {
         aht10Read();
         sht31Read();
         CO2scd30Read();
-        if(_only_i2c_sensors && device_type == Panasonic) PMGCJA5Read();
+        PMGCJA5Read();
         if(_only_i2c_sensors && device_type == Sensirion) sps30Read();
 
         if(!dataReady)DEBUG("-->[SENSORS] Any data from sensors? check your wirings!");
@@ -479,7 +479,7 @@ void Sensors::CO2scd30Read() {
 }
 
 void Sensors::PMGCJA5Read() {
-    if(device_type == Panasonic && !pmGCJA5.isConnected()) return;
+    if (!getPmDeviceSelected().equals("PANASONIC I2C")) return;
     pm10 = pmGCJA5.getPC1_0();
     pm25 = pmGCJA5.getPC2_5();
     pm10 = pmGCJA5.getPC10();
@@ -862,8 +862,8 @@ void Sensors::PMGCJA5Init() {
     DEBUG("-->[GCJA5] starting PANASONIC GCJA5 sensor..");
     if (!pmGCJA5.begin()) return;
     Serial.println("-->[I2CS] detected SN-GCJA5 sensor :)");
-    device_selected = "PANASONIC";
-    device_type = Panasonic;
+    device_selected = "PANASONIC I2C";
+    device_type = Auto;
     uint8_t status = pmGCJA5.getStatusFan();
     DEBUG("-->[GCJA5] FAN status: ", String(status).c_str());
 }
