@@ -479,11 +479,10 @@ void Sensors::CO2scd30Read() {
 }
 
 void Sensors::PMGCJA5Read() {
-    if (getPmDeviceSelected().equals("PANASONIC")) {
-        pm10 = pmGCJA5.getPC1_0();
-        pm25 = pmGCJA5.getPC2_5();
-        pm10 = pmGCJA5.getPC10();
-    }
+    if (!getPmDeviceSelected().equals("PANASONIC I2C")) return;
+    pm10 = pmGCJA5.getPC1_0();
+    pm25 = pmGCJA5.getPC2_5();
+    pm10 = pmGCJA5.getPC10();
 }
 
 bool Sensors::dhtIsReady(float *temperature, float *humidity) {
@@ -859,11 +858,12 @@ void Sensors::CO2scd30Init() {
 }
 
 void Sensors::PMGCJA5Init() {
+    if (device_type == Panasonic) return;
     DEBUG("-->[GCJA5] starting PANASONIC GCJA5 sensor..");
     if (!pmGCJA5.begin()) return;
     Serial.println("-->[I2CS] detected SN-GCJA5 sensor :)");
-    device_selected = "PANASONIC";
-    device_type = Panasonic;
+    device_selected = "PANASONIC I2C";
+    device_type = Auto;
     uint8_t status = pmGCJA5.getStatusFan();
     DEBUG("-->[GCJA5] FAN status: ", String(status).c_str());
 }
