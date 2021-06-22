@@ -302,7 +302,7 @@ String Sensors::hwSerialRead(unsigned int lenght_buffer) {
         }
     }
     if (try_sensor_read > SENSOR_RETRY) {
-        onSensorError("-->[E][PMSENSOR] sensor read fail!");
+        DEBUG("-->[PMSENSOR] no data on UART port");
     }
     return txtMsg;
 }
@@ -339,6 +339,8 @@ bool Sensors::sps30Read() {
         onSensorError("-->[E][SPS30] Sensirion out of range pm25 > 1000");
         return false;
     }
+
+    dataReady = true;
 
     return true;
 }
@@ -479,10 +481,12 @@ void Sensors::CO2scd30Read() {
 }
 
 void Sensors::PMGCJA5Read() {
-    if (!getPmDeviceSelected().equals("PANASONIC I2C")) return;
+    if (!getPmDeviceSelected().equals("PANASONIC_I2C")) return;
     pm10 = pmGCJA5.getPC1_0();
     pm25 = pmGCJA5.getPC2_5();
     pm10 = pmGCJA5.getPC10();
+    dataReady = true;
+    DEBUG("-->[SCD30] read > done!");
 }
 
 bool Sensors::dhtIsReady(float *temperature, float *humidity) {
@@ -815,7 +819,7 @@ void Sensors::sps30DeviceInfo() {
 void Sensors::am2320Init() {
     DEBUG("-->[AM2320] starting AM2320 sensor..");
     am2320 = Adafruit_AM2320();
-    if (am2320.begin()) Serial.println("-->[I2CS] detected AM2330 sensor :)");
+    if (am2320.begin()) Serial.println("-->[I2CS] detected AM2320 sensor :)");
 }
 
 void Sensors::sht31Init() {
@@ -862,7 +866,7 @@ void Sensors::PMGCJA5Init() {
     DEBUG("-->[GCJA5] starting PANASONIC GCJA5 sensor..");
     if (!pmGCJA5.begin()) return;
     Serial.println("-->[I2CS] detected SN-GCJA5 sensor :)");
-    device_selected = "PANASONIC I2C";
+    device_selected = "PANASONIC_I2C";
     device_type = Auto;
     uint8_t status = pmGCJA5.getStatusFan();
     DEBUG("-->[GCJA5] FAN status: ", String(status).c_str());
