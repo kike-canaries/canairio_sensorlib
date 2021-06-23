@@ -84,6 +84,9 @@ class Sensors {
     /// Sensirion library
     SPS30 sps30;
 
+    // only detect i2c sensors
+    bool i2conly;
+
     /*****************************************
      * I2C sensors:
      ****************************************/
@@ -188,7 +191,6 @@ class Sensors {
     float CO2humi = 0.0;  // temperature of the CO2 sensor
     float CO2temp = 0.0;  // temperature of the CO2 sensor
 
-    bool _only_i2c_sensors;
 
     void am2320Init();
     void am2320Read();

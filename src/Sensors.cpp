@@ -15,7 +15,7 @@ void Sensors::loop() {
     if ((millis() - pmLoopTimeStamp > sample_time * (uint32_t)1000)) {  // sample time for each capture
         pmLoopTimeStamp = millis();
         dataReady = false;
-        if(!_only_i2c_sensors ) {
+        if(!i2conly ) {
             dataReady = pmSensorRead();
             DEBUG("-->[SENSORS] able data from UART sensors: ",String(dataReady).c_str());
         }
@@ -27,7 +27,7 @@ void Sensors::loop() {
         sht31Read();
         CO2scd30Read();
         PMGCJA5Read();
-        if(_only_i2c_sensors && device_type == Sensirion) sps30Read();
+        if(i2conly && device_type == Sensirion) sps30Read();
 
         if(!dataReady)DEBUG("-->[SENSORS] Any data from sensors? check your wirings!");
 
@@ -59,9 +59,11 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     if (devmode) Serial.println("-->[SENSORS] debug is enable.");
 
     DEBUG("-->[SENSORS] sample time set to: ", String(sample_time).c_str());
+    DEBUG("-->[SENSORS] temperature offset: ", String(toffset).c_str());
+    DEBUG("-->[SENSORS] forced only i2c sensors: ", String(i2conly).c_str());
 
-    if (!_only_i2c_sensors && !sensorSerialInit(pms_type, pms_rx, pms_tx)) {
-        DEBUG("-->[PMSENSOR] not found any PM sensor via UART");
+    if (!i2conly && !sensorSerialInit(pms_type, pms_rx, pms_tx)) {
+        DEBUG("-->[SENSORS] not found any PM sensor via UART");
     }
 
 #ifdef M5COREINK
@@ -224,7 +226,7 @@ int Sensors::getPmDeviceTypeSelected() {
 }
 
 void Sensors::detectI2COnly(bool enable) {
-    _only_i2c_sensors = enable;
+    i2conly = enable;
 }
 
 /******************************************************************************
@@ -587,7 +589,7 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
 
     // get device selected..
     if (device_type >= 0) {
-        DEBUG("-->[PMSENSOR] detected: ", device_selected.c_str());
+        DEBUG("-->[PMSENSOR][UART] detected: ", device_selected.c_str());
         return true;
     }
 
