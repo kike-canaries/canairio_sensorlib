@@ -78,6 +78,9 @@ class Sensors {
     /// Initial sample time for all sensors
     int sample_time = 5;
 
+    // temperature offset (for final temp output)
+    float toffset = 0.0;  
+
     /// Sensirion library
     SPS30 sps30;
 
@@ -136,6 +139,8 @@ class Sensors {
     float getPressure();
     float getAltitude();
     float getGas();
+
+    void setTempOffset(float offset);
 
     String getFormatTemp();
     String getFormatPress();
@@ -202,6 +207,7 @@ class Sensors {
 
     void CO2scd30Init();
     void CO2scd30Read();
+    void setSCD30TempOffset(float offset);
 
     void PMGCJA5Init();
     void PMGCJA5Read();

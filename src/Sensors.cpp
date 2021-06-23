@@ -98,6 +98,14 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue) {
     }
 }
 
+/// set SCD30 temperature compensation
+void Sensors::setSCD30TempOffset(float offset) {
+    if (getPmDeviceSelected().equals("SCD30")) {
+        Serial.println("-->[SENSORS] SCD30 setting temp offset: " + String(offset));
+        scd30.setTemperatureOffset(toffset);
+    }
+}
+
 void Sensors::restart() {
     _serial->flush();
     init();
@@ -184,6 +192,11 @@ float Sensors::getHumidity() {
 
 float Sensors::getTemperature() {
     return temp;
+}
+
+void Sensors::setTempOffset(float offset){
+    toffset = offset;
+    setSCD30TempOffset(offset);  // SCD30 is the only sensor with internal offset
 }
 
 float Sensors::getGas() {
@@ -347,7 +360,7 @@ bool Sensors::sps30Read() {
 
 bool Sensors::CO2Mhz19Read() {
     CO2 = mhz19.getCO2();              // Request CO2 (as ppm)
-    CO2temp = mhz19.getTemperature();  // Request Temperature (as Celsius)
+    CO2temp = mhz19.getTemperature()-toffset;  // Request Temperature (as Celsius)
     if (CO2 > 0) {
         dataReady = true;
         DEBUG("-->[MHZ14-9] read > done!");
@@ -411,7 +424,7 @@ void Sensors::am2320Read() {
     float temp1 = am2320.readTemperature();
     if (!isnan(humi1)) humi = humi1;
     if (!isnan(temp1)) {
-        temp = temp1;
+        temp = temp1-toffset;
         dataReady = true;
         DEBUG("-->[AM2320] read > done!");
     }
@@ -422,7 +435,7 @@ void Sensors::bme280Read() {
     float temp1 = bme280.readTemperature();
     if (humi1 != 0) humi = humi1;
     if (temp1 != 0) {
-        temp = temp1;
+        temp = temp1-toffset;
         dataReady = true;
         DEBUG("-->[BME280] read > done!");
     }
@@ -436,7 +449,7 @@ void Sensors::bme680Read() {
     float temp1 = bme680.temperature;
 
     if (temp1 != 0) {
-        temp = temp1;
+        temp = temp1-toffset;
         humi = bme680.humidity;
         pres = bme680.pressure / 100.0;
         gas  = bme680.gas_resistance / 1000.0;
@@ -452,7 +465,7 @@ void Sensors::aht10Read() {
     float temp1 = aht10.readTemperature();
     if (humi1 != 255) humi = humi1;
     if (temp1 != 255) {
-        temp = temp1;
+        temp = temp1-toffset;
         dataReady = true;
         DEBUG("-->[AHT10] read > done!");
     }
@@ -463,7 +476,7 @@ void Sensors::sht31Read() {
     float temp1 = sht31.readTemperature();
     if (!isnan(humi1)) humi = humi1;
     if (!isnan(temp1)) {
-        temp = temp1;
+        temp = temp1-toffset;
         dataReady = true;
         DEBUG("-->[SHT31] read > done!");
     }
@@ -486,7 +499,7 @@ void Sensors::PMGCJA5Read() {
     pm25 = pmGCJA5.getPC2_5();
     pm10 = pmGCJA5.getPC10();
     dataReady = true;
-    DEBUG("-->[SCD30] read > done!");
+    DEBUG("-->[GCJA5] read > done!");
 }
 
 bool Sensors::dhtIsReady(float *temperature, float *humidity) {
@@ -509,7 +522,7 @@ void Sensors::setDHTparameters(int dht_sensor_pin, int dht_sensor_type) {
 
 void Sensors::dhtRead() {
     if (dhtIsReady(&dhttemp, &dhthumi) == true) {
-        temp = dhttemp;
+        temp = dhttemp-toffset;
         humi = dhthumi;
         dataReady = true;
         DEBUG("-->[DHTXX] read > done!");
