@@ -726,9 +726,13 @@ bool Sensors::sps30UARTInit() {
 
     if (!sps30tests()) return false;
 
+
+    DEBUG("-->[SPS30] Detected SPS30 via UART.");
+
     // start measurement
     if (sps30.start() == true) {
         DEBUG("-->[SPS30] Measurement OK");
+        Serial.println("-->[UART] detected SPS30 sensor :)");
         return true;
     } else
         sps30Errorloop((char *)"-->[E][SPS30] Could NOT start measurement", 0);
@@ -750,6 +754,8 @@ bool Sensors::sps30I2CInit() {
     }
 
     if (!sps30tests()) return false;
+
+    DEBUG("-->[SPS30] Detected SPS30 via UART.");
 
     // start measurement
     if (sps30.start()) {
@@ -773,7 +779,6 @@ bool Sensors::sps30tests() {
         sps30Errorloop((char *)"-->[E][SPS30] Could not probe with SPS30.", 0);
         return false;
     } else {
-        DEBUG("-->[SPS30] Detected SPS30 via I2C.");
         sps30DeviceInfo();
     }
     // reset SPS30 connection
