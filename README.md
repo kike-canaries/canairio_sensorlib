@@ -1,9 +1,9 @@
 
 [![PlatformIO](https://github.com/kike-canaries/canairio_sensorlib/workflows/PlatformIO/badge.svg)](https://github.com/kike-canaries/canairio_sensorlib/actions/) [![Build Status](https://travis-ci.com/kike-canaries/canairio_sensorlib.svg?branch=master)](https://travis-ci.com/kike-canaries/canairio_sensorlib.svg?branch=master) ![ViewCount](https://views.whatilearened.today/views/github/kike-canaries/canairio_sensorlib.svg) 
 
-# CanAirIO Air Quality Sensors Library
+# Air Quality Sensors Library
 
-Particle meter (PM) sensor manager for multiple (PM) sensors: Honeywell, Plantower, Panasonic, Sensirion, etc and CO2 sensors. Also it handling others environment sensors.
+Generic sensor manager, abstratctions and bindings of multiple sensors libraries: Honeywell, Plantower, Panasonic, Sensirion, etc and CO2 sensors. Also it handling others environment sensors. This library is for general purpose but also is the sensors library base of [CanAirIO project](https://canair.io/docs).
 
 # Supported sensors
 
