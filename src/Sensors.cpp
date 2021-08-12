@@ -96,7 +96,15 @@ void Sensors::setSampleTime(int seconds) {
 void Sensors::setCO2RecalibrationFactor(int ppmValue) {
     if (getPmDeviceSelected().equals("SCD30")) {
         Serial.println("-->[SENSORS] SCD30 setting calibration factor: " + String(ppmValue));
-        scd30.setForcedRecalibrationFactor(400);
+        scd30.setForcedRecalibrationFactor(ppmValue);
+    }
+    if (getPmDeviceSelected().equals("CM1106")) {
+        Serial.println("-->[SENSORS] CM1106 setting calibration factor: " + String(ppmValue));
+        sensor_CM1106->start_calibration(ppmValue);
+    }
+    if (getPmDeviceSelected().equals("MHZ19")) {
+        Serial.println("-->[SENSORS] MH-Z19 setting calibration factor: " + String(ppmValue));
+        mhz19.calibrate();
     }
 }
 
@@ -666,8 +674,8 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
 
 bool Sensors::CO2Mhz19Init() {
     DEBUG("-->[MH-Z19] starting MH-Z14 or MH-Z19 sensor..");
-    mhz19.begin(*_serial);    // *Serial(Stream) refence must be passed to library begin().
-    mhz19.autoCalibration(false);  // Turn auto calibration ON (OFF autoCalibration(false))
+    mhz19.begin(*_serial);
+    mhz19.autoCalibration(false); 
     return true;
 }
 
