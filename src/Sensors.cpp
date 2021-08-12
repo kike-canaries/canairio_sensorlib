@@ -581,6 +581,9 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
     } else if (pms_type == CM1106) {
         DEBUG("-->[CO2SENSOR][UART] detecting CM1106 sensor..");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
+    } else if (pms_type == SENSEAIRS8) {
+        DEBUG("-->[CO2SENSOR][UART] detecting SenseAir S8 sensor..");
+        if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     }
 
     // starting auto detection loop
@@ -636,6 +639,14 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
         }
     }
 
+    if (pms_type == SENSEAIRS8) {
+        if (senseAirS8Init()) {
+            device_selected = "SENSEAIRS8";
+            device_type = CM1106;
+            return true;
+        }
+    }
+
     if (pms_type <= Panasonic) {
         if (pmGenericRead()) {
             device_selected = "GENERIC";
@@ -665,12 +676,12 @@ bool Sensors::CO2CM1106Init() {
     sensor_CM1106 = new CM1106_UART(*_serial);
 
     // Check if CM1106 is available
-    sensor_CM1106->get_software_version(sensor.softver);
-    int len = strlen(sensor.softver);
+    sensor_CM1106->get_software_version(cm1106sensor.softver);
+    int len = strlen(cm1106sensor.softver);
     if (len > 0) {
-        if (len >= 10 && !strncmp(sensor.softver+len-5, "SL-NS", 5)) {
+        if (len >= 10 && !strncmp(cm1106sensor.softver+len-5, "SL-NS", 5)) {
             DEBUG("-->[CM1106] CM1106SL-NS version detected");
-        } else if (!strncmp(sensor.softver, "CM", 2)) {
+        } else if (!strncmp(cm1106sensor.softver, "CM", 2)) {
             DEBUG("-->[CM1106] CM1106 version detected");
         } else {
             DEBUG("-->[CM1106] unknown version");
@@ -682,9 +693,9 @@ bool Sensors::CO2CM1106Init() {
 
     // Show sensor info
     DEBUG("-->[CM1106] Cubic CM1106 NDIR CO2 sensor <<<");  
-    sensor_CM1106->get_serial_number(sensor.sn);
-    DEBUG("-->[CM1106] Serial number:", sensor.sn);
-    DEBUG("-->[CM1106] Software version:", sensor.softver);
+    sensor_CM1106->get_serial_number(cm1106sensor.sn);
+    DEBUG("-->[CM1106] Serial number:", cm1106sensor.sn);
+    DEBUG("-->[CM1106] Software version:", cm1106sensor.softver);
 
     // Setup ABC parameters
     DEBUG("-->[CM1106] Setting ABC parameters...");
@@ -708,6 +719,44 @@ bool Sensors::CO2CM1106Init() {
     // // Start calibration
     // DEBUG("Starting calibration...");
     // sensor_CM1106->start_calibration(400);
+
+    return true;
+}
+
+bool Sensors::senseAirS8Init() {
+    DEBUG("-->[SENSEAIRS8] starting S8 (UART) sensor..");
+    sensor_S8 = new S8(*_serial);
+    // Check if S8 is available
+    sensor_S8->get_firmware_version(s8sensor.firmver);
+    int len = strlen(s8sensor.firmver);
+    if (len == 0) {
+        DEBUG("-->[E][SENSEAIRS8] not detected!");
+        return false;
+    }
+    // Show S8 sensor info
+
+    Serial.println("-->[SENSEAIRS*] detected SenseAir S8 sensor :)");
+    if (devmode) {
+        Serial.printf("-->[SENSEAIRS8] Software version: %s\n", s8sensor.firmver);
+        Serial.printf("-->[SENSEAIRS8] Sensor type: 0x%08x\n", sensor_S8->get_sensor_type_ID());
+        Serial.printf("-->[SENSEAIRS8] Sensor ID:  %08x\n", sensor_S8->get_sensor_ID());
+        Serial.printf("-->[SENSEAIRS8] Memory map version: 0x%04x\n", sensor_S8->get_memory_map_version());
+        Serial.printf("-->[SENSEAIRS8] ABC period (0 = disabled): %d hours\n", sensor_S8->get_ABC_period());
+    }
+    DEBUG("-->[SENSEAIRS8] Disable ABC period");
+    sensor_S8->set_ABC_period(0);
+    delay(1000);
+    if (devmode) Serial.printf("-->[SENSEAIRS8] ABC period (0 = disabled): %d hours\n", sensor_S8->get_ABC_period());
+
+    DEBUG("-->[SENSEAIRS8] ABC period set to 180 hours");
+    sensor_S8->set_ABC_period(180);
+    delay(1000);
+    if (devmode) Serial.printf("ABC period (0 = disabled): %d hours\n", sensor_S8->get_ABC_period());
+
+    sensor_S8->get_meter_status();
+    sensor_S8->get_alarm_status();
+    sensor_S8->get_output_status();
+    sensor_S8->get_acknowledgement();
 
     return true;
 }
