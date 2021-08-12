@@ -190,7 +190,7 @@ class Sensors {
     float pres = 0.0;   // Pressure
     float alt = 0.0;
     float gas = 0.0;
-
+    
     uint16_t CO2;         // CO2 in ppm
     float CO2humi = 0.0;  // temperature of the CO2 sensor
     float CO2temp = 0.0;  // temperature of the CO2 sensor
@@ -237,6 +237,7 @@ class Sensors {
     bool CO2Mhz19Init();
     bool CO2CM1106Init();
     bool senseAirS8Init();
+    bool senseAirS8Read();
 
     bool sps30I2CInit();
     bool sps30UARTInit();

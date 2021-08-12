@@ -106,6 +106,9 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue) {
         Serial.println("-->[SENSORS] MH-Z19 setting calibration factor: " + String(ppmValue));
         mhz19.calibrate();
     }
+    if (getPmDeviceSelected().equals("SENSEAIRS8")) {
+        Serial.println("-->[SENSORS] SenseAir S8  setting calibration factor: " + String(ppmValue));
+    }
 }
 
 /// set SCD30 temperature compensation
@@ -389,6 +392,16 @@ bool Sensors::CO2CM1106Read() {
     return false;
 }
 
+bool Sensors::senseAirS8Read() {
+    CO2 = sensor_S8->get_co2();      // Request CO2 (as ppm)
+    if (CO2 > 0) {
+        dataReady = true;
+        DEBUG("-->[SENSEAIRS8] read > done!");
+        return true;
+    }
+    return false;
+}
+
 /**
  * @brief read sensor data. Sensor selected.
  * @return true if data is loaded from sensor
@@ -417,6 +430,10 @@ bool Sensors::pmSensorRead() {
 
         case CM1106:
             return CO2CM1106Read();
+            break;
+
+        case SENSEAIRS8:
+            return senseAirS8Read();
             break;
 
         default:
@@ -650,7 +667,7 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
     if (pms_type == SENSEAIRS8) {
         if (senseAirS8Init()) {
             device_selected = "SENSEAIRS8";
-            device_type = CM1106;
+            device_type = SENSEAIRS8;
             return true;
         }
     }
@@ -743,7 +760,7 @@ bool Sensors::senseAirS8Init() {
     }
     // Show S8 sensor info
 
-    Serial.println("-->[SENSEAIRS*] detected SenseAir S8 sensor :)");
+    Serial.println("-->[SENSEAIRS8] detected SenseAir S8 sensor :)");
     if (devmode) {
         Serial.printf("-->[SENSEAIRS8] Software version: %s\n", s8sensor.firmver);
         Serial.printf("-->[SENSEAIRS8] Sensor type: 0x%08x\n", sensor_S8->get_sensor_type_ID());
