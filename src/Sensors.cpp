@@ -717,7 +717,7 @@ bool Sensors::CO2CM1106Init() {
     }     
 
     // Show sensor info
-    DEBUG("-->[CM1106] Cubic CM1106 NDIR CO2 sensor <<<");  
+    DEBUG("-->[CM1106] Cubic CM1106 NDIR CO2 sensor");  
     sensor_CM1106->get_serial_number(cm1106sensor.sn);
     DEBUG("-->[CM1106] Serial number:", cm1106sensor.sn);
     DEBUG("-->[CM1106] Software version:", cm1106sensor.softver);
@@ -729,21 +729,17 @@ bool Sensors::CO2CM1106Init() {
     // Force mode continous B for CM1106SL-NS
     sensor_CM1106->set_working_status(1);
 
-    // // Getting ABC parameters
-    // if (sensor_CM1106->get_ABC(&abc)) {
-    //     DEBUG("-->[CM1106] ABC parameters:");
-    //     if (abc.open_close == CM1106_ABC_OPEN) {
-    //         DEBUG("-->[CM1106] Auto calibration is enabled");
-    //     } else if (abc.open_close == CM1106_ABC_CLOSE) {
-    //         DEBUG("-->[CM1106] Auto calibration is disabled");
-    //     }
-    //     DEBUG("-->[CM1106] Calibration cycle: ", String(abc.cycle).c_str());
-    //     DEBUG("-->[CM1106] Calibration baseline: ", String(abc.base).c_str());
-    // }
-
-    // // Start calibration
-    // DEBUG("Starting calibration...");
-    // sensor_CM1106->start_calibration(400);
+    // Getting ABC parameters
+    if (sensor_CM1106->get_ABC(&abc)) {
+        DEBUG("-->[CM1106] ABC parameters:");
+        if (abc.open_close == CM1106_ABC_OPEN) {
+            DEBUG("-->[CM1106] Auto calibration is enabled");
+        } else if (abc.open_close == CM1106_ABC_CLOSE) {
+            DEBUG("-->[CM1106] Auto calibration is disabled");
+        }
+        DEBUG("-->[CM1106] Calibration cycle: ", String(abc.cycle).c_str());
+        DEBUG("-->[CM1106] Calibration baseline: ", String(abc.base).c_str());
+    }
 
     return true;
 }
