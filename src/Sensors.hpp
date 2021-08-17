@@ -136,6 +136,7 @@ class Sensors {
 
     float getCO2humi();
     float getCO2temp();
+    float getCO2AltitudeCompensation();
 
     float getTemperature();
     float getHumidity();
@@ -191,7 +192,6 @@ class Sensors {
     float CO2humi = 0.0;  // temperature of the CO2 sensor
     float CO2temp = 0.0;  // temperature of the CO2 sensor
 
-
     void am2320Init();
     void am2320Read();
 
@@ -210,6 +210,7 @@ class Sensors {
     void CO2scd30Init();
     void CO2scd30Read();
     void setSCD30TempOffset(float offset);
+    void CO2correctionAlt();
 
     void PMGCJA5Init();
     void PMGCJA5Read();

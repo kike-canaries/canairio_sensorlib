@@ -366,6 +366,7 @@ bool Sensors::CO2Mhz19Read() {
     if (CO2 > 0) {
         dataReady = true;
         DEBUG("-->[MHZ14-9] read > done!");
+        if(alt != 0) CO2correctionAlt();
         return true;
     }
     return false;
@@ -376,6 +377,8 @@ bool Sensors::CO2CM1106Read() {
     if (CO2 > 0) {
         dataReady = true;
         DEBUG("-->[CM1106] read > done!");
+        //alt = 2600;                             // Example test
+        if(alt != 0) CO2correctionAlt();
         return true;
     }
     return false;
@@ -893,6 +896,25 @@ void Sensors::PMGCJA5Init() {
 }
 
 void Sensors::dhtInit() {
+}
+
+// Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
+
+void Sensors::CO2correctionAlt() {
+    //DEBUG("-->[SENSORS] Altitud Compensation for CO2 lectures ON");
+    //Serial.print("-->[SENSORS] CO2 original: ");      // Example test
+    //Serial.print(CO2);                                // Example test
+    //Serial.print(" hpa: ");                           // Example test
+    alt = getCO2AltitudeCompensation();
+    float hpa = 1012 - 0.118 * alt + 0.00000473 * alt * alt;            // Cuadratic regresion formula obtained PA (hpa) from high above the sea
+    //Serial.println(hpa);                              // Example test
+    float CO2cor = (0.016 * ( (1013.25 - hpa) /10 ) * CO2) + CO2;       // Increment of 1.6% for every hpa of difference at sea level
+    CO2 = round (CO2cor);
+}
+
+float Sensors::getCO2AltitudeCompensation(){
+    return alt;
+    //return 2600;                                      // Example test
 }
 
 /// Print some sensors values
