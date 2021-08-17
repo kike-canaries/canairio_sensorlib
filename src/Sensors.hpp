@@ -111,7 +111,7 @@ class Sensors {
     // SCD30 sensor
     SCD30 scd30;
     // CM1106 UART
-    CM1106_UART *sensor_CM1106;
+    CM1106_UART *cm1106;
     CM1106_sensor cm1106sensor;
     CM1106_ABC abc;
     // Panasonic SN-GCJA5

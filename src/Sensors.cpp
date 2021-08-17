@@ -100,7 +100,7 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue) {
     }
     if (getPmDeviceSelected().equals("CM1106")) {
         Serial.println("-->[SENSORS] CM1106 setting calibration factor: " + String(ppmValue));
-        sensor_CM1106->start_calibration(ppmValue);
+        cm1106->start_calibration(ppmValue);
     }
     if (getPmDeviceSelected().equals("MHZ19")) {
         Serial.println("-->[SENSORS] MH-Z19 setting calibration factor: " + String(ppmValue));
@@ -383,7 +383,7 @@ bool Sensors::CO2Mhz19Read() {
 }
 
 bool Sensors::CO2CM1106Read() {
-    CO2 = sensor_CM1106->get_co2();;
+    CO2 = cm1106->get_co2();;
     if (CO2 > 0) {
         dataReady = true;
         DEBUG("-->[CM1106] read > done!");
@@ -698,10 +698,10 @@ bool Sensors::CO2Mhz19Init() {
 
 bool Sensors::CO2CM1106Init() {
     DEBUG("-->[CM1106] starting CM1106 sensor..");
-    sensor_CM1106 = new CM1106_UART(*_serial);
+    cm1106 = new CM1106_UART(*_serial);
 
     // Check if CM1106 is available
-    sensor_CM1106->get_software_version(cm1106sensor.softver);
+    cm1106->get_software_version(cm1106sensor.softver);
     int len = strlen(cm1106sensor.softver);
     if (len > 0) {
         if (len >= 10 && !strncmp(cm1106sensor.softver+len-5, "SL-NS", 5)) {
@@ -718,19 +718,19 @@ bool Sensors::CO2CM1106Init() {
 
     // Show sensor info
     DEBUG("-->[CM1106] Cubic CM1106 NDIR CO2 sensor");  
-    sensor_CM1106->get_serial_number(cm1106sensor.sn);
+    cm1106->get_serial_number(cm1106sensor.sn);
     DEBUG("-->[CM1106] Serial number:", cm1106sensor.sn);
     DEBUG("-->[CM1106] Software version:", cm1106sensor.softver);
 
     // Setup ABC parameters
     DEBUG("-->[CM1106] Setting ABC parameters...");
-    sensor_CM1106->set_ABC(CM1106_ABC_OPEN, 7, 415);    // 7 days cycle, 415 ppm for base
+    cm1106->set_ABC(CM1106_ABC_OPEN, 7, 415);    // 7 days cycle, 415 ppm for base
 
     // Force mode continous B for CM1106SL-NS
-    sensor_CM1106->set_working_status(1);
+    cm1106->set_working_status(1);
 
     // Getting ABC parameters
-    if (sensor_CM1106->get_ABC(&abc)) {
+    if (cm1106->get_ABC(&abc)) {
         DEBUG("-->[CM1106] ABC parameters:");
         if (abc.open_close == CM1106_ABC_OPEN) {
             DEBUG("-->[CM1106] Auto calibration is enabled");
