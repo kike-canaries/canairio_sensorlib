@@ -393,7 +393,7 @@ bool Sensors::CO2CM1106Read() {
 }
 
 bool Sensors::senseAirS8Read() {
-    CO2 = sensor_S8->get_co2();      // Request CO2 (as ppm)
+    CO2 = s8->get_co2();      // Request CO2 (as ppm)
     if (CO2 > 0) {
         dataReady = true;
         DEBUG("-->[SENSEAIRS8] read > done!");
@@ -746,9 +746,9 @@ bool Sensors::CO2CM1106Init() {
 
 bool Sensors::senseAirS8Init() {
     DEBUG("-->[SENSEAIRS8] starting S8 (UART) sensor..");
-    sensor_S8 = new S8(*_serial);
+    s8 = new S8(*_serial);
     // Check if S8 is available
-    sensor_S8->get_firmware_version(s8sensor.firmver);
+    s8->get_firmware_version(s8sensor.firmver);
     int len = strlen(s8sensor.firmver);
     if (len == 0) {
         DEBUG("-->[E][SENSEAIRS8] not detected!");
@@ -759,25 +759,25 @@ bool Sensors::senseAirS8Init() {
     Serial.println("-->[SENSEAIRS8] detected SenseAir S8 sensor :)");
     if (devmode) {
         Serial.printf("-->[SENSEAIRS8] Software version: %s\n", s8sensor.firmver);
-        Serial.printf("-->[SENSEAIRS8] Sensor type: 0x%08x\n", sensor_S8->get_sensor_type_ID());
-        Serial.printf("-->[SENSEAIRS8] Sensor ID:  %08x\n", sensor_S8->get_sensor_ID());
-        Serial.printf("-->[SENSEAIRS8] Memory map version: 0x%04x\n", sensor_S8->get_memory_map_version());
-        Serial.printf("-->[SENSEAIRS8] ABC period (0 = disabled): %d hours\n", sensor_S8->get_ABC_period());
+        Serial.printf("-->[SENSEAIRS8] Sensor type: 0x%08x\n", s8->get_sensor_type_ID());
+        Serial.printf("-->[SENSEAIRS8] Sensor ID:  %08x\n", s8->get_sensor_ID());
+        Serial.printf("-->[SENSEAIRS8] Memory map version: 0x%04x\n", s8->get_memory_map_version());
+        Serial.printf("-->[SENSEAIRS8] ABC period (0 = disabled): %d hours\n", s8->get_ABC_period());
     }
     DEBUG("-->[SENSEAIRS8] Disable ABC period");
-    sensor_S8->set_ABC_period(0);
+    s8->set_ABC_period(0);
     delay(1000);
-    if (devmode) Serial.printf("-->[SENSEAIRS8] ABC period (0 = disabled): %d hours\n", sensor_S8->get_ABC_period());
+    if (devmode) Serial.printf("-->[SENSEAIRS8] ABC period (0 = disabled): %d hours\n", s8->get_ABC_period());
 
     DEBUG("-->[SENSEAIRS8] ABC period set to 180 hours");
-    sensor_S8->set_ABC_period(180);
+    s8->set_ABC_period(180);
     delay(1000);
-    if (devmode) Serial.printf("ABC period (0 = disabled): %d hours\n", sensor_S8->get_ABC_period());
+    if (devmode) Serial.printf("ABC period (0 = disabled): %d hours\n", s8->get_ABC_period());
 
-    sensor_S8->get_meter_status();
-    sensor_S8->get_alarm_status();
-    sensor_S8->get_output_status();
-    sensor_S8->get_acknowledgement();
+    s8->get_meter_status();
+    s8->get_alarm_status();
+    s8->get_output_status();
+    s8->get_acknowledgement();
 
     return true;
 }

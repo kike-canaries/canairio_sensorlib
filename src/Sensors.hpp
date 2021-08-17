@@ -117,7 +117,7 @@ class Sensors {
     // Panasonic SN-GCJA5
     SFE_PARTICLE_SENSOR pmGCJA5;
     // SenseAir S8 CO2 sensor
-    S8 *sensor_S8;
+    S8 *s8;
     S8_sensor s8sensor;
 
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
