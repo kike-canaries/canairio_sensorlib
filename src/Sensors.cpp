@@ -366,6 +366,7 @@ bool Sensors::CO2Mhz19Read() {
     if (CO2 > 0) {
         dataReady = true;
         DEBUG("-->[MHZ14-9] read > done!");
+        //alt = 2570;                             // Example test
         if(alt != 0) CO2correctionAlt();
         return true;
     }
@@ -377,7 +378,7 @@ bool Sensors::CO2CM1106Read() {
     if (CO2 > 0) {
         dataReady = true;
         DEBUG("-->[CM1106] read > done!");
-        //alt = 2600;                             // Example test
+        //alt = 2570;                             // Example test
         if(alt != 0) CO2correctionAlt();
         return true;
     }
@@ -908,7 +909,7 @@ void Sensors::CO2correctionAlt() {
     alt = getCO2AltitudeCompensation();
     float hpa = 1012 - 0.118 * alt + 0.00000473 * alt * alt;            // Cuadratic regresion formula obtained PA (hpa) from high above the sea
     Serial.println(hpa);                              // Example test
-    float CO2cor = (0.016 * ( (1013.25 - hpa) /10 ) * CO2) + CO2;       // Increment of 1.6% for every hpa of difference at sea level
+    float CO2cor = (0.016 * ((1013.25 - hpa) /10 ) * (CO2 - 400)) + CO2;       // Increment of 1.6% for every hpa of difference at sea level
     CO2 = round (CO2cor);
 }
 
