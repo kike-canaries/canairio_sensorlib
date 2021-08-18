@@ -96,7 +96,18 @@ void Sensors::setSampleTime(int seconds) {
 void Sensors::setCO2RecalibrationFactor(int ppmValue) {
     if (getPmDeviceSelected().equals("SCD30")) {
         Serial.println("-->[SENSORS] SCD30 setting calibration factor: " + String(ppmValue));
-        scd30.setForcedRecalibrationFactor(400);
+        scd30.setForcedRecalibrationFactor(ppmValue);
+    }
+    if (getPmDeviceSelected().equals("CM1106")) {
+        Serial.println("-->[SENSORS] CM1106 setting calibration factor: " + String(ppmValue));
+        cm1106->start_calibration(ppmValue);
+    }
+    if (getPmDeviceSelected().equals("MHZ19")) {
+        Serial.println("-->[SENSORS] MH-Z19 setting calibration factor: " + String(ppmValue));
+        mhz19.calibrate();
+    }
+    if (getPmDeviceSelected().equals("SENSEAIRS8")) {
+        Serial.println("-->[SENSORS] SenseAir S8  setting calibration factor: " + String(ppmValue));
     }
 }
 
@@ -372,10 +383,20 @@ bool Sensors::CO2Mhz19Read() {
 }
 
 bool Sensors::CO2CM1106Read() {
-    CO2 = sensor_CM1106->get_co2();;
+    CO2 = cm1106->get_co2();;
     if (CO2 > 0) {
         dataReady = true;
         DEBUG("-->[CM1106] read > done!");
+        return true;
+    }
+    return false;
+}
+
+bool Sensors::senseAirS8Read() {
+    CO2 = s8->get_co2();      // Request CO2 (as ppm)
+    if (CO2 > 0) {
+        dataReady = true;
+        DEBUG("-->[SENSEAIRS8] read > done!");
         return true;
     }
     return false;
@@ -409,6 +430,10 @@ bool Sensors::pmSensorRead() {
 
         case CM1106:
             return CO2CM1106Read();
+            break;
+
+        case SENSEAIRS8:
+            return senseAirS8Read();
             break;
 
         default:
@@ -581,6 +606,9 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
     } else if (pms_type == CM1106) {
         DEBUG("-->[CO2SENSOR][UART] detecting CM1106 sensor..");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
+    } else if (pms_type == SENSEAIRS8) {
+        DEBUG("-->[CO2SENSOR][UART] detecting SenseAir S8 sensor..");
+        if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     }
 
     // starting auto detection loop
@@ -636,6 +664,14 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
         }
     }
 
+    if (pms_type == SENSEAIRS8) {
+        if (senseAirS8Init()) {
+            device_selected = "SENSEAIRS8";
+            device_type = SENSEAIRS8;
+            return true;
+        }
+    }
+
     if (pms_type <= Panasonic) {
         if (pmGenericRead()) {
             device_selected = "GENERIC";
@@ -655,22 +691,22 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
 
 bool Sensors::CO2Mhz19Init() {
     DEBUG("-->[MH-Z19] starting MH-Z14 or MH-Z19 sensor..");
-    mhz19.begin(*_serial);    // *Serial(Stream) refence must be passed to library begin().
-    mhz19.autoCalibration(false);  // Turn auto calibration ON (OFF autoCalibration(false))
+    mhz19.begin(*_serial);
+    mhz19.autoCalibration(false); 
     return true;
 }
 
 bool Sensors::CO2CM1106Init() {
     DEBUG("-->[CM1106] starting CM1106 sensor..");
-    sensor_CM1106 = new CM1106_UART(*_serial);
+    cm1106 = new CM1106_UART(*_serial);
 
     // Check if CM1106 is available
-    sensor_CM1106->get_software_version(sensor.softver);
-    int len = strlen(sensor.softver);
+    cm1106->get_software_version(cm1106sensor.softver);
+    int len = strlen(cm1106sensor.softver);
     if (len > 0) {
-        if (len >= 10 && !strncmp(sensor.softver+len-5, "SL-NS", 5)) {
+        if (len >= 10 && !strncmp(cm1106sensor.softver+len-5, "SL-NS", 5)) {
             DEBUG("-->[CM1106] CM1106SL-NS version detected");
-        } else if (!strncmp(sensor.softver, "CM", 2)) {
+        } else if (!strncmp(cm1106sensor.softver, "CM", 2)) {
             DEBUG("-->[CM1106] CM1106 version detected");
         } else {
             DEBUG("-->[CM1106] unknown version");
@@ -681,33 +717,67 @@ bool Sensors::CO2CM1106Init() {
     }     
 
     // Show sensor info
-    DEBUG("-->[CM1106] Cubic CM1106 NDIR CO2 sensor <<<");  
-    sensor_CM1106->get_serial_number(sensor.sn);
-    DEBUG("-->[CM1106] Serial number:", sensor.sn);
-    DEBUG("-->[CM1106] Software version:", sensor.softver);
+    DEBUG("-->[CM1106] Cubic CM1106 NDIR CO2 sensor");  
+    cm1106->get_serial_number(cm1106sensor.sn);
+    DEBUG("-->[CM1106] Serial number:", cm1106sensor.sn);
+    DEBUG("-->[CM1106] Software version:", cm1106sensor.softver);
 
     // Setup ABC parameters
     DEBUG("-->[CM1106] Setting ABC parameters...");
-    sensor_CM1106->set_ABC(CM1106_ABC_OPEN, 7, 415);    // 7 days cycle, 415 ppm for base
+    cm1106->set_ABC(CM1106_ABC_OPEN, 7, 415);    // 7 days cycle, 415 ppm for base
 
     // Force mode continous B for CM1106SL-NS
-    sensor_CM1106->set_working_status(1);
+    cm1106->set_working_status(1);
 
-    // // Getting ABC parameters
-    // if (sensor_CM1106->get_ABC(&abc)) {
-    //     DEBUG("-->[CM1106] ABC parameters:");
-    //     if (abc.open_close == CM1106_ABC_OPEN) {
-    //         DEBUG("-->[CM1106] Auto calibration is enabled");
-    //     } else if (abc.open_close == CM1106_ABC_CLOSE) {
-    //         DEBUG("-->[CM1106] Auto calibration is disabled");
-    //     }
-    //     DEBUG("-->[CM1106] Calibration cycle: ", String(abc.cycle).c_str());
-    //     DEBUG("-->[CM1106] Calibration baseline: ", String(abc.base).c_str());
-    // }
+    // Getting ABC parameters
+    if (cm1106->get_ABC(&abc)) {
+        DEBUG("-->[CM1106] ABC parameters:");
+        if (abc.open_close == CM1106_ABC_OPEN) {
+            DEBUG("-->[CM1106] Auto calibration is enabled");
+        } else if (abc.open_close == CM1106_ABC_CLOSE) {
+            DEBUG("-->[CM1106] Auto calibration is disabled");
+        }
+        DEBUG("-->[CM1106] Calibration cycle: ", String(abc.cycle).c_str());
+        DEBUG("-->[CM1106] Calibration baseline: ", String(abc.base).c_str());
+    }
 
-    // // Start calibration
-    // DEBUG("Starting calibration...");
-    // sensor_CM1106->start_calibration(400);
+    return true;
+}
+
+bool Sensors::senseAirS8Init() {
+    DEBUG("-->[SENSEAIRS8] starting S8 (UART) sensor..");
+    s8 = new S8(*_serial);
+    // Check if S8 is available
+    s8->get_firmware_version(s8sensor.firmver);
+    int len = strlen(s8sensor.firmver);
+    if (len == 0) {
+        DEBUG("-->[E][SENSEAIRS8] not detected!");
+        return false;
+    }
+    // Show S8 sensor info
+
+    Serial.println("-->[SENSEAIRS8] detected SenseAir S8 sensor :)");
+    if (devmode) {
+        Serial.printf("-->[SENSEAIRS8] Software version: %s\n", s8sensor.firmver);
+        Serial.printf("-->[SENSEAIRS8] Sensor type: 0x%08x\n", s8->get_sensor_type_ID());
+        Serial.printf("-->[SENSEAIRS8] Sensor ID:  %08x\n", s8->get_sensor_ID());
+        Serial.printf("-->[SENSEAIRS8] Memory map version: 0x%04x\n", s8->get_memory_map_version());
+        Serial.printf("-->[SENSEAIRS8] ABC period (0 = disabled): %d hours\n", s8->get_ABC_period());
+    }
+    DEBUG("-->[SENSEAIRS8] Disable ABC period");
+    s8->set_ABC_period(0);
+    delay(1000);
+    if (devmode) Serial.printf("-->[SENSEAIRS8] ABC period (0 = disabled): %d hours\n", s8->get_ABC_period());
+
+    DEBUG("-->[SENSEAIRS8] ABC period set to 180 hours");
+    s8->set_ABC_period(180);
+    delay(1000);
+    if (devmode) Serial.printf("ABC period (0 = disabled): %d hours\n", s8->get_ABC_period());
+
+    s8->get_meter_status();
+    s8->get_alarm_status();
+    s8->get_output_status();
+    s8->get_acknowledgement();
 
     return true;
 }

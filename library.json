@@ -1,6 +1,6 @@
 {
   "name": "CanAirIO Air Quality Sensors Library",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "homepage":"https://canair.io",
   "keywords": 
   [ 
@@ -18,6 +18,7 @@
     "AM2320",
     "mhz19",
     "scd30",
+    "SenseAir S8",
     "cm1106",
     "sds011",
     "particulate matter",
@@ -25,7 +26,7 @@
     "PM1.0",
     "PM10"
   ],
-  "description":"Air quality sensors manager: Honeywell, Plantower, Panasonic, Sensirion, SDS011, SCD30, etc, also it handling other kind sensors like AM2320, bme280, aht10, sht31, DHT and CO2 sensors like MHZ19, CM1106, SCD30 and others. Autodetection via UART and i2c. ESP32/8266/Avr compatible. Other than examples, you can review a full implementation on CanAirIO proyect.",
+  "description":"Generic sensor manager, abstratctions and bindings of multiple air sensors libraries: Honeywell, Plantower, Panasonic, Sensirion, Nova, etc. and CO2 sensors. Also it handling others environment sensors. This library is for general purpose but also is the sensors library base of CanAirIO project.",
   "repository":
   {
     "type": "git",
@@ -78,6 +79,7 @@
     {"name":"SparkFun SCD30 Arduino Library","owner":"sparkfun","version":"1.0.10"},
     {"name":"CM1106_UART", "version":"https://github.com/hpsaturn/CM1106_UART.git"},
     {"name":"SN-GCJA5", "version":"https://github.com/paulvha/SN-GCJA5.git"},
+    {"name":"senseair_s8", "version":"https://github.com/hpsaturn/senseair_s8.git"},
     {"name":"Adafruit BME680 Library","owner":"adafruit","version":"2.0.0"}
   ]
 }

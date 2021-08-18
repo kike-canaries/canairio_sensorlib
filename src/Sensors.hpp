@@ -13,6 +13,7 @@
 #include <dht_nonblocking.h>
 #include <sps30.h>
 #include <cm1106_uart.h>
+#include <s8.h>
 
 using namespace std;
 #include <vector>
@@ -67,7 +68,7 @@ typedef void (*voidCbFn)();
 class Sensors {
    public:
     /// Supported devices. Auto is for Honeywell and Plantower sensors and similars
-    enum SENSOR_TYPE { Auto, Panasonic, Sensirion, SDS011, Mhz19, CM1106 };
+    enum SENSOR_TYPE { Auto, Panasonic, Sensirion, SDS011, Mhz19, CM1106, SENSEAIRS8 };
     
     /// SPS30 values. Only for Sensirion SPS30 sensor.
     struct sps_values val;
@@ -110,11 +111,14 @@ class Sensors {
     // SCD30 sensor
     SCD30 scd30;
     // CM1106 UART
-    CM1106_UART *sensor_CM1106;
-    CM1106_sensor sensor;
+    CM1106_UART *cm1106;
+    CM1106_sensor cm1106sensor;
     CM1106_ABC abc;
     // Panasonic SN-GCJA5
     SFE_PARTICLE_SENSOR pmGCJA5;
+    // SenseAir S8 CO2 sensor
+    S8 *s8;
+    S8_sensor s8sensor;
 
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
     void loop();
@@ -186,7 +190,7 @@ class Sensors {
     float pres = 0.0;   // Pressure
     float alt = 0.0;
     float gas = 0.0;
-
+    
     uint16_t CO2;         // CO2 in ppm
     float CO2humi = 0.0;  // temperature of the CO2 sensor
     float CO2temp = 0.0;  // temperature of the CO2 sensor
@@ -232,6 +236,8 @@ class Sensors {
     int CO2CM1106val();
     bool CO2Mhz19Init();
     bool CO2CM1106Init();
+    bool senseAirS8Init();
+    bool senseAirS8Read();
 
     bool sps30I2CInit();
     bool sps30UARTInit();
