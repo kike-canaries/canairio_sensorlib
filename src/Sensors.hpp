@@ -83,6 +83,7 @@ class Sensors {
 
     // Altitud compensation variable
     float alt_comp = 0.0;
+    float altitude = 0.0;
 
     /// Sensirion library
     SPS30 sps30;
@@ -190,7 +191,6 @@ class Sensors {
     float pres = 0.0;   // Pressure
     float alt = 0.0;
     float gas = 0.0;
-    float altitude = 0.0;
 
     uint16_t CO2;         // CO2 in ppm
     float CO2humi = 0.0;  // temperature of the CO2 sensor
