@@ -188,7 +188,6 @@ class Sensors {
     float alt = 0.0;
     float gas = 0.0;
     float alt_comp = 0.0;
-    float hpa = 0.0;
 
     uint16_t CO2;         // CO2 in ppm
     float CO2humi = 0.0;  // temperature of the CO2 sensor
