@@ -136,7 +136,6 @@ class Sensors {
 
     float getCO2humi();
     float getCO2temp();
-    float getCO2AltitudeCompensation();
 
     float getTemperature();
     float getHumidity();
@@ -145,6 +144,7 @@ class Sensors {
     float getGas();
 
     void setTempOffset(float offset);
+    void setCO2AltitudeCompensation(float alt_comp);
 
     String getFormatTemp();
     String getFormatPress();
@@ -187,6 +187,8 @@ class Sensors {
     float pres = 0.0;   // Pressure
     float alt = 0.0;
     float gas = 0.0;
+    float alt_comp = 0.0;
+    float hpa = 0.0;
 
     uint16_t CO2;         // CO2 in ppm
     float CO2humi = 0.0;  // temperature of the CO2 sensor
