@@ -110,7 +110,8 @@ void Sensors::setSCD30TempOffset(float offset) {
 
 void Sensors::setCO2AltitudeCompensation(float alt_comp){
     if (alt_comp != 0){
-    hpa = 1012 - 0.118 * alt_comp + 0.00000473 * alt_comp * alt_comp;            // Cuadratic regresion formula obtained PA (hpa) from high above the sea
+    alt  = alt_comp;
+    hpa = 1012 - 0.118 * alt + 0.00000473 * alt * alt;            // Cuadratic regresion formula obtained PA (hpa) from high above the sea
     }
 }
 
