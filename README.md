@@ -24,8 +24,9 @@ NOTE: Panasonic via UART in ESP8266 maybe needs select in detection
 | Sensor model  | UART  | i2c  | Detection mode | Status |  
 |:----------------------- |:-----:|:-----:|:-------:|:----------:|
 | Sensirion SCD30    | --- | Yes | Auto | STABLE |
-| MHZ19      | Yes | --- | Select | TESTING |
-| CM1106    | Yes | --- | Select | TESTING |
+| MHZ19      | Yes | --- | Select | STABLE |
+| CM1106    | Yes | --- | Select | STABLE |
+| SenseAir S8 | Yes | --- | Select | TESTING |
 
 
 ### Environmental sensors
@@ -41,10 +42,21 @@ NOTE: Panasonic via UART in ESP8266 maybe needs select in detection
 
 NOTE: DHT22 is supported but is not recommended
 
+# Features
 
-## Usage
+- Unified variables for all sensors 
+- Auto UART port selection (Hw, Sw, UART1, UART2, etc)
+- Multiple i2c reads and one UART sensor read support
+- Preselected main stream UART pins from popular boards
+- Auto config UART port for Plantower, Honeywell and Panasonic sensors
+- Unified calibration trigger for all CO2 sensors
+- Public access to main objects of each library (full methods access)
+- Basic debug mode support toggle in execution
 
-### Quick implementation
+Full list of all sub libraries supported [here]()
+
+
+# Quick implementation
 
 ```Java
 sensors.setOnDataCallBack(&onSensorDataOk);   // all data read callback
@@ -55,7 +67,7 @@ sensors.init();                               // start all sensors and
                                               // init(sensors.Sensirion)
 ```
 
-### Full implementation
+# Full implementation
 
 You can review a full implementation on [CanAirIO project firmware](https://github.com/kike-canaries/canairio_firmware/blob/master/src/main.cpp), but a little brief is the next:
 
@@ -106,7 +118,7 @@ void loop() {
 }
 ```
 
-### Output
+## Output
 
 On your serial monitor you should have something like that:
 
@@ -218,8 +230,6 @@ Also you can make a donation, be a patreon or buy a device:
 - Via **Liberapay**: [CanAirIO in LiberaPay](https://liberapay.com/CanAirIO)
 - **Buy a device**: [CanAirIO Bike in Tindie](https://www.tindie.com/products/hpsaturn/canairio-bike/)
 - [Inviting us **a coffee**](https://www.buymeacoffee.com/hpsaturn) 
-
-
 
 
 # TODO
