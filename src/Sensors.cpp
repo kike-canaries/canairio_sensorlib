@@ -108,10 +108,8 @@ void Sensors::setSCD30TempOffset(float offset) {
     }
 }
 
-void Sensors::setCO2AltitudeCompensation(float alt_comp){
-    if (alt_comp != 0){
-    alt = alt_comp;
-    }
+void Sensors::setCO2AltitudeCompensation(float altitude){
+    alt_comp = altitude;
 }
 
 void Sensors::restart() {
@@ -372,7 +370,7 @@ bool Sensors::CO2Mhz19Read() {
     if (CO2 > 0) {
         dataReady = true;
         DEBUG("-->[MHZ14-9] read > done!");
-        if(alt != 0) CO2correctionAlt();
+        if(alt_comp != 0) CO2correctionAlt();
         return true;
     }
     return false;
@@ -383,7 +381,7 @@ bool Sensors::CO2CM1106Read() {
     if (CO2 > 0) {
         dataReady = true;
         DEBUG("-->[CM1106] read > done!");
-        if(alt != 0) CO2correctionAlt();
+        if(alt_comp != 0) CO2correctionAlt();
         return true;
     }
     return false;
@@ -908,7 +906,7 @@ void Sensors::dhtInit() {
 void Sensors::CO2correctionAlt() {
     DEBUG("-->[SENSORS] Altitud Compensation for CO2 lectures ON");
     DEBUG("-->[SENSORS] CO2 original: ", String(CO2).c_str());
-    float hpa = 1012 - 0.118 * alt + 0.00000473 * alt * alt;            // Cuadratic regresion formula obtained PA (hpa) from high above the sea
+    float hpa = 1012 - 0.118 * alt_comp + 0.00000473 * alt_comp * alt_comp;            // Cuadratic regresion formula obtained PA (hpa) from high above the sea
     DEBUG("-->[SENSORS] Atmospheric pressure calculated in hPa: ", String(hpa).c_str());
     float CO2cor = (0.016 * ((1013.25 - hpa) /10 ) * (CO2 - 400)) + CO2;       // Increment of 1.6% for every hpa of difference at sea level
     CO2 = round (CO2cor);
