@@ -904,7 +904,7 @@ void Sensors::dhtInit() {
 // Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
 
 void Sensors::CO2correctionAlt() {
-    DEBUG("-->[SENSORS] Altitud Compensation for CO2 lectures ON");
+    DEBUG("-->[SENSORS] Altitude Compensation for CO2 lectures ON");
     DEBUG("-->[SENSORS] CO2 original: ", String(CO2).c_str());
     float hpa = 1012 - 0.118 * alt_comp + 0.00000473 * alt_comp * alt_comp;            // Cuadratic regresion formula obtained PA (hpa) from high above the sea
     DEBUG("-->[SENSORS] Atmospheric pressure calculated in hPa: ", String(hpa).c_str());

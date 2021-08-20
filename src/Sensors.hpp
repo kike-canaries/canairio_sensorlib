@@ -83,7 +83,6 @@ class Sensors {
 
     // Altitud compensation variable
     float alt_comp = 0.0;
-    float altitude = 0.0;
 
     /// Sensirion library
     SPS30 sps30;
@@ -148,7 +147,7 @@ class Sensors {
     float getGas();
 
     void setTempOffset(float offset);
-    void setCO2AltitudeCompensation(float alt_comp);
+    void setCO2AltitudeCompensation(float altitude);
 
     String getFormatTemp();
     String getFormatPress();
