@@ -82,6 +82,9 @@ class Sensors {
     // temperature offset (for final temp output)
     float toffset = 0.0;  
 
+    // Altitud compensation variable
+    float alt_comp = 0.0;
+
     /// Sensirion library
     SPS30 sps30;
 
@@ -148,6 +151,7 @@ class Sensors {
     float getGas();
 
     void setTempOffset(float offset);
+    void setCO2AltitudeCompensation(float altitude);
 
     String getFormatTemp();
     String getFormatPress();
@@ -195,7 +199,6 @@ class Sensors {
     float CO2humi = 0.0;  // temperature of the CO2 sensor
     float CO2temp = 0.0;  // temperature of the CO2 sensor
 
-
     void am2320Init();
     void am2320Read();
 
@@ -214,6 +217,7 @@ class Sensors {
     void CO2scd30Init();
     void CO2scd30Read();
     void setSCD30TempOffset(float offset);
+    void CO2correctionAlt();
 
     void PMGCJA5Init();
     void PMGCJA5Read();
