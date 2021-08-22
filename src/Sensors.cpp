@@ -107,7 +107,7 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue) {
         mhz19.calibrate();
     }
     if (getPmDeviceSelected().equals("SENSEAIRS8")) {
-        Serial.println("-->[SENSORS] SenseAir S8  setting calibration factor: " + String(ppmValue));
+        Serial.println("-->[SENSORS] SenseAir S8 setting calibration factor: " + String(ppmValue));
     }
 }
 
