@@ -95,20 +95,21 @@ void Sensors::setSampleTime(int seconds) {
 /// set CO2 recalibration PPM value (400 to 2000)
 void Sensors::setCO2RecalibrationFactor(int ppmValue) {
     if (getPmDeviceSelected().equals("SCD30")) {
-        Serial.println("-->[SENSORS] SCD30 setting calibration factor: " + String(ppmValue));
+        Serial.println("-->[SENSORS] SCD30 setting calibration to: " + String(ppmValue));
         scd30.setForcedRecalibrationFactor(ppmValue);
     }
     if (getPmDeviceSelected().equals("CM1106")) {
-        Serial.println("-->[SENSORS] CM1106 setting calibration factor: " + String(ppmValue));
+        Serial.println("-->[SENSORS] CM1106 setting calibration to: " + String(ppmValue));
         cm1106->start_calibration(ppmValue);
     }
     if (getPmDeviceSelected().equals("MHZ19")) {
-        Serial.println("-->[SENSORS] MH-Z19 setting calibration factor: " + String(ppmValue));
+        Serial.println("-->[SENSORS] MH-Z19 setting calibration to: " + String(ppmValue));
         mhz19.calibrate();
     }
     if (getPmDeviceSelected().equals("SENSEAIRS8")) {
-        Serial.println("-->[SENSORS] SenseAir S8  setting calibration factor: " + String(ppmValue));
-        s8->send_special_command(S8_CO2_BACKGROUND_CALIBRATION);
+        Serial.println("-->[SENSORS] SenseAir S8 setting calibration to: " + String(ppmValue));
+        if(s8->send_special_command(S8_CO2_BACKGROUND_CALIBRATION)) 
+        Serial.println("-->[SENSORS] S8 calibration ready.");
     }
 }
 
@@ -779,7 +780,7 @@ bool Sensors::senseAirS8Init() {
     DEBUG("-->[SENSEAIRS8] ABC period set to 180 hours");
     s8->set_ABC_period(180);
     delay(1000);
-    if (devmode) Serial.printf("ABC period (0 = disabled): %d hours\n", s8->get_ABC_period());
+    if (devmode) Serial.printf("-->[SENSEAIRS8] ABC period (0 = disabled): %d hours\n", s8->get_ABC_period());
 
     s8->get_meter_status();
     s8->get_alarm_status();
