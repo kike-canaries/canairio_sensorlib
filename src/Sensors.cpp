@@ -37,6 +37,7 @@ void Sensors::loop() {
             _onErrorCb("-->[W][SENSORS] No data from any sensor!");
 
         printValues();
+
     }
 
     dhtRead();  // DHT2x sensors need check fastest
@@ -106,6 +107,17 @@ void Sensors::setSCD30TempOffset(float offset) {
         Serial.println("-->[SENSORS] SCD30 setting temp offset: " + String(offset));
         scd30.setTemperatureOffset(toffset);
     }
+}
+
+/// set SCD30 Altitude compensation
+void Sensors::setSCD30AltitudeCompensation(float altitude) {
+    Serial.println("-->[SENSORS] SCD30 value to set altitude compensation: " + String(alt_comp));
+    if(scd30.getAltitudeCompensation() != uint16_t(alt_comp)){
+        scd30.setAltitudeCompensation(uint16_t(alt_comp));
+        Serial.println("-->[SENSORS] SCD30 setting to a new altitude value: " + String(alt_comp));
+    }
+    delay(1);
+    Serial.println("-->[SENSORS] SCD30 get altitude compensation value: " + String(scd30.getAltitudeCompensation()));
 }
 
 void Sensors::setCO2AltitudeCompensation(float altitude){
@@ -498,6 +510,7 @@ void Sensors::CO2scd30Read() {
         CO2temp = scd30.getTemperature();
         dataReady = true;
         DEBUG("-->[SCD30] read > done!");
+        if(alt_comp != 0) CO2correctionAlt();
     }
 }
 
@@ -882,6 +895,7 @@ void Sensors::CO2scd30Init() {
     if (!scd30.begin()) return;
     Serial.println("-->[I2CS] detected SCD30 sensor :)");
     delay(10);
+    setSCD30AltitudeCompensation(alt_comp);
     CO2scd30Read();
     device_selected = "SCD30";  // TODO: sync this constants with app
     device_type = 6;
@@ -905,11 +919,12 @@ void Sensors::dhtInit() {
 
 void Sensors::CO2correctionAlt() {
     DEBUG("-->[SENSORS] Altitude Compensation for CO2 lectures ON");
-    DEBUG("-->[SENSORS] CO2 original: ", String(CO2).c_str());
     float hpa = 1012 - 0.118 * alt_comp + 0.00000473 * alt_comp * alt_comp;            // Cuadratic regresion formula obtained PA (hpa) from high above the sea
-    DEBUG("-->[SENSORS] Atmospheric pressure calculated in hPa: ", String(hpa).c_str());
+    DEBUG("-->[SENSORS] Atmospheric pressure calculated in hPa:", String(hpa).c_str());
+    DEBUG("-->[SENSORS] CO2 original:", String(CO2).c_str());
     float CO2cor = (0.016 * ((1013.25 - hpa) /10 ) * (CO2 - 400)) + CO2;       // Increment of 1.6% for every hpa of difference at sea level
     CO2 = round (CO2cor);
+    DEBUG("-->[SENSORS] CO2 compensated:", String(CO2).c_str());
 }
 
 // Print some sensors values
