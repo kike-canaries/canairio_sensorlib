@@ -407,6 +407,7 @@ bool Sensors::senseAirS8Read() {
     if (CO2 > 0) {
         dataReady = true;
         DEBUG("-->[SENSEAIRS8] read > done!");
+        if(alt_comp != 0) CO2correctionAlt();
         return true;
     }
     return false;
