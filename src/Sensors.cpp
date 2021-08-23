@@ -109,17 +109,6 @@ void Sensors::setSCD30TempOffset(float offset) {
     }
 }
 
-/// set SCD30 Altitude compensation
-void Sensors::setSCD30AltitudeCompensation(float altitude) {
-    Serial.println("-->[SENSORS] SCD30 value to set altitude compensation: " + String(alt_comp));
-    if(scd30.getAltitudeCompensation() != uint16_t(alt_comp)){
-        scd30.setAltitudeCompensation(uint16_t(alt_comp));
-        Serial.println("-->[SENSORS] SCD30 setting to a new altitude value: " + String(alt_comp));
-    }
-    delay(1);
-    Serial.println("-->[SENSORS] SCD30 get altitude compensation value: " + String(scd30.getAltitudeCompensation()));
-}
-
 void Sensors::setCO2AltitudeCompensation(float altitude){
     alt_comp = altitude;
     hpaCalculation();                                       //hPa hectopascal calculation based on altitude
@@ -895,7 +884,13 @@ void Sensors::CO2scd30Init() {
     if (!scd30.begin()) return;
     Serial.println("-->[I2CS] detected SCD30 sensor :)");
     delay(10);
-    setSCD30AltitudeCompensation(alt_comp);
+    Serial.println("-->[SENSORS] SCD30 value to set altitude compensation: " + String(alt_comp));
+    if(scd30.getAltitudeCompensation() != uint16_t(alt_comp)){
+        scd30.setAltitudeCompensation(uint16_t(alt_comp));
+        Serial.println("-->[SENSORS] SCD30 setting to a new altitude value: " + String(alt_comp));
+    }
+    delay(1);
+    Serial.println("-->[SENSORS] SCD30 get altitude compensation value: " + String(scd30.getAltitudeCompensation()));
     CO2scd30Read();
     device_selected = "SCD30";  // TODO: sync this constants with app
     device_type = 6;

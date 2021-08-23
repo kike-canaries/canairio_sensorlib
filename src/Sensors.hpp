@@ -216,7 +216,6 @@ class Sensors {
     void CO2scd30Init();
     void CO2scd30Read();
     void setSCD30TempOffset(float offset);
-    void setSCD30AltitudeCompensation(float altitude);
     void CO2correctionAlt();
     void hpaCalculation();
 

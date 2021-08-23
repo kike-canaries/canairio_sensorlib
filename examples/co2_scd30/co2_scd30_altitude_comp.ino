@@ -47,7 +47,7 @@ void setup() {
     sensors.setOnDataCallBack(&onSensorDataOk);      // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError);  // [optional] error callback
     sensors.setDebugMode(true);
-    sensors.setCO2AltitudeCompensation(2600);        // CO2 altitud comp, example Bogota Colombia
+    sensors.setCO2AltitudeCompensation(2600);        // [optional] CO2 altitud comp, example Bogota Colombia
 
     // sensors.setCO2RecalibrationFactor(400);       // calibration method (in outdoors)
     
