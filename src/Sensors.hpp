@@ -85,6 +85,9 @@ class Sensors {
     // Altitud compensation variable
     float alt_comp = 0.0;
 
+    // Altitud hpa calculation
+    float hpa = 0.0;
+
     /// Sensirion library
     SPS30 sps30;
 
@@ -218,6 +221,7 @@ class Sensors {
     void CO2scd30Read();
     void setSCD30TempOffset(float offset);
     void CO2correctionAlt();
+    void hpaCalculation();
 
     void PMGCJA5Init();
     void PMGCJA5Read();
