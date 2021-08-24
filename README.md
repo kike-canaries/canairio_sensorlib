@@ -26,7 +26,7 @@ NOTE: Panasonic via UART in ESP8266 maybe needs select in detection
 | Sensirion SCD30    | --- | Yes | Auto | STABLE |
 | MHZ19      | Yes | --- | Select | STABLE |
 | CM1106    | Yes | --- | Select | STABLE |
-| SenseAir S8 | Yes | --- | Select | TESTING |
+| SenseAir S8 | Yes | --- | Select | STABLE |
 
 
 ### Environmental sensors
@@ -50,6 +50,8 @@ NOTE: DHT22 is supported but is not recommended
 - Preselected main stream UART pins from popular boards
 - Auto config UART port for Plantower, Honeywell and Panasonic sensors
 - Unified calibration trigger for all CO2 sensors
+- Unified CO2 Altitude compensation
+- Unified temperature offset for CO2 and environment sensors
 - Public access to main objects of each library (full methods access)
 - Basic debug mode support toggle in execution
 
@@ -95,6 +97,8 @@ void setup() {
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
     sensors.setSampleTime(15);                      // [optional] sensors sample time (default 5s)
+    sensors.setTempOffset(cfg.toffset);             // [optional] temperature compensation
+    sensors.setCO2AltitudeOffset(cfg.altoffset);    // [optional] CO2 altitude compensation
     sensors.setDebugMode(false);                    // [optional] debug mode enable/disable
     sensors.detectI2COnly(true);                    // [optional] force to only i2c sensors
     sensors.init();                                 // start all sensors with auto detection mode.
@@ -102,13 +106,15 @@ void setup() {
                                                     // sensors.init(sensors.Sensirion);
                                                     // All i2c sensors are autodetected.
 
-    // Also you can access to special library objects, for example some calls:
+    // Also you can access to sub library objects, and perform for example calls like next:
 
     // sensors.sps30.sleep()
     // sensors.bme.readPressure();
     // sensors.mhz19.getRange();
     // sensors.scd30.getTemperatureOffset();
     // sensors.aht10.readRawData();
+    // sensors.s8.set_ABC_period(period)
+    // ...
 
 
     if(sensors.isPmSensorConfigured())
