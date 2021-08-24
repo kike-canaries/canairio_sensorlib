@@ -59,9 +59,10 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
 #endif
     if (devmode) Serial.println("-->[SENSORS] debug is enable.");
 
-    DEBUG("-->[SENSORS] sample time set to: ", String(sample_time).c_str());
-    DEBUG("-->[SENSORS] temperature offset: ", String(toffset).c_str());
-    DEBUG("-->[SENSORS] forced only i2c sensors: ", String(i2conly).c_str());
+    Serial.println("-->[SENSORS] sample time set to: "+String(sample_time));
+    Serial.println("-->[SENSORS] temperature offset: "+String(toffset));
+    Serial.println("-->[SENSORS] altitude offset: "+String(altoffset));
+    Serial.println("-->[SENSORS] forced only i2c sensors: "+String(i2conly));
 
     if (!i2conly && !sensorSerialInit(pms_type, pms_rx, pms_tx)) {
         DEBUG("-->[SENSORS] not found any PM sensor via UART");
@@ -114,17 +115,10 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue) {
     }
 }
 
-/// set SCD30 temperature compensation
-void Sensors::setSCD30TempOffset(float offset) {
-    if (getPmDeviceSelected().equals("SCD30")) {
-        Serial.println("-->[SENSORS] SCD30 setting temp offset: " + String(offset));
-        scd30.setTemperatureOffset(toffset);
-    }
-}
-
-void Sensors::setCO2AltitudeCompensation(float altitude){
-    alt_comp = altitude;
+void Sensors::setCO2AltitudeOffset(float altitude){
+    altoffset = altitude;
     hpaCalculation();                                       //hPa hectopascal calculation based on altitude
+    setSCD30AltitudeOffset(altoffset);
 }
 
 void Sensors::restart() {
@@ -217,7 +211,7 @@ float Sensors::getTemperature() {
 
 void Sensors::setTempOffset(float offset){
     toffset = offset;
-    setSCD30TempOffset(offset);  // SCD30 is the only sensor with internal offset
+    setSCD30TempOffset(toffset);
 }
 
 float Sensors::getGas() {
@@ -385,7 +379,7 @@ bool Sensors::CO2Mhz19Read() {
     if (CO2 > 0) {
         dataReady = true;
         DEBUG("-->[MHZ14-9] read > done!");
-        if(alt_comp != 0) CO2correctionAlt();
+        if(altoffset != 0) CO2correctionAlt();
         return true;
     }
     return false;
@@ -396,7 +390,7 @@ bool Sensors::CO2CM1106Read() {
     if (CO2 > 0) {
         dataReady = true;
         DEBUG("-->[CM1106] read > done!");
-        if(alt_comp != 0) CO2correctionAlt();
+        if(altoffset != 0) CO2correctionAlt();
         return true;
     }
     return false;
@@ -407,7 +401,7 @@ bool Sensors::senseAirS8Read() {
     if (CO2 > 0) {
         dataReady = true;
         DEBUG("-->[SENSEAIRS8] read > done!");
-        if(alt_comp != 0) CO2correctionAlt();
+        if(altoffset != 0) CO2correctionAlt();
         return true;
     }
     return false;
@@ -957,17 +951,45 @@ void Sensors::CO2scd30Init() {
     if (!scd30.begin()) return;
     Serial.println("-->[I2CS] detected SCD30 sensor :)");
     delay(10);
-    Serial.println("-->[SENSORS] SCD30 value to set altitude compensation: " + String(alt_comp));
-    if(scd30.getAltitudeCompensation() != uint16_t(alt_comp)){
-        scd30.setAltitudeCompensation(uint16_t(alt_comp));
-        Serial.println("-->[SENSORS] SCD30 setting to a new altitude value: " + String(alt_comp));
-    }
-    delay(1);
-    Serial.println("-->[SENSORS] SCD30 get altitude compensation value: " + String(scd30.getAltitudeCompensation()));
-    CO2scd30Read();
+
     device_selected = "SCD30";  // TODO: sync this constants with app
     device_type = 6;
+
+    Serial.println("-->[SENSORS] SCD30 current temperature offset: " + String(scd30.getTemperatureOffset()));
+    Serial.println("-->[SENSORS] SCD30 current altitude offset: " + String(scd30.getAltitudeCompensation()));
+
+    if(scd30.getAltitudeCompensation() != uint16_t(altoffset)){
+        setSCD30AltitudeOffset(altoffset);
+        delay(1);
+    }
+
+    if(scd30.getTemperatureOffset() != toffset) {
+        Serial.println("-->[SENSORS] SCD30 setting new temp offset: " + String(toffset));
+        setSCD30TempOffset(toffset);
+        delay(1);
+    }
+
+    CO2scd30Read();
+
 }
+
+/// set SCD30 temperature compensation
+void Sensors::setSCD30TempOffset(float offset) {
+    if (getPmDeviceSelected().equals("SCD30")) {
+        Serial.println("-->[SENSORS] SCD30 new temperature offset: " + String(offset));
+        scd30.setTemperatureOffset(offset);
+    }
+}
+
+/// set SCD30 altitude compensation
+void Sensors::setSCD30AltitudeOffset(float offset) {
+    if (getPmDeviceSelected().equals("SCD30")) {
+        Serial.println("-->[SENSORS] SCD30 new altitude offset: " + String(offset));
+        scd30.setAltitudeCompensation(uint16_t(offset));
+    }
+}
+
+
 
 void Sensors::PMGCJA5Init() {
     if (device_type == Panasonic) return;
@@ -993,8 +1015,8 @@ void Sensors::CO2correctionAlt() {
 }
 
 void Sensors::hpaCalculation() {
-    DEBUG("-->[SENSORS] Altitude Compensation for CO2 lectures ON:", String(int(alt_comp)).c_str());
-    hpa = 1012 - 0.118 * alt_comp + 0.00000473 * alt_comp * alt_comp;            // Cuadratic regresion formula obtained PA (hpa) from high above the sea
+    DEBUG("-->[SENSORS] Altitude Compensation for CO2 lectures ON:", String(int(altoffset)).c_str());
+    hpa = 1012 - 0.118 * altoffset + 0.00000473 * altoffset * altoffset;            // Cuadratic regresion formula obtained PA (hpa) from high above the sea
     DEBUG("-->[SENSORS] Atmospheric pressure calculated in hPa:", String(hpa).c_str());
 }
 

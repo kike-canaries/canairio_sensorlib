@@ -83,7 +83,7 @@ class Sensors {
     float toffset = 0.0;  
 
     // Altitud compensation variable
-    float alt_comp = 0.0;
+    float altoffset = 0.0;
 
     // Altitud hpa calculation
     float hpa = 0.0;
@@ -154,7 +154,7 @@ class Sensors {
     float getGas();
 
     void setTempOffset(float offset);
-    void setCO2AltitudeCompensation(float altitude);
+    void setCO2AltitudeOffset(float altitude);
 
     String getFormatTemp();
     String getFormatPress();
@@ -220,6 +220,7 @@ class Sensors {
     void CO2scd30Init();
     void CO2scd30Read();
     void setSCD30TempOffset(float offset);
+    void setSCD30AltitudeOffset(float offset);
     void CO2correctionAlt();
     void hpaCalculation();
 
