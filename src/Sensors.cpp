@@ -17,7 +17,7 @@ void Sensors::loop() {
         dataReady = false;
         if(!i2conly ) {
             dataReady = pmSensorRead();
-            DEBUG("-->[SENSORS] able data from UART sensors: ",String(dataReady).c_str());
+            DEBUG("-->[SLIB] able data from UART sensors: ",String(dataReady).c_str());
         }
         dhtRead();
         am2320Read();
@@ -29,12 +29,12 @@ void Sensors::loop() {
         PMGCJA5Read();
         if(i2conly && device_type == Sensirion) sps30Read();
 
-        if(!dataReady)DEBUG("-->[SENSORS] Any data from sensors? check your wirings!");
+        if(!dataReady)DEBUG("-->[SLIB] Any data from sensors? check your wirings!");
 
         if (dataReady && (_onDataCb != nullptr)) {
             _onDataCb();  // if any sensor reached any data, dataReady is true.
         } else if (!dataReady && (_onErrorCb != nullptr))
-            _onErrorCb("-->[W][SENSORS] No data from any sensor!");
+            _onErrorCb("-->[W][SLIB] No data from any sensor!");
 
         printValues();
 
@@ -57,15 +57,14 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
 #ifdef CORE_DEBUG_LEVEL
     if (CORE_DEBUG_LEVEL >= 3) devmode = true;
 #endif
-    if (devmode) Serial.println("-->[SENSORS] debug is enable.");
+    if (devmode) Serial.println("-->[SLIB] debug is enable.");
 
-    Serial.println("-->[SENSORS] sample time set to: "+String(sample_time));
-    Serial.println("-->[SENSORS] temperature offset: "+String(toffset));
-    Serial.println("-->[SENSORS] altitude offset: "+String(altoffset));
-    Serial.println("-->[SENSORS] forced only i2c sensors: "+String(i2conly));
+    Serial.println("-->[SLIB] temperature offset: " + String(toffset));
+    Serial.println("-->[SLIB] altitude offset: " + String(altoffset));
+    Serial.println("-->[SLIB] forced only i2c sensors: " + String(i2conly));
 
     if (!i2conly && !sensorSerialInit(pms_type, pms_rx, pms_tx)) {
-        DEBUG("-->[SENSORS] not found any PM sensor via UART");
+        DEBUG("-->[SLIB] not found any PM sensor via UART");
     }
 
 #ifdef M5COREINK
@@ -73,7 +72,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
 #endif
     Wire.begin();
     
-    DEBUG("-->[SENSORS] trying to load I2C sensors..");
+    DEBUG("-->[SLIB] trying to load I2C sensors..");
     sps30I2CInit();
     PMGCJA5Init();
     am2320Init();
@@ -88,8 +87,9 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
 /// set loop time interval for each sensor sample
 void Sensors::setSampleTime(int seconds) {
     sample_time = seconds;
+    Serial.println("-->[SLIB] new sample time: " + String(seconds));
     if(getPmDeviceSelected().equals("SCD30")){
-        Serial.println("-->[SENSORS] SCD30 interval time to (2x): " + String(seconds * 2));
+        Serial.println("-->[SLIB] SCD30 interval time to (2x): " + String(seconds * 2));
         scd30.setMeasurementInterval(seconds * 2);
     }
 }
@@ -97,21 +97,21 @@ void Sensors::setSampleTime(int seconds) {
 /// set CO2 recalibration PPM value (400 to 2000)
 void Sensors::setCO2RecalibrationFactor(int ppmValue) {
     if (getPmDeviceSelected().equals("SCD30")) {
-        Serial.println("-->[SENSORS] SCD30 setting calibration to: " + String(ppmValue));
+        Serial.println("-->[SLIB] SCD30 setting calibration to: " + String(ppmValue));
         scd30.setForcedRecalibrationFactor(ppmValue);
     }
     if (getPmDeviceSelected().equals("CM1106")) {
-        Serial.println("-->[SENSORS] CM1106 setting calibration to: " + String(ppmValue));
+        Serial.println("-->[SLIB] CM1106 setting calibration to: " + String(ppmValue));
         cm1106->start_calibration(ppmValue);
     }
     if (getPmDeviceSelected().equals("MHZ19")) {
-        Serial.println("-->[SENSORS] MH-Z19 setting calibration to: " + String(ppmValue));
+        Serial.println("-->[SLIB] MH-Z19 setting calibration to: " + String(ppmValue));
         mhz19.calibrate();
     }
     if (getPmDeviceSelected().equals("SENSEAIRS8")) {
-        Serial.println("-->[SENSORS] SenseAir S8 setting calibration to: " + String(ppmValue));
+        Serial.println("-->[SLIB] SenseAir S8 setting calibration to: " + String(ppmValue));
         if(s8->send_special_command(S8_CO2_BACKGROUND_CALIBRATION)) 
-        Serial.println("-->[SENSORS] S8 calibration ready.");
+        Serial.println("-->[SLIB] S8 calibration ready.");
     }
 }
 
@@ -955,8 +955,8 @@ void Sensors::CO2scd30Init() {
     device_selected = "SCD30";  // TODO: sync this constants with app
     device_type = 6;
 
-    Serial.println("-->[SENSORS] SCD30 current temperature offset: " + String(scd30.getTemperatureOffset()));
-    Serial.println("-->[SENSORS] SCD30 current altitude offset: " + String(scd30.getAltitudeCompensation()));
+    DEBUG("-->[SLIB] SCD30 current temperature offset: ",String(scd30.getTemperatureOffset()).c_str());
+    DEBUG("-->[SLIB] SCD30 current altitude offset: ", String(scd30.getAltitudeCompensation()).c_str());
 
     if(scd30.getAltitudeCompensation() != uint16_t(altoffset)){
         setSCD30AltitudeOffset(altoffset);
@@ -964,7 +964,7 @@ void Sensors::CO2scd30Init() {
     }
 
     if(scd30.getTemperatureOffset() != toffset) {
-        Serial.println("-->[SENSORS] SCD30 setting new temp offset: " + String(toffset));
+        Serial.println("-->[SLIB] SCD30 setting new temp offset: " + String(toffset));
         setSCD30TempOffset(toffset);
         delay(1);
     }
@@ -976,7 +976,7 @@ void Sensors::CO2scd30Init() {
 /// set SCD30 temperature compensation
 void Sensors::setSCD30TempOffset(float offset) {
     if (getPmDeviceSelected().equals("SCD30")) {
-        Serial.println("-->[SENSORS] SCD30 new temperature offset: " + String(offset));
+        Serial.println("-->[SLIB] SCD30 new temperature offset: " + String(offset));
         scd30.setTemperatureOffset(offset);
     }
 }
@@ -984,7 +984,7 @@ void Sensors::setSCD30TempOffset(float offset) {
 /// set SCD30 altitude compensation
 void Sensors::setSCD30AltitudeOffset(float offset) {
     if (getPmDeviceSelected().equals("SCD30")) {
-        Serial.println("-->[SENSORS] SCD30 new altitude offset: " + String(offset));
+        Serial.println("-->[SLIB] SCD30 new altitude offset: " + String(offset));
         scd30.setAltitudeCompensation(uint16_t(offset));
     }
 }
@@ -1008,16 +1008,16 @@ void Sensors::dhtInit() {
 // Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
 
 void Sensors::CO2correctionAlt() {
-    DEBUG("-->[SENSORS] CO2 original:", String(CO2).c_str());
+    DEBUG("-->[SLIB] CO2 original:", String(CO2).c_str());
     float CO2cor = (0.016 * ((1013.25 - hpa) /10 ) * (CO2 - 400)) + CO2;       // Increment of 1.6% for every hpa of difference at sea level
     CO2 = round (CO2cor);
-    DEBUG("-->[SENSORS] CO2 compensated:", String(CO2).c_str());
+    DEBUG("-->[SLIB] CO2 compensated:", String(CO2).c_str());
 }
 
 void Sensors::hpaCalculation() {
-    DEBUG("-->[SENSORS] Altitude Compensation for CO2 lectures ON:", String(int(altoffset)).c_str());
+    DEBUG("-->[SLIB] Altitude Compensation for CO2 lectures ON:", String(int(altoffset)).c_str());
     hpa = 1012 - 0.118 * altoffset + 0.00000473 * altoffset * altoffset;            // Cuadratic regresion formula obtained PA (hpa) from high above the sea
-    DEBUG("-->[SENSORS] Atmospheric pressure calculated in hPa:", String(hpa).c_str());
+    DEBUG("-->[SLIB] Atmospheric pressure calculated in hPa:", String(hpa).c_str());
 }
 
 // Print some sensors values
@@ -1025,7 +1025,7 @@ void Sensors::hpaCalculation() {
 void Sensors::printValues() {
     char output[200];
     sprintf(output, "PM1:%03d PM25:%03d PM10:%03d CO2:%04d CO2humi:%03f%% CO2temp:%03f°C H:%03f%% T:%03f°C", pm1, pm25, pm10, CO2, CO2humi, CO2temp, humi, temp);
-    DEBUG("-->[SENSORS]", output);
+    DEBUG("-->[SLIB]", output);
 }
 
 void Sensors::DEBUG(const char *text, const char *textb) {
@@ -1104,7 +1104,7 @@ bool Sensors::serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx) 
 
             else {
 #if defined(INCLUDE_SOFTWARE_SERIAL)
-                DEBUG("-->[SENSORS] swSerial init on pin: ", String(pms_rx).c_str());
+                DEBUG("-->[SLIB] swSerial init on pin: ", String(pms_rx).c_str());
                 static SoftwareSerial swSerial(pms_rx, pms_tx);
                 if (pms_type == Sensirion)
                     swSerial.begin(speed_baud);
