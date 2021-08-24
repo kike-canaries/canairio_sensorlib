@@ -255,15 +255,15 @@ bool Sensors::pmGenericRead() {
     String txtMsg = hwSerialRead(lenght_buffer);
     if (txtMsg[0] == 66) {
         if (txtMsg[1] == 77) {
-            DEBUG("-->[PMS-HPMA] read > done!");
+            DEBUG("-->[SLIB] UART PMGENERIC read > done!");
             pm25 = txtMsg[6] * 256 + (char)(txtMsg[7]);
             pm10 = txtMsg[8] * 256 + (char)(txtMsg[9]);
             if (pm25 > 1000 && pm10 > 1000) {
-                onSensorError("-->[E][PMSENSOR] out of range pm25 > 1000");
+                onSensorError("-->[E][SLIB] UART PMGENERIC out of range pm25 > 1000");
             } else
                 return true;
         } else {
-            onSensorError("-->[E][PMSENSOR] invalid Generic sensor header!");
+            onSensorError("-->[E][SLIB] UART PMGENERIC invalid sensor header!");
         }
     }
     return false;
@@ -277,16 +277,16 @@ bool Sensors::pmPanasonicRead() {
     int lenght_buffer = 32;
     String txtMsg = hwSerialRead(lenght_buffer);
     if (txtMsg[0] == 02) {
-        DEBUG("-->[PANASONIC] read > done!");
+        DEBUG("-->[SLIB] PANASONIC read > done!");
         pm1 = txtMsg[2] * 256 + (char)(txtMsg[1]);
         pm25 = txtMsg[6] * 256 + (char)(txtMsg[5]);
         pm10 = txtMsg[10] * 256 + (char)(txtMsg[9]);
         if (pm25 > 2000 && pm10 > 2000) {
-            onSensorError("-->[E][PMSENSOR] out of range pm25 > 2000");
+            onSensorError("-->[E][SLIB] PANASONIC out of range pm25 > 2000");
         } else
             return true;
     } else {
-        onSensorError("-->[E][PMSENSOR] invalid Panasonic sensor header!");
+        onSensorError("-->[E][SLIB] PANASONIC invalid sensor header!");
     }
     return false;
 }
@@ -300,15 +300,15 @@ bool Sensors::pmSDS011Read() {
     String txtMsg = hwSerialRead(lenght_buffer);
     if (txtMsg[0] == 170) {
         if (txtMsg[1] == 192) {
-            DEBUG("-->[SDS011] read > done!");
+            DEBUG("-->[SLIB] SDS011 read > done!");
             pm25 = (txtMsg[3] * 256 + (char)(txtMsg[2])) / 10;
             pm10 = (txtMsg[5] * 256 + (char)(txtMsg[4])) / 10;
             if (pm25 > 1000 && pm10 > 1000) {
-                onSensorError("-->[E][PMSENSOR] out of range pm25 > 1000");
+                onSensorError("-->[E][SLIB] SDS011 out of range pm25 > 1000");
             } else
                 return true;
         } else {
-            onSensorError("-->[E][PMSENSOR] invalid Generic sensor header!");
+            onSensorError("-->[E][SLIB] SDS011 invalid sensor header!");
         }
     }
     return false;
@@ -330,7 +330,7 @@ String Sensors::hwSerialRead(unsigned int lenght_buffer) {
         }
     }
     if (try_sensor_read > SENSOR_RETRY) {
-        DEBUG("-->[PMSENSOR] no data on UART port");
+        DEBUG("-->[SLIB] no data on UART port");
     }
     return txtMsg;
 }
@@ -346,17 +346,17 @@ bool Sensors::sps30Read() {
         ret = sps30.GetValues(&val);
         if (ret == ERR_DATALENGTH) {
             if (error_cnt++ > 3) {
-                DEBUG("-->[E][SPS30] Error during reading values: ", String(ret).c_str());
+                DEBUG("-->[E][SLIB] SPS30 Error during reading values: ", String(ret).c_str());
                 return false;
             }
             delay(500);
         } else if (ret != ERR_OK) {
-            sps30ErrToMess((char *)"-->[W][SPS30] Error during reading values: ", ret);
+            sps30ErrToMess((char *)"-->[W][SLIB] SPS30 Error during reading values: ", ret);
             return false;
         }
     } while (ret != ERR_OK);
 
-    DEBUG("-->[SPS30] read > done!");
+    DEBUG("-->[SLIB] SPS30 read > done!");
 
     pm1 = round(val.MassPM1);
     pm25 = round(val.MassPM2);
@@ -364,7 +364,7 @@ bool Sensors::sps30Read() {
     pm10 = round(val.MassPM10);
 
     if (pm25 > 1000 && pm10 > 1000) {
-        onSensorError("-->[E][SPS30] Sensirion out of range pm25 > 1000");
+        onSensorError("-->[E][SLIB] SPS30 Sensirion out of range pm25 > 1000");
         return false;
     }
 
@@ -378,7 +378,7 @@ bool Sensors::CO2Mhz19Read() {
     CO2temp = mhz19.getTemperature()-toffset;  // Request Temperature (as Celsius)
     if (CO2 > 0) {
         dataReady = true;
-        DEBUG("-->[MHZ14-9] read > done!");
+        DEBUG("-->[SLIB] MHZ14-9 read > done!");
         if(altoffset != 0) CO2correctionAlt();
         return true;
     }
@@ -389,7 +389,7 @@ bool Sensors::CO2CM1106Read() {
     CO2 = cm1106->get_co2();;
     if (CO2 > 0) {
         dataReady = true;
-        DEBUG("-->[CM1106] read > done!");
+        DEBUG("-->[SLIB] CM1106 read > done!");
         if(altoffset != 0) CO2correctionAlt();
         return true;
     }
@@ -400,7 +400,7 @@ bool Sensors::senseAirS8Read() {
     CO2 = s8->get_co2();      // Request CO2 (as ppm)
     if (CO2 > 0) {
         dataReady = true;
-        DEBUG("-->[SENSEAIRS8] read > done!");
+        DEBUG("-->[SLIB] SENSEAIRS8 read > done!");
         if(altoffset != 0) CO2correctionAlt();
         return true;
     }
@@ -458,7 +458,7 @@ void Sensors::am2320Read() {
     if (!isnan(temp1)) {
         temp = temp1-toffset;
         dataReady = true;
-        DEBUG("-->[AM2320] read > done!");
+        DEBUG("-->[SLIB] AM2320 read > done!");
     }
 }
 
@@ -469,7 +469,7 @@ void Sensors::bme280Read() {
     if (temp1 != 0) {
         temp = temp1-toffset;
         dataReady = true;
-        DEBUG("-->[BME280] read > done!");
+        DEBUG("-->[SLIB] BME280 read > done!");
     }
 }
 
@@ -488,7 +488,7 @@ void Sensors::bme680Read() {
         alt  = bme680.readAltitude(SEALEVELPRESSURE_HPA);
 
         dataReady = true;
-        DEBUG("-->[BME680] read > done!");
+        DEBUG("-->[SLIB] BME680 read > done!");
     }
 }
 
@@ -499,7 +499,7 @@ void Sensors::aht10Read() {
     if (temp1 != 255) {
         temp = temp1-toffset;
         dataReady = true;
-        DEBUG("-->[AHT10] read > done!");
+        DEBUG("-->[SLIB] AHT10 read > done!");
     }
 }
 
@@ -510,7 +510,7 @@ void Sensors::sht31Read() {
     if (!isnan(temp1)) {
         temp = temp1-toffset;
         dataReady = true;
-        DEBUG("-->[SHT31] read > done!");
+        DEBUG("-->[SLIB] SHT31 read > done!");
     }
 }
 
@@ -521,7 +521,7 @@ void Sensors::CO2scd30Read() {
         CO2humi = scd30.getHumidity();
         CO2temp = scd30.getTemperature();
         dataReady = true;
-        DEBUG("-->[SCD30] read > done!");
+        DEBUG("-->[SLIB] SCD30 read > done!");
     }
 }
 
@@ -531,7 +531,7 @@ void Sensors::PMGCJA5Read() {
     pm25 = pmGCJA5.getPC2_5();
     pm10 = pmGCJA5.getPC10();
     dataReady = true;
-    DEBUG("-->[GCJA5] read > done!");
+    DEBUG("-->[SLIB] GCJA5 read > done!");
 }
 
 bool Sensors::dhtIsReady(float *temperature, float *humidity) {
@@ -557,7 +557,7 @@ void Sensors::dhtRead() {
         temp = dhttemp-toffset;
         humi = dhthumi;
         dataReady = true;
-        DEBUG("-->[DHTXX] read > done!");
+        DEBUG("-->[SLIB] DHTXX read > done!");
     }
 }
 
@@ -569,7 +569,7 @@ void Sensors::onSensorError(const char *msg) {
 void Sensors::sps30ErrToMess(char *mess, uint8_t r) {
     char buf[80];
     sps30.GetErrDescription(r, buf, 80);
-    DEBUG("-->[E][SENSIRION]", buf);
+    DEBUG("-->[E][SLIB] SPS30", buf);
 }
 
 void Sensors::sps30Errorloop(char *mess, uint8_t r) {
@@ -592,27 +592,27 @@ void Sensors::sps30Errorloop(char *mess, uint8_t r) {
 bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
     // set UART for autodetection sensors (Honeywell, Plantower)
     if (pms_type == Auto) {
-        DEBUG("-->[PMSENSOR][UART] detecting Generic PM sensor..");
+        DEBUG("-->[SLIB][UART] detecting Generic PM sensor..");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     }
     // set UART for custom sensors
     else if (pms_type == Panasonic) {
-        DEBUG("-->[PMSENSOR][UART] detecting Panasonic PM sensor..");
+        DEBUG("-->[SLIB][UART] detecting Panasonic PM sensor..");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     } else if (pms_type == Sensirion) {
-        DEBUG("-->[PMSENSOR][UART] detecting SPS30 PM sensor..");
+        DEBUG("-->[SLIB][UART] detecting SPS30 PM sensor..");
         if (!serialInit(pms_type, 115200, pms_rx, pms_tx)) return false;
     } else if (pms_type == SDS011) {
-        DEBUG("-->[PMSENSOR][UART] detecting SDS011 PM sensor..");
+        DEBUG("-->[SLIB][UART] detecting SDS011 PM sensor..");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     } else if (pms_type == Mhz19) {
-        DEBUG("-->[CO2SENSOR][UART] detecting MHZ19 sensor..");
+        DEBUG("-->[SLIB][UART] detecting MHZ19 sensor..");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     } else if (pms_type == CM1106) {
-        DEBUG("-->[CO2SENSOR][UART] detecting CM1106 sensor..");
+        DEBUG("-->[SLIB][UART] detecting CM1106 sensor..");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     } else if (pms_type == SENSEAIRS8) {
-        DEBUG("-->[CO2SENSOR][UART] detecting SenseAir S8 sensor..");
+        DEBUG("-->[SLIB][UART] detecting SenseAir S8 sensor..");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     }
 
@@ -622,7 +622,7 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
 
     // get device selected..
     if (device_type >= 0) {
-        DEBUG("-->[PMSENSOR][UART] detected: ", device_selected.c_str());
+        DEBUG("-->[SLIB][UART] detected: ", device_selected.c_str());
         return true;
     }
 
@@ -695,14 +695,14 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
 }
 
 bool Sensors::CO2Mhz19Init() {
-    DEBUG("-->[MH-Z19] starting MH-Z14 or MH-Z19 sensor..");
+    DEBUG("-->[SLIB] MH-Z19 starting MH-Z14 or MH-Z19 sensor..");
     mhz19.begin(*_serial);
     mhz19.autoCalibration(false); 
     return true;
 }
 
 bool Sensors::CO2CM1106Init() {
-    DEBUG("-->[CM1106] starting CM1106 sensor..");
+    DEBUG("-->[SLIB] CM1106 starting CM1106 sensor..");
     cm1106 = new CM1106_UART(*_serial);
 
     // Check if CM1106 is available
@@ -710,25 +710,24 @@ bool Sensors::CO2CM1106Init() {
     int len = strlen(cm1106sensor.softver);
     if (len > 0) {
         if (len >= 10 && !strncmp(cm1106sensor.softver+len-5, "SL-NS", 5)) {
-            DEBUG("-->[CM1106] CM1106SL-NS version detected");
+            DEBUG("-->[SLIB] CM1106 version detected: CM1106SL-NS");
         } else if (!strncmp(cm1106sensor.softver, "CM", 2)) {
-            DEBUG("-->[CM1106] CM1106 version detected");
+            DEBUG("-->[SLIB] CM1106 version detected: CM1106");
         } else {
-            DEBUG("-->[CM1106] unknown version");
+            DEBUG("-->[SLIB] CM1106 version detected: unknown");
         }
     } else {
-        DEBUG("-->[E][CM1106] not detected!");
+        DEBUG("-->[E][SLIB] CM1106 not detected!");
         return false;
     }     
 
     // Show sensor info
-    DEBUG("-->[CM1106] Cubic CM1106 NDIR CO2 sensor");  
     cm1106->get_serial_number(cm1106sensor.sn);
-    DEBUG("-->[CM1106] Serial number:", cm1106sensor.sn);
-    DEBUG("-->[CM1106] Software version:", cm1106sensor.softver);
+    DEBUG("-->[SLIB] CM1106 Serial number:", cm1106sensor.sn);
+    DEBUG("-->[SLIB] CM1106 Software version:", cm1106sensor.softver);
 
     // Setup ABC parameters
-    DEBUG("-->[CM1106] Setting ABC parameters...");
+    DEBUG("-->[SLIB] CM1106 Setting ABC parameters...");
     cm1106->set_ABC(CM1106_ABC_OPEN, 7, 415);    // 7 days cycle, 415 ppm for base
 
     // Force mode continous B for CM1106SL-NS
@@ -736,48 +735,48 @@ bool Sensors::CO2CM1106Init() {
 
     // Getting ABC parameters
     if (cm1106->get_ABC(&abc)) {
-        DEBUG("-->[CM1106] ABC parameters:");
+        DEBUG("-->[SLIB] CM1106 ABC parameters:");
         if (abc.open_close == CM1106_ABC_OPEN) {
-            DEBUG("-->[CM1106] Auto calibration is enabled");
+            DEBUG("-->[SLIB] CM1106 Auto calibration is enabled");
         } else if (abc.open_close == CM1106_ABC_CLOSE) {
-            DEBUG("-->[CM1106] Auto calibration is disabled");
+            DEBUG("-->[SLIB] CM1106 Auto calibration is disabled");
         }
-        DEBUG("-->[CM1106] Calibration cycle: ", String(abc.cycle).c_str());
-        DEBUG("-->[CM1106] Calibration baseline: ", String(abc.base).c_str());
+        DEBUG("-->[SLIB] CM1106 Calibration cycle: ", String(abc.cycle).c_str());
+        DEBUG("-->[SLIB] CM1106 Calibration baseline: ", String(abc.base).c_str());
     }
 
     return true;
 }
 
 bool Sensors::senseAirS8Init() {
-    DEBUG("-->[SENSEAIRS8] starting S8 (UART) sensor..");
+    DEBUG("-->[SLIB] SENSEAIR S8 starting sensor..");
     s8 = new S8(*_serial);
     // Check if S8 is available
     s8->get_firmware_version(s8sensor.firmver);
     int len = strlen(s8sensor.firmver);
     if (len == 0) {
-        DEBUG("-->[E][SENSEAIRS8] not detected!");
+        DEBUG("-->[E][SLIB]SENSEAIR S8 not detected!");
         return false;
     }
     // Show S8 sensor info
 
-    Serial.println("-->[SENSEAIRS8] detected SenseAir S8 sensor :)");
+    Serial.println("-->[SLIB] SENSEAIR S8 detected SenseAir S8 sensor :)");
     if (devmode) {
-        Serial.printf("-->[SENSEAIRS8] Software version: %s\n", s8sensor.firmver);
-        Serial.printf("-->[SENSEAIRS8] Sensor type: 0x%08x\n", s8->get_sensor_type_ID());
-        Serial.printf("-->[SENSEAIRS8] Sensor ID:  %08x\n", s8->get_sensor_ID());
-        Serial.printf("-->[SENSEAIRS8] Memory map version: 0x%04x\n", s8->get_memory_map_version());
-        Serial.printf("-->[SENSEAIRS8] ABC period (0 = disabled): %d hours\n", s8->get_ABC_period());
+        Serial.printf("-->[SLIB] SENSEAIR S8 Software version: %s\n", s8sensor.firmver);
+        Serial.printf("-->[SLIB] SENSEAIR S8 Sensor type: 0x%08x\n", s8->get_sensor_type_ID());
+        Serial.printf("-->[SLIB] SENSEAIR S8 Sensor ID:  %08x\n", s8->get_sensor_ID());
+        Serial.printf("-->[SLIB] SENSEAIR S8 Memory map version: 0x%04x\n", s8->get_memory_map_version());
+        Serial.printf("-->[SLIB] SENSEAIR S8 ABC period (0 = disabled): %d hours\n", s8->get_ABC_period());
     }
-    DEBUG("-->[SENSEAIRS8] Disable ABC period");
+    DEBUG("-->[SLIB] SENSEAIR S8 Disable ABC period");
     s8->set_ABC_period(0);
     delay(1000);
-    if (devmode) Serial.printf("-->[SENSEAIRS8] ABC period (0 = disabled): %d hours\n", s8->get_ABC_period());
+    if (devmode) Serial.printf("-->[SLIB] SENSEAIR S8 ABC period (0 = disabled): %d hours\n", s8->get_ABC_period());
 
-    DEBUG("-->[SENSEAIRS8] ABC period set to 180 hours");
+    DEBUG("-->[SLIB] SENSEAIR S8 ABC period set to 180 hours");
     s8->set_ABC_period(180);
     delay(1000);
-    if (devmode) Serial.printf("-->[SENSEAIRS8] ABC period (0 = disabled): %d hours\n", s8->get_ABC_period());
+    if (devmode) Serial.printf("-->[SLIB] SENSEAIR S8 ABC period (0 = disabled): %d hours\n", s8->get_ABC_period());
 
     s8->get_meter_status();
     s8->get_alarm_status();
@@ -789,28 +788,28 @@ bool Sensors::senseAirS8Init() {
 
 bool Sensors::sps30UARTInit() {
     // Begin communication channel
-    DEBUG("-->[SPS30] starting SPS30 (UART) sensor..");
+    DEBUG("-->[SLIB] SPS30  starting (UART) sensor..");
 
     // set driver debug level
     sps30.EnableDebugging(devmode);
     // Begin communication channel;
     if (!sps30.begin(SENSOR_COMMS)) {
-        sps30Errorloop((char *)"-->[E][SPS30] could not initialize communication channel.", 0);
+        sps30Errorloop((char *)"-->[E][SLIB] SPS30 could not initialize communication channel.", 0);
         return false;
     }
 
     if (!sps30tests()) return false;
 
 
-    DEBUG("-->[SPS30] Detected SPS30 via UART.");
+    DEBUG("-->[SLIB] SPS30 Detected SPS30 via UART.");
 
     // start measurement
     if (sps30.start() == true) {
-        DEBUG("-->[SPS30] Measurement OK");
-        Serial.println("-->[UART] detected SPS30 sensor :)");
+        DEBUG("-->[SLIB] SPS30 Measurement OK");
+        Serial.println("-->[SLIB][UART] detected SPS30 sensor :)");
         return true;
     } else
-        sps30Errorloop((char *)"-->[E][SPS30] Could NOT start measurement", 0);
+        sps30Errorloop((char *)"-->[E][SLIB] SPS30 Could NOT start measurement", 0);
 
     return false;
 }
@@ -818,32 +817,32 @@ bool Sensors::sps30UARTInit() {
 bool Sensors::sps30I2CInit() {
     if (device_type == Sensirion) return false;
     
-    DEBUG("-->[SPS30] starting SPS30 (I2C) sensor..");
+    DEBUG("-->[SLIB] I2C SPS30 starting sensor..");
 
     // set driver debug level
     sps30.EnableDebugging(devmode);
     // Begin communication channel;
     if (sps30.begin(&Wire) == false) {
-        sps30Errorloop((char *)"-->[E][SPS30] Could not set I2C communication channel.", 0);
+        sps30Errorloop((char *)"-->[E][SLIB] I2C SPS30 could not set channel.", 0);
         return false;
     }
 
     if (!sps30tests()) return false;
 
-    DEBUG("-->[SPS30] Detected SPS30 via UART.");
+    DEBUG("-->[SLIB] SPS30 Detected SPS30 via UART.");
 
     // start measurement
     if (sps30.start()) {
-        DEBUG("-->[SPS30] Measurement OK");
-        Serial.println("-->[I2CS] detected SPS30 sensor :)");
+        DEBUG("-->[SLIB] SPS30 Measurement OK");
+        Serial.println("-->[SLIB] I2C detected SPS30 sensor :)");
         device_selected = "SENSIRION";
         device_type = Sensirion;
         if (sps30.I2C_expect() == 4)
-            DEBUG("-->[E][SPS30] Due to I2C buffersize only PM values  \n");
+            DEBUG("-->[E][SLIB] SPS30 Due to I2C buffersize only PM values  \n");
         return true;
     }
     else
-        sps30Errorloop((char *)"-->[E][SPS30] Could NOT start measurement.", 0);
+        sps30Errorloop((char *)"-->[E][SLIB] SPS30 Could NOT start measurement.", 0);
 
     return false;
 }
@@ -851,14 +850,14 @@ bool Sensors::sps30I2CInit() {
 bool Sensors::sps30tests() {
     // check for SPS30 connection
     if (!sps30.probe()) {
-        sps30Errorloop((char *)"-->[E][SPS30] Could not probe with SPS30.", 0);
+        sps30Errorloop((char *)"-->[E][SLIB] SPS30 could not probe.", 0);
         return false;
     } else {
         sps30DeviceInfo();
     }
     // reset SPS30 connection
     if (!sps30.reset()) {
-        sps30Errorloop((char *)"-->[E][SPS30] could not reset.", 0);
+        sps30Errorloop((char *)"-->[E][SLIB] SPS30 could not reset.", 0);
         return false;
     }
     return true;
@@ -876,80 +875,80 @@ void Sensors::sps30DeviceInfo() {
     ret = sps30.GetSerialNumber(buf, 32);
     if (ret == ERR_OK) {
         if (strlen(buf) > 0)
-            DEBUG("-->[SPS30] Serial number : ", buf);
+            DEBUG("-->[SLIB] SPS30 Serial number : ", buf);
         else
-            DEBUG("not available");
+            DEBUG("[SLIB] SPS30 could not get serial number");
     } else
-        DEBUG("[SPS30] could not get serial number");
+        DEBUG("[SLIB] SPS30 could not get serial number");
 
     // try to get product name
     ret = sps30.GetProductName(buf, 32);
     if (ret == ERR_OK) {
         if (strlen(buf) > 0)
-            DEBUG("-->[SPS30] Product name  : ", buf);
+            DEBUG("-->[SLIB] SPS30 product name  : ", buf);
         else
-            DEBUG("not available");
+            DEBUG("[SLIB] SPS30 could not get product name.");
     } else
-        DEBUG("[SPS30] could not get product name.");
+        DEBUG("[SLIB] SPS30 could not get product name.");
 
     // try to get version info
     ret = sps30.GetVersion(&v);
     if (ret != ERR_OK) {
-        DEBUG("[SPS30] Can not read version info");
+        DEBUG("[SLIB] SPS30 can not read version info");
         return;
     }
     sprintf(buf, "%d.%d", v.major, v.minor);
-    DEBUG("-->[SPS30] Firmware level: ", buf);
+    DEBUG("-->[SLIB] SPS30 firmware level: ", buf);
 
     if (SENSOR_COMMS != I2C_COMMS) {
         sprintf(buf, "%d.%d", v.SHDLC_major, v.SHDLC_minor);
-        DEBUG("-->[SPS30] Hardware level: ", String(v.HW_version).c_str());
-        DEBUG("-->[SPS30] SHDLC protocol: ", buf);
+        DEBUG("-->[SLIB] SPS30 Hardware level: ", String(v.HW_version).c_str());
+        DEBUG("-->[SLIB] SPS30 SHDLC protocol: ", buf);
     }
 
     sprintf(buf, "%d.%d", v.DRV_major, v.DRV_minor);
-    DEBUG("-->[SPS30] Library level : ", buf);
+    DEBUG("-->[SLIB] SPS30 Library level : ", buf);
 }
 
 void Sensors::am2320Init() {
-    DEBUG("-->[AM2320] starting AM2320 sensor..");
+    DEBUG("-->[SLIB] AM2320 starting AM2320 sensor..");
     am2320 = Adafruit_AM2320();
-    if (am2320.begin()) Serial.println("-->[I2CS] detected AM2320 sensor :)");
+    if (am2320.begin()) Serial.println("-->[SLIB] I2C detected AM2320 sensor :)");
 }
 
 void Sensors::sht31Init() {
-    DEBUG("-->[SHT31] starting SHT31 sensor..");
+    DEBUG("-->[SLIB] SHT31 starting SHT31 sensor..");
     sht31 = Adafruit_SHT31();
-    if (sht31.begin(0x44)) Serial.println("-->[I2CS] detected SHT31 sensor :)");
+    if (sht31.begin(0x44)) Serial.println("-->[SLIB] I2C detected SHT31 sensor :)");
 }
 
 void Sensors::bme280Init() {
-    DEBUG("-->[BME280] starting BME280 sensor..");
-    if (bme280.begin(0x76)) Serial.println("-->[I2CS] detected BME280 sensor :)");
+    DEBUG("-->[SLIB] BME280 starting BME280 sensor..");
+    if (bme280.begin(0x76)) Serial.println("-->[SLIB] I2C detected BME280 sensor :)");
 }
 
 void Sensors::bme680Init() {
-    DEBUG("-->[BME680] starting BME680 sensor..");
+    DEBUG("-->[SLIB] BME680 starting BME680 sensor..");
     if (!bme680.begin()) return;
-    Serial.println("-->[I2CS] detected BME680 sensor :)");
+    Serial.println("-->[SLIB] I2C detected BME680 sensor :)");
     bme680.setTemperatureOversampling(BME680_OS_8X);
     bme680.setHumidityOversampling(BME680_OS_2X);
     bme680.setPressureOversampling(BME680_OS_4X);
     bme680.setIIRFilterSize(BME680_FILTER_SIZE_3);
     bme680.setGasHeater(320, 150);  // 320*C for 150 ms
-    DEBUG("-->[BME680] BME680 set sea level pressure ", String(SEALEVELPRESSURE_HPA).c_str());
+    DEBUG("-->[SLIB] BME680 set sea level pressure ", String(SEALEVELPRESSURE_HPA).c_str());
 }
 
 void Sensors::aht10Init() {
-    DEBUG("-->[AHT10] starting AHT10 sensor..");
+    DEBUG("-->[SLIB] AHT10 starting AHT10 sensor..");
     aht10 = AHT10(AHT10_ADDRESS_0X38);
-    if (aht10.begin()) Serial.println("-->[I2CS] detected AHT10 sensor :)");
+    if (aht10.begin()) Serial.println("-->[SLIB] I2C detected AHT10 sensor :)");
 }
 
 void Sensors::CO2scd30Init() {
-    DEBUG("-->[SCD30] starting CO2 SCD30 sensor..");
+    DEBUG("-->[SLIB] SCD30 starting CO2 SCD30 sensor..");
     if (!scd30.begin()) return;
-    Serial.println("-->[I2CS] detected SCD30 sensor :)");
+    Serial.println("-->[SLIB] I2C detected SCD30 sensor :)");
     delay(10);
 
     device_selected = "SCD30";  // TODO: sync this constants with app
@@ -993,13 +992,13 @@ void Sensors::setSCD30AltitudeOffset(float offset) {
 
 void Sensors::PMGCJA5Init() {
     if (device_type == Panasonic) return;
-    DEBUG("-->[GCJA5] starting PANASONIC GCJA5 sensor..");
+    DEBUG("-->[SLIB] GCJA5 starting PANASONIC GCJA5 sensor..");
     if (!pmGCJA5.begin()) return;
-    Serial.println("-->[I2CS] detected SN-GCJA5 sensor :)");
+    Serial.println("-->[SLIB] I2C detected SN-GCJA5 sensor :)");
     device_selected = "PANASONIC_I2C";
     device_type = Auto;
     uint8_t status = pmGCJA5.getStatusFan();
-    DEBUG("-->[GCJA5] FAN status: ", String(status).c_str());
+    DEBUG("-->[SLIB] GCJA5 FAN status: ", String(status).c_str());
 }
 
 void Sensors::dhtInit() {
@@ -1074,7 +1073,7 @@ bool Sensors::serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx) 
         //you have to define different pins upfront in order to use serial1 port.
         case SERIALPORT1:
             if (pms_rx == 0 || pms_tx == 0) {
-                DEBUG("TX/RX line not defined");
+                DEBUG("-->[SLIB] TX/RX line not defined");
                 return false;
             }
             Serial1.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx, false);
@@ -1092,7 +1091,7 @@ bool Sensors::serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx) 
         default:
 
             if (pms_rx == 0 || pms_tx == 0) {
-                DEBUG("TX/RX line not defined");
+                DEBUG("-->[SLIB] TX/RX line not defined");
                 return false;
             }
             // In case RX and TX are both pin 8, try Serial1 anyway.
@@ -1114,7 +1113,7 @@ bool Sensors::serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx) 
                     swSerial.begin(speed_baud, SWSERIAL_8N1, pms_rx, pms_tx, false);
                 _serial = &swSerial;
 #else
-                DEBUG("SoftWareSerial not enabled\n");
+                DEBUG("-->[SLIB] SoftWareSerial not enabled");
                 return (false);
 #endif  //INCLUDE_SOFTWARE_SERIAL
             }
