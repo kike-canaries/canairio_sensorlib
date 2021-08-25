@@ -592,27 +592,27 @@ void Sensors::sps30Errorloop(char *mess, uint8_t r) {
 bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
     // set UART for autodetection sensors (Honeywell, Plantower)
     if (pms_type == Auto) {
-        DEBUG("-->[SLIB][UART] detecting Generic PM sensor..");
+        DEBUG("-->[SLIB] UART detecting Generic PM sensor..");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     }
     // set UART for custom sensors
     else if (pms_type == Panasonic) {
-        DEBUG("-->[SLIB][UART] detecting Panasonic PM sensor..");
+        DEBUG("-->[SLIB] UART detecting Panasonic PM sensor..");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     } else if (pms_type == Sensirion) {
-        DEBUG("-->[SLIB][UART] detecting SPS30 PM sensor..");
+        DEBUG("-->[SLIB] UART detecting SPS30 PM sensor..");
         if (!serialInit(pms_type, 115200, pms_rx, pms_tx)) return false;
     } else if (pms_type == SDS011) {
-        DEBUG("-->[SLIB][UART] detecting SDS011 PM sensor..");
+        DEBUG("-->[SLIB] UART detecting SDS011 PM sensor..");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     } else if (pms_type == Mhz19) {
-        DEBUG("-->[SLIB][UART] detecting MHZ19 sensor..");
+        DEBUG("-->[SLIB] UART detecting MHZ19 sensor..");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     } else if (pms_type == CM1106) {
-        DEBUG("-->[SLIB][UART] detecting CM1106 sensor..");
+        DEBUG("-->[SLIB] UART detecting CM1106 sensor..");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     } else if (pms_type == SENSEAIRS8) {
-        DEBUG("-->[SLIB][UART] detecting SenseAir S8 sensor..");
+        DEBUG("-->[SLIB] UART detecting SenseAir S8 sensor..");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     }
 
@@ -622,7 +622,7 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
 
     // get device selected..
     if (device_type >= 0) {
-        DEBUG("-->[SLIB][UART] detected: ", device_selected.c_str());
+        DEBUG("-->[SLIB] UART detected: ", device_selected.c_str());
         return true;
     }
 
@@ -788,7 +788,7 @@ bool Sensors::senseAirS8Init() {
 
 bool Sensors::sps30UARTInit() {
     // Begin communication channel
-    DEBUG("-->[SLIB] SPS30  starting (UART) sensor..");
+    DEBUG("-->[SLIB] UART SPS30 starting sensor..");
 
     // set driver debug level
     sps30.EnableDebugging(devmode);
@@ -806,7 +806,7 @@ bool Sensors::sps30UARTInit() {
     // start measurement
     if (sps30.start() == true) {
         DEBUG("-->[SLIB] SPS30 Measurement OK");
-        Serial.println("-->[SLIB][UART] detected SPS30 sensor :)");
+        Serial.println("-->[SLIB] UART detected SPS30 sensor :)");
         return true;
     } else
         sps30Errorloop((char *)"-->[E][SLIB] SPS30 Could NOT start measurement", 0);
