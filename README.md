@@ -3,7 +3,7 @@
 
 # Air Quality Sensors Library
 
-Generic sensor manager, abstratctions and bindings of multiple sensors libraries: Honeywell, Plantower, Panasonic, Sensirion, etc and CO2 sensors. Also it handling others environment sensors. This library is for general purpose but also is the sensors library base of [CanAirIO project](https://canair.io/docs).
+Generic sensor manager, abstractions and bindings of multiple sensors libraries: Honeywell, Plantower, Panasonic, Sensirion, etc. and CO2 sensors. Also it's handling others environment sensors. This library is for general purpose, but also is the sensors library base of [CanAirIO project](https://canair.io/docs).
 
 # Supported sensors
 
@@ -26,7 +26,7 @@ NOTE: Panasonic via UART in ESP8266 maybe needs select in detection
 | Sensirion SCD30    | --- | Yes | Auto | STABLE |
 | MHZ19      | Yes | --- | Select | STABLE |
 | CM1106    | Yes | --- | Select | STABLE |
-| SenseAir S8 | Yes | --- | Select | TESTING |
+| SenseAir S8 | Yes | --- | Select | STABLE |
 
 
 ### Environmental sensors
@@ -50,6 +50,8 @@ NOTE: DHT22 is supported but is not recommended
 - Preselected main stream UART pins from popular boards
 - Auto config UART port for Plantower, Honeywell and Panasonic sensors
 - Unified calibration trigger for all CO2 sensors
+- Unified CO2 Altitude compensation
+- Unified temperature offset for CO2 and environment sensors
 - Public access to main objects of each library (full methods access)
 - Basic debug mode support toggle in execution
 
@@ -61,10 +63,14 @@ Full list of all sub libraries supported [here]()
 ```Java
 sensors.setOnDataCallBack(&onSensorDataOk);   // all data read callback
 sensors.init();                               // start all sensors and
-                                              // try to detect PM sensor: 
+                                              // try to detect UART sensors like:
                                               // Panasonic, Honeywell or Plantower.
-                                              // for Sensirion please do:
+                                              // For special UART sensors try select it:
                                               // init(sensors.Sensirion)
+                                              // init(sensors.Mhz19)
+                                              // init(sensors.CM1106)
+                                              // init(sensors.SENSEAIRS8)
+                                              // For I2C sensors, with empty parameter is enough.
 ```
 
 # Full implementation
@@ -77,6 +83,7 @@ void onSensorDataOk() {
     Serial.print  (" PM1.0: " + sensors.getStringPM1());  // some fields sample
     Serial.print  (" PM2.5: " + sensors.getStringPM25());
     Serial.println(" PM10: "  + sensors.getStringPM10());
+    Serial.println(" CO2:  "  + sensors.getStringCO2());
 }
 
 /// sensors error callback
@@ -86,25 +93,28 @@ void onSensorDataError(const char * msg){
 
 void setup() {
 
-    sensors.setSampleTime(5);                       // config sensors sample time interval
+    sensors.setSampleTime(5);                       // Config sensors sample time interval
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
     sensors.setSampleTime(15);                      // [optional] sensors sample time (default 5s)
+    sensors.setTempOffset(cfg.toffset);             // [optional] temperature compensation
+    sensors.setCO2AltitudeOffset(cfg.altoffset);    // [optional] CO2 altitude compensation
     sensors.setDebugMode(false);                    // [optional] debug mode enable/disable
     sensors.detectI2COnly(true);                    // [optional] force to only i2c sensors
-    sensors.init();                                 // start all sensors and
-                                                    // force to try autodetection,
-                                                    // you can try to select one:
+    sensors.init();                                 // start all sensors with auto detection mode.
+                                                    // Also you can try to select one:
                                                     // sensors.init(sensors.Sensirion);
                                                     // All i2c sensors are autodetected.
 
-    // Also you can access to special library objects, for example some calls:
+    // Also you can access to sub library objects, and perform for example calls like next:
 
     // sensors.sps30.sleep()
     // sensors.bme.readPressure();
     // sensors.mhz19.getRange();
     // sensors.scd30.getTemperatureOffset();
     // sensors.aht10.readRawData();
+    // sensors.s8.set_ABC_period(period)
+    // ...
 
 
     if(sensors.isPmSensorConfigured())
@@ -245,10 +255,9 @@ Also you can make a donation, be a patreon or buy a device:
 - [x] BME680 support (from TTGO-T7 CanAirIO version)
 - [x] Added Sensirion SPS30 and Panasonic SN-GCJA5 via i2c
 - [x] Enable/Disable UART detection for force only i2c
+- [x] Temperature and Altitude compensation
+- [x] SenseAir S8 via UART support
 - [ ] IAQ indicator from BME680 Bosch library
-
-
-
 
 # Credits
 

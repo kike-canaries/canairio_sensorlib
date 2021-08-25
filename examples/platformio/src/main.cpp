@@ -52,14 +52,14 @@ void setup() {
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
     sensors.setDebugMode(true);                     // [optional] debug mode
     sensors.detectI2COnly(false);                   // disable force to only i2c sensors
-
+    
     // sensors.init();                              // Auto detection of PM sensors (Honeywell, Plantower, Panasonic)
     // sensors.init(sensors.Auto);                  // Auto detection of PM sensors (Honeywell, Plantower, Panasonic)
     // sensors.init(sensors.Panasonic);             // Force detection to Panasonic sensor
     // sensors.init(sensors.Sensirion);             // Force detection to Sensirion sensor
     // sensors.init(sensors.Mhz19);                 // Force detection to Mhz14 or Mhz19 CO2 sensor
     // sensors.init(sensors.SDS011);                // Force detection to SDS011 sensor
-    // sensors.init(sensors.CM1006);                // Force detection to CM1106 CO2 sensor
+    // sensors.init(sensors.CM1106);                // Force detection to CM1106 CO2 sensor
     // sensors.init(sensors.Auto,mRX,mTX);          // Auto detection and custom RX, TX pines
     // sensors.init(sensors.Auto,PMS_RX,PMS_TX);    // Auto detection, custom RX,TX and custom DHT config
 
