@@ -3,7 +3,7 @@
 
 # Air Quality Sensors Library
 
-Generic sensor manager, abstratctions and bindings of multiple sensors libraries: Honeywell, Plantower, Panasonic, Sensirion, etc and CO2 sensors. Also it handling others environment sensors. This library is for general purpose but also is the sensors library base of [CanAirIO project](https://canair.io/docs).
+Generic sensor manager, abstractions and bindings of multiple sensors libraries: Honeywell, Plantower, Panasonic, Sensirion, etc. and CO2 sensors. Also it's handling others environment sensors. This library is for general purpose, but also is the sensors library base of [CanAirIO project](https://canair.io/docs).
 
 # Supported sensors
 
@@ -255,10 +255,9 @@ Also you can make a donation, be a patreon or buy a device:
 - [x] BME680 support (from TTGO-T7 CanAirIO version)
 - [x] Added Sensirion SPS30 and Panasonic SN-GCJA5 via i2c
 - [x] Enable/Disable UART detection for force only i2c
+- [x] Temperature and Altitude compensation
+- [x] SenseAir S8 via UART support
 - [ ] IAQ indicator from BME680 Bosch library
-
-
-
 
 # Credits
 
