@@ -19,6 +19,7 @@ void Sensors::loop() {
             dataReady = pmSensorRead();
             DEBUG("-->[SLIB] able data from UART sensors: ",String(dataReady).c_str());
         }
+
         dhtRead();
         am2320Read();
         bme280Read();
@@ -27,6 +28,7 @@ void Sensors::loop() {
         sht31Read();
         CO2scd30Read();
         PMGCJA5Read();
+
         if(i2conly && device_type == Sensirion) sps30Read();
 
         if(!dataReady)DEBUG("-->[SLIB] Any data from sensors? check your wirings!");
@@ -952,6 +954,7 @@ void Sensors::CO2scd30Init() {
     delay(10);
 
     device_selected = "SCD30";  // TODO: sync this constants with app
+    device_type = SSCD30;
 
     DEBUG("-->[SLIB] SCD30 current temperature offset: ",String(scd30.getTemperatureOffset()).c_str());
     DEBUG("-->[SLIB] SCD30 current altitude offset: ", String(scd30.getAltitudeCompensation()).c_str());
