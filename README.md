@@ -93,7 +93,6 @@ void onSensorDataError(const char * msg){
 
 void setup() {
 
-    sensors.setSampleTime(5);                       // Config sensors sample time interval
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
     sensors.setSampleTime(15);                      // [optional] sensors sample time (default 5s)
