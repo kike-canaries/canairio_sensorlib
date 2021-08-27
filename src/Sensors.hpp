@@ -222,7 +222,7 @@ class Sensors {
     void setSCD30TempOffset(float offset);
     void setSCD30AltitudeOffset(float offset);
     void CO2correctionAlt();
-    void hpaCalculation();
+    float hpaCalculation(float altitude);
 
     void PMGCJA5Init();
     void PMGCJA5Read();

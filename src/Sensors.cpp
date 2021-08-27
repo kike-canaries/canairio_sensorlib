@@ -116,8 +116,8 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue) {
 }
 
 void Sensors::setCO2AltitudeOffset(float altitude){
-    altoffset = altitude;
-    hpaCalculation();                                       //hPa hectopascal calculation based on altitude
+    this->altoffset = altitude;
+    this->hpa = hpaCalculation(altitude);       //hPa hectopascal calculation based on altitude
     setSCD30AltitudeOffset(altoffset);
 }
 
@@ -1013,10 +1013,11 @@ void Sensors::CO2correctionAlt() {
     DEBUG("-->[SLIB] CO2 compensated:", String(CO2).c_str());
 }
 
-void Sensors::hpaCalculation() {
-    DEBUG("-->[SLIB] Altitude Compensation for CO2 lectures ON:", String(int(altoffset)).c_str());
-    hpa = 1012 - 0.118 * altoffset + 0.00000473 * altoffset * altoffset;            // Cuadratic regresion formula obtained PA (hpa) from high above the sea
+float Sensors::hpaCalculation(float altitude) {
+    DEBUG("-->[SLIB] Altitude Compensation for CO2 lectures ON:", String(altitude).c_str());
+    float hpa = 1012 - 0.118 * altitude + 0.00000473 * altitude * altitude;            // Cuadratic regresion formula obtained PA (hpa) from high above the sea
     DEBUG("-->[SLIB] Atmospheric pressure calculated in hPa:", String(hpa).c_str());
+    return hpa;
 }
 
 // Print some sensors values
