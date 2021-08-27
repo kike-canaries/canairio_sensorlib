@@ -19,6 +19,7 @@ void Sensors::loop() {
             dataReady = pmSensorRead();
             DEBUG("-->[SLIB] able data from UART sensors: ",String(dataReady).c_str());
         }
+
         dhtRead();
         am2320Read();
         bme280Read();
@@ -27,6 +28,7 @@ void Sensors::loop() {
         sht31Read();
         CO2scd30Read();
         PMGCJA5Read();
+
         if(i2conly && device_type == Sensirion) sps30Read();
 
         if(!dataReady)DEBUG("-->[SLIB] Any data from sensors? check your wirings!");
@@ -89,8 +91,8 @@ void Sensors::setSampleTime(int seconds) {
     sample_time = seconds;
     Serial.println("-->[SLIB] new sample time: " + String(seconds));
     if(getPmDeviceSelected().equals("SCD30")){
-        Serial.println("-->[SLIB] SCD30 interval time to (2x): " + String(seconds * 2));
         scd30.setMeasurementInterval(seconds * 2);
+        Serial.println("-->[SLIB] SCD30 interval time to (2x): " + String(seconds * 2));
     }
 }
 
@@ -116,8 +118,8 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue) {
 }
 
 void Sensors::setCO2AltitudeOffset(float altitude){
-    altoffset = altitude;
-    hpaCalculation();                                       //hPa hectopascal calculation based on altitude
+    this->altoffset = altitude;
+    this->hpa = hpaCalculation(altitude);       //hPa hectopascal calculation based on altitude
     setSCD30AltitudeOffset(altoffset);
 }
 
@@ -377,9 +379,9 @@ bool Sensors::CO2Mhz19Read() {
     CO2 = mhz19.getCO2();              // Request CO2 (as ppm)
     CO2temp = mhz19.getTemperature()-toffset;  // Request Temperature (as Celsius)
     if (CO2 > 0) {
+        if(altoffset != 0) CO2correctionAlt();
         dataReady = true;
         DEBUG("-->[SLIB] MHZ14-9 read > done!");
-        if(altoffset != 0) CO2correctionAlt();
         return true;
     }
     return false;
@@ -389,8 +391,8 @@ bool Sensors::CO2CM1106Read() {
     CO2 = cm1106->get_co2();;
     if (CO2 > 0) {
         dataReady = true;
-        DEBUG("-->[SLIB] CM1106 read > done!");
         if(altoffset != 0) CO2correctionAlt();
+        DEBUG("-->[SLIB] CM1106 read > done!");
         return true;
     }
     return false;
@@ -399,9 +401,9 @@ bool Sensors::CO2CM1106Read() {
 bool Sensors::senseAirS8Read() {
     CO2 = s8->get_co2();      // Request CO2 (as ppm)
     if (CO2 > 0) {
+        if(altoffset != 0) CO2correctionAlt();
         dataReady = true;
         DEBUG("-->[SLIB] SENSEAIRS8 read > done!");
-        if(altoffset != 0) CO2correctionAlt();
         return true;
     }
     return false;
@@ -515,9 +517,9 @@ void Sensors::sht31Read() {
 }
 
 void Sensors::CO2scd30Read() {
-    uint16_t tco2 = scd30.getCO2();
-    if (tco2 > 0) {
-        CO2 = tco2;
+    uint16_t tCO2 = scd30.getCO2();  // we need temp var, without it override CO2
+    if (tCO2 > 0) {
+        CO2 = tCO2;
         CO2humi = scd30.getHumidity();
         CO2temp = scd30.getTemperature();
         dataReady = true;
@@ -952,7 +954,7 @@ void Sensors::CO2scd30Init() {
     delay(10);
 
     device_selected = "SCD30";  // TODO: sync this constants with app
-    device_type = 6;
+    device_type = SSCD30;
 
     DEBUG("-->[SLIB] SCD30 current temperature offset: ",String(scd30.getTemperatureOffset()).c_str());
     DEBUG("-->[SLIB] SCD30 current altitude offset: ", String(scd30.getAltitudeCompensation()).c_str());
@@ -988,8 +990,6 @@ void Sensors::setSCD30AltitudeOffset(float offset) {
     }
 }
 
-
-
 void Sensors::PMGCJA5Init() {
     if (device_type == Panasonic) return;
     DEBUG("-->[SLIB] GCJA5 starting PANASONIC GCJA5 sensor..");
@@ -1013,10 +1013,11 @@ void Sensors::CO2correctionAlt() {
     DEBUG("-->[SLIB] CO2 compensated:", String(CO2).c_str());
 }
 
-void Sensors::hpaCalculation() {
-    DEBUG("-->[SLIB] Altitude Compensation for CO2 lectures ON:", String(int(altoffset)).c_str());
-    hpa = 1012 - 0.118 * altoffset + 0.00000473 * altoffset * altoffset;            // Cuadratic regresion formula obtained PA (hpa) from high above the sea
+float Sensors::hpaCalculation(float altitude) {
+    DEBUG("-->[SLIB] Altitude Compensation for CO2 lectures ON:", String(altitude).c_str());
+    float hpa = 1012 - 0.118 * altitude + 0.00000473 * altitude * altitude;            // Cuadratic regresion formula obtained PA (hpa) from high above the sea
     DEBUG("-->[SLIB] Atmospheric pressure calculated in hPa:", String(hpa).c_str());
+    return hpa;
 }
 
 // Print some sensors values
