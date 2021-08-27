@@ -379,9 +379,9 @@ bool Sensors::CO2Mhz19Read() {
     CO2 = mhz19.getCO2();              // Request CO2 (as ppm)
     CO2temp = mhz19.getTemperature()-toffset;  // Request Temperature (as Celsius)
     if (CO2 > 0) {
+        if(altoffset != 0) CO2correctionAlt();
         dataReady = true;
         DEBUG("-->[SLIB] MHZ14-9 read > done!");
-        if(altoffset != 0) CO2correctionAlt();
         return true;
     }
     return false;
@@ -391,8 +391,8 @@ bool Sensors::CO2CM1106Read() {
     CO2 = cm1106->get_co2();;
     if (CO2 > 0) {
         dataReady = true;
-        DEBUG("-->[SLIB] CM1106 read > done!");
         if(altoffset != 0) CO2correctionAlt();
+        DEBUG("-->[SLIB] CM1106 read > done!");
         return true;
     }
     return false;
@@ -401,9 +401,9 @@ bool Sensors::CO2CM1106Read() {
 bool Sensors::senseAirS8Read() {
     CO2 = s8->get_co2();      // Request CO2 (as ppm)
     if (CO2 > 0) {
+        if(altoffset != 0) CO2correctionAlt();
         dataReady = true;
         DEBUG("-->[SLIB] SENSEAIRS8 read > done!");
-        if(altoffset != 0) CO2correctionAlt();
         return true;
     }
     return false;
@@ -517,9 +517,9 @@ void Sensors::sht31Read() {
 }
 
 void Sensors::CO2scd30Read() {
-    uint16_t tco2 = scd30.getCO2();
-    if (tco2 > 0) {
-        CO2 = tco2;
+    CO2 = scd30.getCO2();
+    if (CO2 > 0) {
+        if(altoffset != 0) CO2correctionAlt();
         CO2humi = scd30.getHumidity();
         CO2temp = scd30.getTemperature();
         dataReady = true;
