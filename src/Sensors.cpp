@@ -517,8 +517,9 @@ void Sensors::sht31Read() {
 }
 
 void Sensors::CO2scd30Read() {
-    CO2 = scd30.getCO2();
-    if (CO2 > 0) {
+    uint16_t tCO2 = scd30.getCO2();  // we need temp var, without it override CO2.
+    if (tCO2 > 0) {
+        CO2 = tCO2;
         if(altoffset != 0) CO2correctionAlt();
         CO2humi = scd30.getHumidity();
         CO2temp = scd30.getTemperature();
