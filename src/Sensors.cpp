@@ -89,8 +89,8 @@ void Sensors::setSampleTime(int seconds) {
     sample_time = seconds;
     Serial.println("-->[SLIB] new sample time: " + String(seconds));
     if(getPmDeviceSelected().equals("SCD30")){
-        Serial.println("-->[SLIB] SCD30 interval time to (2x): " + String(seconds * 2));
         scd30.setMeasurementInterval(seconds * 2);
+        Serial.println("-->[SLIB] SCD30 interval time to (2x): " + String(seconds * 2));
     }
 }
 
@@ -952,7 +952,6 @@ void Sensors::CO2scd30Init() {
     delay(10);
 
     device_selected = "SCD30";  // TODO: sync this constants with app
-    device_type = 6;
 
     DEBUG("-->[SLIB] SCD30 current temperature offset: ",String(scd30.getTemperatureOffset()).c_str());
     DEBUG("-->[SLIB] SCD30 current altitude offset: ", String(scd30.getAltitudeCompensation()).c_str());
@@ -987,8 +986,6 @@ void Sensors::setSCD30AltitudeOffset(float offset) {
         scd30.setAltitudeCompensation(uint16_t(offset));
     }
 }
-
-
 
 void Sensors::PMGCJA5Init() {
     if (device_type == Panasonic) return;
