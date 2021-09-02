@@ -343,7 +343,14 @@ String Sensors::hwSerialRead(unsigned int lenght_buffer) {
  */
 bool Sensors::sps30Read() {
     uint8_t ret, error_cnt = 0;
+
     delay(35);  //Delay for sincronization
+    
+    if(sample_time > 30) {
+        if (!sps30.start()) return false;  // power saving validation
+        delay(15000);
+    }
+    
     do {
         ret = sps30.GetValues(&val);
         if (ret == ERR_DATALENGTH) {
@@ -364,6 +371,8 @@ bool Sensors::sps30Read() {
     pm25 = round(val.MassPM2);
     pm4 = round(val.MassPM4);
     pm10 = round(val.MassPM10);
+
+    if(sample_time > 30) sps30.stop();  // power saving validation
 
     if (pm25 > 1000 && pm10 > 1000) {
         onSensorError("-->[E][SLIB] SPS30 Sensirion out of range pm25 > 1000");
