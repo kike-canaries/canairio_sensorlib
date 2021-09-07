@@ -54,6 +54,7 @@ NOTE: DHT22 is supported but is not recommended
 - Unified temperature offset for CO2 and environment sensors
 - Public access to main objects of each library (full methods access)
 - Basic debug mode support toggle in execution
+- Basic power saving management with sample time > 30s on SPS30
 
 Full list of all sub libraries supported [here]()
 
