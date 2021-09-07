@@ -574,7 +574,7 @@ void Sensors::dhtRead() {
 
 void Sensors::onSensorError(const char *msg) {
     DEBUG(msg);
-    if (_onErrorCb) _onErrorCb(msg);
+    if (_onErrorCb != nullptr ) _onErrorCb(msg);
 }
 
 void Sensors::sps30ErrToMess(char *mess, uint8_t r) {
