@@ -17,7 +17,7 @@ void Sensors::loop() {
         dataReady = false;
         if(!i2conly ) {
             dataReady = pmSensorRead();
-            DEBUG("-->[SLIB] able data from UART sensors: ",String(dataReady).c_str());
+            DEBUG("-->[SLIB] UART sensors count: ",String(dataReady).c_str());
         }
 
         dhtRead();
@@ -805,12 +805,11 @@ bool Sensors::sps30UARTInit() {
     sps30.EnableDebugging(devmode);
     // Begin communication channel;
     if (!sps30.begin(SENSOR_COMMS)) {
-        sps30Errorloop((char *)"-->[E][SLIB] SPS30 could not initialize communication channel.", 0);
+        sps30Errorloop((char *)"-->[E][SLIB] UART SPS30 could not initialize communication channel.", 0);
         return false;
     }
 
     if (!sps30tests()) return false;
-
 
     DEBUG("-->[SLIB] SPS30 Detected SPS30 via UART.");
 
@@ -820,7 +819,7 @@ bool Sensors::sps30UARTInit() {
         Serial.println("-->[SLIB] UART detected SPS30 sensor :)");
         return true;
     } else
-        sps30Errorloop((char *)"-->[E][SLIB] SPS30 Could NOT start measurement", 0);
+        sps30Errorloop((char *)"-->[E][SLIB] UART SPS30 Could NOT start measurement", 0);
 
     return false;
 }
@@ -840,7 +839,7 @@ bool Sensors::sps30I2CInit() {
 
     if (!sps30tests()) return false;
 
-    DEBUG("-->[SLIB] SPS30 Detected SPS30 via UART.");
+    DEBUG("-->[SLIB] SPS30 Detected SPS30 via I2C.");
 
     // start measurement
     if (sps30.start()) {
@@ -849,11 +848,11 @@ bool Sensors::sps30I2CInit() {
         device_selected = "SENSIRION";
         device_type = Sensirion;
         if (sps30.I2C_expect() == 4)
-            DEBUG("-->[E][SLIB] SPS30 Due to I2C buffersize only PM values  \n");
+            DEBUG("-->[E][SLIB] SPS30 due to I2C buffersize only PM values  \n");
         return true;
     }
     else
-        sps30Errorloop((char *)"-->[E][SLIB] SPS30 Could NOT start measurement.", 0);
+        sps30Errorloop((char *)"-->[E][SLIB] I2C SPS30 Could NOT start measurement.", 0);
 
     return false;
 }
