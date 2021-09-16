@@ -463,8 +463,10 @@ bool Sensors::pmSensorRead() {
 ******************************************************************************/
 
 void Sensors::am2320Read() {
-    float humi1 = am2320.readHumidity();
-    float temp1 = am2320.readTemperature();
+    int status = am2320.read();
+    if (status != AM232X_OK) return;
+    float humi1 = am2320.getHumidity();
+    float temp1 = am2320.getTemperature();
     if (!isnan(humi1)) humi = humi1;
     if (!isnan(temp1)) {
         temp = temp1-toffset;
@@ -922,7 +924,6 @@ void Sensors::sps30DeviceInfo() {
 
 void Sensors::am2320Init() {
     DEBUG("-->[SLIB] AM2320 starting AM2320 sensor..");
-    am2320 = Adafruit_AM2320();
     if (am2320.begin()) Serial.println("-->[SLIB] I2C detected AM2320 sensor :)");
 }
 

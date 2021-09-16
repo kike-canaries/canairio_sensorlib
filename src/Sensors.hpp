@@ -2,7 +2,7 @@
 #define Sensors_hpp
 
 #include <AHT10.h>
-#include <Adafruit_AM2320.h>
+#include <AM232X.h>
 #include <Adafruit_BME280.h>
 #include <Adafruit_BME680.h>
 #include <Adafruit_SHT31.h>
@@ -99,7 +99,7 @@ class Sensors {
      ****************************************/
 
     // AM2320 (Humidity and temperature)
-    Adafruit_AM2320 am2320;
+    AM232X am2320;
     // BME280 (Humidity, Pressure, Altitude and Temperature)
     Adafruit_BME280 bme280;
     // BME680 (Humidity, Gas, IAQ, Pressure, Altitude and Temperature)
