@@ -68,7 +68,6 @@
   "dependencies":
   [
     {"name":"Adafruit Unified Sensor", "owner":"adafruit", "version":"1.1.4"},
-    {"name":"Adafruit AM2320 sensor library", "owner":"adafruit", "version":"1.1.4"},
     {"name":"AM232X", "owner":"robtillaart", "version":"0.3.2"},
     {"name":"sps30", "owner":"paulvha","version":"1.4.11"},
     {"name":"Adafruit BME280 Library", "owner":"adafruit","version":"2.1.4"},
