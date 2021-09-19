@@ -540,9 +540,9 @@ void Sensors::CO2scd30Read() {
 
 void Sensors::PMGCJA5Read() {
     if (!getPmDeviceSelected().equals("PANASONIC_I2C")) return;
-    pm1 = pmGCJA5.getPC1_0();
-    pm25 = pmGCJA5.getPC2_5();
-    pm10 = pmGCJA5.getPC10();
+    pm1 = pmGCJA5.getPM1_0();
+    pm25 = pmGCJA5.getPM2_5();
+    pm10 = pmGCJA5.getPM10();
     dataReady = true;
     DEBUG("-->[SLIB] GCJA5 read > done!");
 }
