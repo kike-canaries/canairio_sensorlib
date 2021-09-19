@@ -763,10 +763,10 @@ bool Sensors::CO2CM1106Init() {
 
 bool Sensors::senseAirS8Init() {
     DEBUG("-->[SLIB] SENSEAIR S8 starting sensor..");
-    s8 = new S8(*_serial);
+    s8 = new S8_UART(*_serial);
     // Check if S8 is available
-    s8->get_firmware_version(s8sensor.firmver);
-    int len = strlen(s8sensor.firmver);
+    s8->get_firmware_version(s8sensor.firm_version);
+    int len = strlen(s8sensor.firm_version);
     if (len == 0) {
         DEBUG("-->[E][SLIB]SENSEAIR S8 not detected!");
         return false;
@@ -775,7 +775,7 @@ bool Sensors::senseAirS8Init() {
 
     Serial.println("-->[SLIB] SENSEAIR S8 detected SenseAir S8 sensor :)");
     if (devmode) {
-        Serial.printf("-->[SLIB] SENSEAIR S8 Software version: %s\n", s8sensor.firmver);
+        Serial.printf("-->[SLIB] SENSEAIR S8 Software version: %s\n", s8sensor.firm_version);
         Serial.printf("-->[SLIB] SENSEAIR S8 Sensor type: 0x%08x\n", s8->get_sensor_type_ID());
         Serial.printf("-->[SLIB] SENSEAIR S8 Sensor ID:  %08x\n", s8->get_sensor_ID());
         Serial.printf("-->[SLIB] SENSEAIR S8 Memory map version: 0x%04x\n", s8->get_memory_map_version());
