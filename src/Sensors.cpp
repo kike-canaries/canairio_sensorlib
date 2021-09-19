@@ -112,7 +112,7 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue) {
     }
     if (getPmDeviceSelected().equals("SENSEAIRS8")) {
         Serial.println("-->[SLIB] SenseAir S8 setting calibration to: " + String(ppmValue));
-        if(s8->send_special_command(S8_CO2_BACKGROUND_CALIBRATION)) 
+        if(s8->manual_calibration()) 
         Serial.println("-->[SLIB] S8 calibration ready.");
     }
 }
