@@ -13,7 +13,7 @@
 #include <dht_nonblocking.h>
 #include <sps30.h>
 #include <cm1106_uart.h>
-#include <s8.h>
+#include <s8_uart.h>
 
 using namespace std;
 #include <vector>
@@ -123,7 +123,7 @@ class Sensors {
     // Panasonic SN-GCJA5
     SFE_PARTICLE_SENSOR pmGCJA5;
     // SenseAir S8 CO2 sensor
-    S8 *s8;
+    S8_UART *s8;
     S8_sensor s8sensor;
 
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);

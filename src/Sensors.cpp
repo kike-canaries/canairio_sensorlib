@@ -112,7 +112,7 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue) {
     }
     if (getPmDeviceSelected().equals("SENSEAIRS8")) {
         Serial.println("-->[SLIB] SenseAir S8 setting calibration to: " + String(ppmValue));
-        if(s8->send_special_command(S8_CO2_BACKGROUND_CALIBRATION)) 
+        if(s8->manual_calibration()) 
         Serial.println("-->[SLIB] S8 calibration ready.");
     }
 }
@@ -540,9 +540,9 @@ void Sensors::CO2scd30Read() {
 
 void Sensors::PMGCJA5Read() {
     if (!getPmDeviceSelected().equals("PANASONIC_I2C")) return;
-    pm1 = pmGCJA5.getPC1_0();
-    pm25 = pmGCJA5.getPC2_5();
-    pm10 = pmGCJA5.getPC10();
+    pm1 = pmGCJA5.getPM1_0();
+    pm25 = pmGCJA5.getPM2_5();
+    pm10 = pmGCJA5.getPM10();
     dataReady = true;
     DEBUG("-->[SLIB] GCJA5 read > done!");
 }
@@ -763,10 +763,10 @@ bool Sensors::CO2CM1106Init() {
 
 bool Sensors::senseAirS8Init() {
     DEBUG("-->[SLIB] SENSEAIR S8 starting sensor..");
-    s8 = new S8(*_serial);
+    s8 = new S8_UART(*_serial);
     // Check if S8 is available
-    s8->get_firmware_version(s8sensor.firmver);
-    int len = strlen(s8sensor.firmver);
+    s8->get_firmware_version(s8sensor.firm_version);
+    int len = strlen(s8sensor.firm_version);
     if (len == 0) {
         DEBUG("-->[E][SLIB]SENSEAIR S8 not detected!");
         return false;
@@ -775,7 +775,7 @@ bool Sensors::senseAirS8Init() {
 
     Serial.println("-->[SLIB] SENSEAIR S8 detected SenseAir S8 sensor :)");
     if (devmode) {
-        Serial.printf("-->[SLIB] SENSEAIR S8 Software version: %s\n", s8sensor.firmver);
+        Serial.printf("-->[SLIB] SENSEAIR S8 Software version: %s\n", s8sensor.firm_version);
         Serial.printf("-->[SLIB] SENSEAIR S8 Sensor type: 0x%08x\n", s8->get_sensor_type_ID());
         Serial.printf("-->[SLIB] SENSEAIR S8 Sensor ID:  %08x\n", s8->get_sensor_ID());
         Serial.printf("-->[SLIB] SENSEAIR S8 Memory map version: 0x%04x\n", s8->get_memory_map_version());
