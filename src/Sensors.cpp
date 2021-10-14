@@ -121,7 +121,11 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue) {
         Serial.println("-->[SLIB] SCD4x setting calibration to: " + String(ppmValue));
         uint16_t frcCorrection;
         uint16_t error;
+        scd4x.stopPeriodicMeasurement();
+        delay(510);
         error = scd4x.performForcedRecalibration(ppmValue, frcCorrection);
+        delay(50);
+        scd4x.startPeriodicMeasurement();
     }
 }
 
