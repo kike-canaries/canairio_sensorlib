@@ -138,8 +138,12 @@ void Sensors::setCO2AltitudeOffset(float altitude){
     if (getPmDeviceSelected().equals("SCD4x")) {
         this->altoffset = altitude;
         this->hpa = hpaCalculation(altitude);       //hPa hectopascal calculation based on altitude
-        uint16_t error;
+        uint16_t error;        
+        scd4x.stopPeriodicMeasurement();
+        delay(510);
         error = scd4x.setSensorAltitude(altoffset);
+        delay(100);
+        scd4x.startPeriodicMeasurement();
     }
 }
 
@@ -1048,8 +1052,8 @@ void Sensors::CO2scd4xInit() {
     Serial.println("-->[SLIB] I2C detected SCD4x sensor :)");
     delay(10);
 
-    error = scd4x.startPeriodicMeasurement();
-    if (error) return;
+    scd4x.stopPeriodicMeasurement();
+    delay(510);    
 
     device_selected = "SCD4x";  // TODO: sync this constants with app
     device_type = SSCD4x;
@@ -1070,6 +1074,9 @@ void Sensors::CO2scd4xInit() {
         delay(1);
     }
 
+    error = scd4x.startPeriodicMeasurement();
+    if (error) return;
+
     CO2scd4xRead();
 
 }
@@ -1078,7 +1085,10 @@ void Sensors::CO2scd4xInit() {
 void Sensors::setSCD4xTempOffset(float offset) {
     if (getPmDeviceSelected().equals("SCD4x")) {
         Serial.println("-->[SLIB] SCD4x new temperature offset: " + String(offset));
+        scd4x.stopPeriodicMeasurement();
+        delay(510);    
         scd4x.setTemperatureOffset(offset);
+        scd4x.startPeriodicMeasurement();
     }
 }
 
@@ -1086,7 +1096,10 @@ void Sensors::setSCD4xTempOffset(float offset) {
 void Sensors::setSCD4xAltitudeOffset(float offset) {
     if (getPmDeviceSelected().equals("SCD4x")) {
         Serial.println("-->[SLIB] SCD4x new altitude offset: " + String(offset));
+        scd4x.stopPeriodicMeasurement();
+        delay(510);    
         scd4x.setSensorAltitude(uint16_t(offset));
+        scd4x.startPeriodicMeasurement();
     }
 }
 
