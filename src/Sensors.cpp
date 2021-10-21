@@ -129,15 +129,15 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue)
         Serial.println("-->[SLIB] SCD4x setting calibration to: " + String(ppmValue));
         uint16_t frcCorrection;
         uint16_t error;
-        char errorMessage[256];
         scd4x.stopPeriodicMeasurement();
         delay(510);
         error = scd4x.performForcedRecalibration(ppmValue, frcCorrection);
         if (error)
         {
-            DEBUG("-->[E][SLIB] SCD4x Error calibrating: ", String(error).c_str());
+            Serial.print("Error trying to execute performForcedRecalibration(): ");
             errorToString(error, errorMessage, 256);
-            DEBUG("-->[E][SLIB] SCD4x ", errorMessage);
+            Serial.println(errorMessage);
+            return;
         }
         delay(50);
         scd4x.startPeriodicMeasurement();
@@ -589,12 +589,10 @@ void Sensors::CO2scd4xRead()
         DEBUG("-->[E][SLIB] SCD4x Error reading measurement: ", String(error).c_str());
         errorToString(error, errorMessage, 256);
         DEBUG("-->[E][SLIB] SCD4x ", errorMessage);
+        return;
     }
-    else
-    {
-        if (tCO2 > 0)
-            {
-                CO2 = tCO2;
+    if (tCO2 > 0) {
+        CO2 = tCO2;
                 CO2humi = tCO2humi;
                 CO2temp = tCO2temp;
                 dataReady = true;
@@ -602,7 +600,7 @@ void Sensors::CO2scd4xRead()
                 DEBUG("-->[SLIB] SCD4x readed CO2: ", String(CO2).c_str());
                 DEBUG("-->[SLIB] SCD4x readed temp: ", String(CO2temp).c_str());
                 DEBUG("-->[SLIB] SCD4x readed humidity: ", String(CO2humi).c_str());
-            }
+        DEBUG("-->[SLIB] SCD4x read > done!");
     }
 }
 
