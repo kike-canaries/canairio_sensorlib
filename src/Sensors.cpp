@@ -584,6 +584,7 @@ void Sensors::CO2scd4xRead()
     char errorMessage[256];
     uint16_t tCO2 = 0;
     float tCO2temp, tCO2humi = 0; // we need temp vars, without it override values
+    if (getPmDeviceSelected() != "SCD4x") return;
     error = scd4x.readMeasurement(tCO2, tCO2temp, tCO2humi);
     if (error)
     {
