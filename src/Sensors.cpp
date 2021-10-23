@@ -586,6 +586,11 @@ void Sensors::CO2scd4xRead()
         errorToString(error, errorMessage, 256);
         DEBUG("-->[E][SLIB] SCD4x ", errorMessage);
         return;
+    } else {
+        CO2 = tCO2;
+        CO2humi = tCO2humi;
+        CO2temp = tCO2temp;        
+        DEBUG("-->[SLIB] SCD4x read > done!");
     }
 }
 
