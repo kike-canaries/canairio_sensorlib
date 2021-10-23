@@ -593,17 +593,6 @@ void Sensors::CO2scd4xRead()
         DEBUG("-->[E][SLIB] SCD4x ", errorMessage);
         return;
     }
-    if (tCO2 > 0) {
-        CO2 = tCO2;
-                CO2humi = tCO2humi;
-                CO2temp = tCO2temp;
-                dataReady = true;
-                DEBUG("-->[SLIB] SCD4x read > done!");
-                DEBUG("-->[SLIB] SCD4x readed CO2: ", String(CO2).c_str());
-                DEBUG("-->[SLIB] SCD4x readed temp: ", String(CO2temp).c_str());
-                DEBUG("-->[SLIB] SCD4x readed humidity: ", String(CO2humi).c_str());
-        DEBUG("-->[SLIB] SCD4x read > done!");
-    }
 }
 
 
