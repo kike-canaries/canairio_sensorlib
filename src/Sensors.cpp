@@ -108,11 +108,11 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue)
         Serial.println("-->[SLIB] SCD30 setting calibration to: " + String(ppmValue));
         scd30.setForcedRecalibrationFactor(ppmValue);
     }
-    if (getPmDeviceSelected().equals("CM1106"))
+ if (getPmDeviceSelected().equals("CM1106"))
     {
         Serial.println("-->[SLIB] CM1106 setting calibration to: " + String(ppmValue));
         cm1106->start_calibration(ppmValue);
-    }
+    }   
     if (getPmDeviceSelected().equals("MHZ19"))
     {
         Serial.println("-->[SLIB] MH-Z19 setting calibration to: " + String(ppmValue));
@@ -594,8 +594,6 @@ void Sensors::CO2scd4xRead()
         return;
     }
 }
-
-
 
 void Sensors::PMGCJA5Read() {
     if (!getPmDeviceSelected().equals("PANASONIC_I2C")) return;
