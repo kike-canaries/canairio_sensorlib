@@ -589,7 +589,8 @@ void Sensors::CO2scd4xRead()
     } else {
         CO2 = tCO2;
         CO2humi = tCO2humi;
-        CO2temp = tCO2temp;        
+        CO2temp = tCO2temp;
+        dataReady = true;
         DEBUG("-->[SLIB] SCD4x read > done!");
     }
 }
