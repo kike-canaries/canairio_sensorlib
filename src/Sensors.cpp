@@ -117,19 +117,17 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue)
     }
     if (getPmDeviceSelected().equals("SENSEAIRS8")) {
         Serial.println("-->[SLIB] SenseAir S8 setting calibration to: " + String(ppmValue));
-        if (s8->manual_calibration())
-            Serial.println("-->[SLIB] S8 calibration ready.");
+        if (s8->manual_calibration()) Serial.println("-->[SLIB] S8 calibration ready.");
     }
     if (getPmDeviceSelected().equals("SCD4x")) {
         Serial.println("-->[SLIB] SCD4x setting calibration to: " + String(ppmValue));
-        uint16_t frcCorrection;        
+        uint16_t frcCorrection;
         uint16_t error = 0;
         char errorMessage[256];
         scd4x.stopPeriodicMeasurement();
         delay(510);
         error = scd4x.performForcedRecalibration(ppmValue, frcCorrection);
-        if (error)
-        {
+        if (error) {
             Serial.print("Error trying to execute performForcedRecalibration(): ");
             errorToString(error, errorMessage, 256);
             Serial.println(errorMessage);
@@ -149,10 +147,9 @@ void Sensors::setCO2AltitudeOffset(float altitude){
     if (getPmDeviceSelected().equals("SCD4x")) {
         this->altoffset = altitude;
         this->hpa = hpaCalculation(altitude);       //hPa hectopascal calculation based on altitude
-        uint16_t error;        
         scd4x.stopPeriodicMeasurement();
         delay(510);
-        error = scd4x.setSensorAltitude(altoffset);
+        scd4x.setSensorAltitude(altoffset);
         delay(100);
         scd4x.startPeriodicMeasurement();
     }
@@ -1060,7 +1057,6 @@ void Sensors::CO2scd4xInit() {
     float tTemperatureOffset;
     uint16_t tSensorAltitude;
     uint16_t error;
-    uint16_t ascEnabled;
     char errorMessage[256];
 
     DEBUG("-->[SLIB] SCD4x starting CO2 SCD4x sensor..");
@@ -1071,11 +1067,9 @@ void Sensors::CO2scd4xInit() {
         errorToString(error, errorMessage, 256);
         DEBUG("-->[E][SLIB] SCD4x ", errorMessage);
         return;
-    }
-    else
-    {
+    } else {
         Serial.println("-->[SLIB] I2C detected SCD4x sensor :)");
-        delay(500);    
+        delay(500);
     }
 
     device_selected = "SCD4x";  // TODO: sync this constants with app
@@ -1083,15 +1077,15 @@ void Sensors::CO2scd4xInit() {
 
     scd4x.getTemperatureOffset(tTemperatureOffset);
     scd4x.getSensorAltitude(tSensorAltitude);
-    DEBUG("-->[SLIB] SCD4x current temperature offset: ",String(tTemperatureOffset).c_str());
+    DEBUG("-->[SLIB] SCD4x current temperature offset: ", String(tTemperatureOffset).c_str());
     DEBUG("-->[SLIB] SCD4x current altitude offset: ", String(tSensorAltitude).c_str());
 
-    if(tSensorAltitude != uint16_t(altoffset)) {
+    if (tSensorAltitude != uint16_t(altoffset)) {
         setSCD4xAltitudeOffset(altoffset);
         delay(1);
     }
 
-    if(tTemperatureOffset != toffset) {
+    if (tTemperatureOffset != toffset) {
         Serial.println("-->[SLIB] SCD4x setting new temp offset: " + String(toffset));
         setSCD4xTempOffset(toffset);
         delay(1);
@@ -1103,16 +1097,14 @@ void Sensors::CO2scd4xInit() {
         errorToString(error, errorMessage, 256);
         DEBUG("-->[E][SLIB] SCD4x ", errorMessage);
         return;
-    }
-    else {
+    } else {
         Serial.println("-->[SLIB] I2C detected SCD4x sensor :)");
-        delay(500);    
+        delay(500);
     }
 
     if (error) return;
 
     CO2scd4xRead();
-
 }
 
 /// set SCD4x temperature compensation
