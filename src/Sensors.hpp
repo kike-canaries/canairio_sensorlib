@@ -14,6 +14,7 @@
 #include <sps30.h>
 #include <cm1106_uart.h>
 #include <s8_uart.h>
+#include <SensirionI2CScd4x.h>
 
 using namespace std;
 #include <vector>
@@ -68,7 +69,7 @@ typedef void (*voidCbFn)();
 class Sensors {
    public:
     /// Supported devices. Auto is for Honeywell and Plantower sensors and similars
-    enum SENSOR_TYPE { Auto, Panasonic, Sensirion, SDS011, Mhz19, CM1106, SENSEAIRS8, SSCD30 };
+    enum SENSOR_TYPE { Auto, Panasonic, Sensirion, SDS011, Mhz19, CM1106, SENSEAIRS8, SSCD30, SSCD4x };
     
     /// SPS30 values. Only for Sensirion SPS30 sensor.
     struct sps_values val;
@@ -125,6 +126,8 @@ class Sensors {
     // SenseAir S8 CO2 sensor
     S8_UART *s8;
     S8_sensor s8sensor;
+    // SCD4x sensor
+    SensirionI2CScd4x scd4x;
 
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
     void loop();
@@ -223,6 +226,11 @@ class Sensors {
     void setSCD30AltitudeOffset(float offset);
     void CO2correctionAlt();
     float hpaCalculation(float altitude);
+
+    void CO2scd4xInit();
+    void CO2scd4xRead();
+    void setSCD4xTempOffset(float offset);
+    void setSCD4xAltitudeOffset(float offset);
 
     void PMGCJA5Init();
     void PMGCJA5Read();

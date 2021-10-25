@@ -18,6 +18,9 @@
     "AM2320",
     "mhz19",
     "scd30",
+    "scd4x",
+    "scd40",
+    "scd41",
     "SenseAir S8",
     "cm1106",
     "sds011",
@@ -80,6 +83,7 @@
     {"name":"CM1106_UART", "version":"https://github.com/jcomas/CM1106_UART.git"},
     {"name":"SN-GCJA5", "version":"https://github.com/paulvha/SN-GCJA5.git"},
     {"name":"S8_UART", "version":"https://github.com/jcomas/S8_UART.git"},
-    {"name":"Adafruit BME680 Library","owner":"adafruit","version":"2.0.0"}
+    {"name":"Adafruit BME680 Library","owner":"adafruit","version":"2.0.0"},
+    {"name":"Sensirion I2C SCD4x","owner":"sensirion","version":"0.3.1"}
   ]
 }
