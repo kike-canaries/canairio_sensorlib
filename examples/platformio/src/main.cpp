@@ -69,9 +69,6 @@ void setup() {
         Serial.println("-->[SETUP] Sensor configured: " + sensors.getPmDeviceSelected());
 
     delay(500);
-
-    // sensors.setCO2RecalibrationFactor(949);
-    // sensors.scd4x.startPeriodicMeasurement();
 }
 
 void loop() {
