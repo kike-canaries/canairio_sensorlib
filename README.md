@@ -260,8 +260,15 @@ Also you can make a donation, be a patreon or buy a device:
 - [x] SenseAir S8 via UART support
 - [ ] IAQ indicator from BME680 Bosch library
 
+# Projects using this Library
+
+- [CanAirIO Device](https://github.com/kike-canaries/canairio_firmware): ESP32 Air quality device for mobile and fixed stations. (PM2.5 and CO2 sensors)
+- [Medidor de CO2](https://emariete.com/medidor-co2-display-tft-color-ttgo-t-display-sensirion-scd30): Un medidor de CO2 de alta calidad con pantalla en color. (CO2)    
+
+
 # Credits
 
 Thanks to all collaborators and [CanAirIO](https://canair.io) community for testing and reports.
+
 
 ---
