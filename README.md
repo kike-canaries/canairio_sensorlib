@@ -187,7 +187,11 @@ We recommended PlatformIO because is more easy than Arduino IDE. For this, pleas
 pio run --target upload
 ```
 
-### Arduino
+### Arduino IDE
+
+Only import the `ino` file of the sample and install the libraries listed on `library.json` and this library.
+
+### Arduino CLI
 
 #### Prerequisites
 
@@ -262,7 +266,7 @@ Also you can make a donation, be a patreon or buy a device:
 
 # Projects using this Library
 
-- [CanAirIO Device](https://github.com/kike-canaries/canairio_firmware): ESP32 Air quality device for mobile and fixed stations. (PM2.5 and CO2 sensors)
+- [CanAirIO Device](https://github.com/kike-canaries/canairio_firmware): ESP32 Air quality device for mobile and fixed stations. (PM2.5 and CO2)
 - [Medidor de CO2](https://emariete.com/medidor-co2-display-tft-color-ttgo-t-display-sensirion-scd30): Un medidor de CO2 de alta calidad con pantalla en color. (CO2)    
 
 
