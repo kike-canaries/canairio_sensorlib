@@ -139,7 +139,8 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue)
 }
 
 void Sensors::setCO2AltitudeOffset(float altitude){
-    if (getPmDeviceSelected().equals("SCD30")) {
+    if (true) {
+
         this->altoffset = altitude;
         this->hpa = hpaCalculation(altitude);       //hPa hectopascal calculation based on altitude
         setSCD30AltitudeOffset(altoffset);

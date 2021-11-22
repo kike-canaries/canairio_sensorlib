@@ -52,6 +52,8 @@ void setup() {
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
     sensors.setDebugMode(true);                     // [optional] debug mode
     sensors.detectI2COnly(false);                   // disable force to only i2c sensors
+
+    sensors.setCO2AltitudeOffset(2600.0);
     
     // sensors.init();                              // Auto detection of PM sensors (Honeywell, Plantower, Panasonic)
     // sensors.init(sensors.Auto);                  // Auto detection of PM sensors (Honeywell, Plantower, Panasonic)
