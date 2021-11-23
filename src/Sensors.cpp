@@ -37,7 +37,7 @@ void Sensors::loop() {
         if (dataReady && (_onDataCb != nullptr)) {
             _onDataCb();  // if any sensor reached any data, dataReady is true.
         } else if (!dataReady && (_onErrorCb != nullptr))
-            _onErrorCb("-->[W][SLIB] No data from any sensor!");
+            _onErrorCb("[W][SLIB] No data from any sensor!");
 
         printValues();
 
@@ -139,14 +139,13 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue)
 }
 
 void Sensors::setCO2AltitudeOffset(float altitude){
+    this->altoffset = altitude;
+    this->hpa = hpaCalculation(altitude);       //hPa hectopascal calculation based on altitude
+
     if (getPmDeviceSelected().equals("SCD30")) {
-        this->altoffset = altitude;
-        this->hpa = hpaCalculation(altitude);       //hPa hectopascal calculation based on altitude
         setSCD30AltitudeOffset(altoffset);
     }
     if (getPmDeviceSelected().equals("SCD4x")) {
-        this->altoffset = altitude;
-        this->hpa = hpaCalculation(altitude);       //hPa hectopascal calculation based on altitude
         scd4x.stopPeriodicMeasurement();
         delay(510);
         scd4x.setSensorAltitude(altoffset);
@@ -293,11 +292,11 @@ bool Sensors::pmGenericRead() {
             pm25 = txtMsg[6] * 256 + (char)(txtMsg[7]);
             pm10 = txtMsg[8] * 256 + (char)(txtMsg[9]);
             if (pm25 > 1000 && pm10 > 1000) {
-                onSensorError("-->[E][SLIB] UART PMGENERIC out of range pm25 > 1000");
+                onSensorError("[E][SLIB] UART PMGENERIC out of range pm25 > 1000");
             } else
                 return true;
         } else {
-            onSensorError("-->[E][SLIB] UART PMGENERIC invalid sensor header!");
+            onSensorError("[E][SLIB] UART PMGENERIC invalid sensor header!");
         }
     }
     return false;
@@ -316,11 +315,11 @@ bool Sensors::pmPanasonicRead() {
         pm25 = txtMsg[6] * 256 + (char)(txtMsg[5]);
         pm10 = txtMsg[10] * 256 + (char)(txtMsg[9]);
         if (pm25 > 2000 && pm10 > 2000) {
-            onSensorError("-->[E][SLIB] PANASONIC out of range pm25 > 2000");
+            onSensorError("[E][SLIB] PANASONIC out of range pm25 > 2000");
         } else
             return true;
     } else {
-        onSensorError("-->[E][SLIB] PANASONIC invalid sensor header!");
+        onSensorError("[E][SLIB] PANASONIC invalid sensor header!");
     }
     return false;
 }
@@ -338,11 +337,11 @@ bool Sensors::pmSDS011Read() {
             pm25 = (txtMsg[3] * 256 + (char)(txtMsg[2])) / 10;
             pm10 = (txtMsg[5] * 256 + (char)(txtMsg[4])) / 10;
             if (pm25 > 1000 && pm10 > 1000) {
-                onSensorError("-->[E][SLIB] SDS011 out of range pm25 > 1000");
+                onSensorError("[E][SLIB] SDS011 out of range pm25 > 1000");
             } else
                 return true;
         } else {
-            onSensorError("-->[E][SLIB] SDS011 invalid sensor header!");
+            onSensorError("[E][SLIB] SDS011 invalid sensor header!");
         }
     }
     return false;
@@ -387,12 +386,12 @@ bool Sensors::sps30Read() {
         ret = sps30.GetValues(&val);
         if (ret == ERR_DATALENGTH) {
             if (error_cnt++ > 3) {
-                DEBUG("-->[E][SLIB] SPS30 Error during reading values: ", String(ret).c_str());
+                DEBUG("[E][SLIB] SPS30 Error during reading values: ", String(ret).c_str());
                 return false;
             }
             delay(500);
         } else if (ret != ERR_OK) {
-            sps30ErrToMess((char *)"-->[W][SLIB] SPS30 Error during reading values: ", ret);
+            sps30ErrToMess((char *)"[W][SLIB] SPS30 Error during reading values: ", ret);
             return false;
         }
     } while (ret != ERR_OK);
@@ -407,7 +406,7 @@ bool Sensors::sps30Read() {
     if(i2conly && sample_time > 30) sps30.stop();  // power saving validation
 
     if (pm25 > 1000 && pm10 > 1000) {
-        onSensorError("-->[E][SLIB] SPS30 Sensirion out of range pm25 > 1000");
+        onSensorError("[E][SLIB] SPS30 Sensirion out of range pm25 > 1000");
         return false;
     }
 
@@ -579,9 +578,9 @@ void Sensors::CO2scd4xRead()
     if (getPmDeviceSelected() != "SCD4x") return;
     error = scd4x.readMeasurement(tCO2, tCO2temp, tCO2humi);
     if (error) {
-        DEBUG("-->[E][SLIB] SCD4x Error reading measurement: ", String(error).c_str());
+        DEBUG("[E][SLIB] SCD4x Error reading measurement: ", String(error).c_str());
         errorToString(error, errorMessage, 256);
-        DEBUG("-->[E][SLIB] SCD4x ", errorMessage);
+        DEBUG("[E][SLIB] SCD4x ", errorMessage);
         return;
     } else {
         CO2 = tCO2;
@@ -636,7 +635,7 @@ void Sensors::onSensorError(const char *msg) {
 void Sensors::sps30ErrToMess(char *mess, uint8_t r) {
     char buf[80];
     sps30.GetErrDescription(r, buf, 80);
-    DEBUG("-->[E][SLIB] SPS30", buf);
+    DEBUG("[E][SLIB] SPS30", buf);
 }
 
 void Sensors::sps30Errorloop(char *mess, uint8_t r) {
@@ -784,7 +783,7 @@ bool Sensors::CO2CM1106Init() {
             DEBUG("-->[SLIB] CM1106 version detected: unknown");
         }
     } else {
-        DEBUG("-->[E][SLIB] CM1106 not detected!");
+        DEBUG("[E][SLIB] CM1106 not detected!");
         return false;
     }     
 
@@ -822,7 +821,7 @@ bool Sensors::senseAirS8Init() {
     s8->get_firmware_version(s8sensor.firm_version);
     int len = strlen(s8sensor.firm_version);
     if (len == 0) {
-        DEBUG("-->[E][SLIB]SENSEAIR S8 not detected!");
+        DEBUG("[E][SLIB]SENSEAIR S8 not detected!");
         return false;
     }
     // Show S8 sensor info
@@ -861,7 +860,7 @@ bool Sensors::sps30UARTInit() {
     sps30.EnableDebugging(devmode);
     // Begin communication channel;
     if (!sps30.begin(SENSOR_COMMS)) {
-        sps30Errorloop((char *)"-->[E][SLIB] UART SPS30 could not initialize communication channel.", 0);
+        sps30Errorloop((char *)"[E][SLIB] UART SPS30 could not initialize communication channel.", 0);
         return false;
     }
 
@@ -875,7 +874,7 @@ bool Sensors::sps30UARTInit() {
         Serial.println("-->[SLIB] UART detected SPS30 sensor :)");
         return true;
     } else
-        sps30Errorloop((char *)"-->[E][SLIB] UART SPS30 Could NOT start measurement", 0);
+        sps30Errorloop((char *)"[E][SLIB] UART SPS30 Could NOT start measurement", 0);
 
     return false;
 }
@@ -889,7 +888,7 @@ bool Sensors::sps30I2CInit() {
     sps30.EnableDebugging(devmode);
     // Begin communication channel;
     if (sps30.begin(&Wire) == false) {
-        sps30Errorloop((char *)"-->[E][SLIB] I2C SPS30 could not set channel.", 0);
+        sps30Errorloop((char *)"[E][SLIB] I2C SPS30 could not set channel.", 0);
         return false;
     }
 
@@ -904,11 +903,11 @@ bool Sensors::sps30I2CInit() {
         device_selected = "SENSIRION";
         device_type = Sensirion;
         if (sps30.I2C_expect() == 4)
-            DEBUG("-->[E][SLIB] SPS30 due to I2C buffersize only PM values  \n");
+            DEBUG("[E][SLIB] SPS30 due to I2C buffersize only PM values  \n");
         return true;
     }
     else
-        sps30Errorloop((char *)"-->[E][SLIB] I2C SPS30 Could NOT start measurement.", 0);
+        sps30Errorloop((char *)"[E][SLIB] I2C SPS30 Could NOT start measurement.", 0);
 
     return false;
 }
@@ -916,14 +915,14 @@ bool Sensors::sps30I2CInit() {
 bool Sensors::sps30tests() {
     // check for SPS30 connection
     if (!sps30.probe()) {
-        sps30Errorloop((char *)"-->[E][SLIB] SPS30 could not probe.", 0);
+        sps30Errorloop((char *)"[E][SLIB] SPS30 could not probe.", 0);
         return false;
     } else {
         sps30DeviceInfo();
     }
     // reset SPS30 connection
     if (!sps30.reset()) {
-        sps30Errorloop((char *)"-->[E][SLIB] SPS30 could not reset.", 0);
+        sps30Errorloop((char *)"[E][SLIB] SPS30 could not reset.", 0);
         return false;
     }
     return true;
@@ -1023,14 +1022,15 @@ void Sensors::CO2scd30Init() {
     DEBUG("-->[SLIB] SCD30 current altitude offset: ", String(scd30.getAltitudeCompensation()).c_str());
 
     if(scd30.getAltitudeCompensation() != uint16_t(altoffset)){
+        DEBUG("-->[SLIB] SCD30 updated altitude offset to: ", String(altoffset).c_str());
         setSCD30AltitudeOffset(altoffset);
-        delay(1);
+        delay(10);
     }
 
     if(scd30.getTemperatureOffset() != toffset) {
         Serial.println("-->[SLIB] SCD30 setting new temp offset: " + String(toffset));
         setSCD30TempOffset(toffset);
-        delay(1);
+        delay(10);
     }
 
     CO2scd30Read();
@@ -1063,9 +1063,9 @@ void Sensors::CO2scd4xInit() {
     scd4x.begin(Wire);
     error = scd4x.stopPeriodicMeasurement();
     if (error) {
-        DEBUG("-->[E][SLIB] SCD4x Error Stopping Periodic Measurement : ", String(error).c_str());
+        DEBUG("[E][SLIB] SCD4x Error Stopping Periodic Measurement : ", String(error).c_str());
         errorToString(error, errorMessage, 256);
-        DEBUG("-->[E][SLIB] SCD4x ", errorMessage);
+        DEBUG("[E][SLIB] SCD4x ", errorMessage);
         return;
     } else {
         Serial.println("-->[SLIB] I2C detected SCD4x sensor :)");
@@ -1093,9 +1093,9 @@ void Sensors::CO2scd4xInit() {
 
     error = scd4x.startPeriodicMeasurement();
     if (error) {
-        DEBUG("-->[E][SLIB] SCD4x Error Starting Periodic Measurement : ", String(error).c_str());
+        DEBUG("[E][SLIB] SCD4x Error Starting Periodic Measurement : ", String(error).c_str());
         errorToString(error, errorMessage, 256);
-        DEBUG("-->[E][SLIB] SCD4x ", errorMessage);
+        DEBUG("[E][SLIB] SCD4x ", errorMessage);
         return;
     } else {
         Serial.println("-->[SLIB] I2C detected SCD4x sensor :)");
