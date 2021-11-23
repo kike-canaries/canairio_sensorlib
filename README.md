@@ -21,7 +21,7 @@ NOTE: Panasonic via UART in ESP8266 maybe needs select in detection
 
 ### CO2 sensors
 
-| Sensor model  | UART  | i2c  | Detection mode | Status |  
+| Sensor model  | UART  | I2C | Detection mode | Status |  
 |:----------------------- |:-----:|:-----:|:-------:|:----------:|
 | Sensirion SCD30    | --- | Yes | Auto | STABLE |
 | Sensirion SCD4x    | --- | Yes | Auto | TESTING |
@@ -55,9 +55,10 @@ NOTE: DHT22 is supported but is not recommended
 - Unified temperature offset for CO2 and environment sensors
 - Public access to main objects of each library (full methods access)
 - Basic debug mode support toggle in execution
-- Basic power saving management with sample time > 30s on SPS30
+- Basic power saving management with sample time > 30s on SPS30  
 
-Full list of all sub libraries supported [here]()
+
+Full list of all sub libraries supported [here](https://github.com/kike-canaries/canairio_sensorlib/blob/master/library.json#L72-L89)
 
 
 # Quick implementation
