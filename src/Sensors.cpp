@@ -139,14 +139,13 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue)
 }
 
 void Sensors::setCO2AltitudeOffset(float altitude){
+    this->altoffset = altitude;
+    this->hpa = hpaCalculation(altitude);       //hPa hectopascal calculation based on altitude
+
     if (getPmDeviceSelected().equals("SCD30")) {
-        this->altoffset = altitude;
-        this->hpa = hpaCalculation(altitude);       //hPa hectopascal calculation based on altitude
         setSCD30AltitudeOffset(altoffset);
     }
     if (getPmDeviceSelected().equals("SCD4x")) {
-        this->altoffset = altitude;
-        this->hpa = hpaCalculation(altitude);       //hPa hectopascal calculation based on altitude
         scd4x.stopPeriodicMeasurement();
         delay(510);
         scd4x.setSensorAltitude(altoffset);
@@ -1023,14 +1022,15 @@ void Sensors::CO2scd30Init() {
     DEBUG("-->[SLIB] SCD30 current altitude offset: ", String(scd30.getAltitudeCompensation()).c_str());
 
     if(scd30.getAltitudeCompensation() != uint16_t(altoffset)){
+        DEBUG("-->[SLIB] SCD30 updated altitude offset to: ", String(altoffset).c_str());
         setSCD30AltitudeOffset(altoffset);
-        delay(1);
+        delay(10);
     }
 
     if(scd30.getTemperatureOffset() != toffset) {
         Serial.println("-->[SLIB] SCD30 setting new temp offset: " + String(toffset));
         setSCD30TempOffset(toffset);
-        delay(1);
+        delay(10);
     }
 
     CO2scd30Read();
