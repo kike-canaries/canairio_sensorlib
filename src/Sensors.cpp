@@ -509,8 +509,8 @@ void Sensors::am2320Read() {
 void Sensors::bme280Read() {
     float humi1 = bme280.readHumidity();
     float temp1 = bme280.readTemperature();
-    if (humi1 != 0) humi = humi1;
-    if (temp1 != 0) {
+    if (humi1 != NAN) humi = humi1;
+    if (temp1 != NAN) {
         temp = temp1-toffset;
         dataReady = true;
         DEBUG("-->[SLIB] BME280 read > done!");
