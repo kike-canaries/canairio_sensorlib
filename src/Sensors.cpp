@@ -30,7 +30,7 @@ void Sensors::loop() {
         CO2scd4xRead();
         PMGCJA5Read();
 
-        if(i2conly && device_type == Sensirion) sps30Read();
+        if(i2conly && device_type == SSPS30) sps30Read();
 
         if(!dataReady)DEBUG("-->[SLIB] Any data from sensors? check your wirings!");
 
@@ -463,7 +463,7 @@ bool Sensors::pmSensorRead() {
             return pmPanasonicRead();
             break;
 
-        case Sensirion:
+        case SSPS30:
             return sps30Read();
             break;
 
@@ -665,7 +665,7 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
     else if (pms_type == Panasonic) {
         DEBUG("-->[SLIB] UART detecting Panasonic PM sensor..");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
-    } else if (pms_type == Sensirion) {
+    } else if (pms_type == SSPS30) {
         DEBUG("-->[SLIB] UART detecting SPS30 PM sensor..");
         if (!serialInit(pms_type, 115200, pms_rx, pms_tx)) return false;
     } else if (pms_type == SDS011) {
@@ -703,10 +703,10 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
 bool Sensors::pmSensorAutoDetect(int pms_type) {
     delay(1000);  // sync serial
 
-    if (pms_type == Sensirion) {
+    if (pms_type == SSPS30) {
         if (sps30UARTInit()) {
             device_selected = "SENSIRION";
-            device_type = Sensirion;
+            device_type = SSPS30;
             return true;
         }
     }
@@ -880,7 +880,7 @@ bool Sensors::sps30UARTInit() {
 }
 
 bool Sensors::sps30I2CInit() {
-    if (device_type == Sensirion) return false;
+    if (device_type == SSPS30) return false;
     
     DEBUG("-->[SLIB] I2C SPS30 starting sensor..");
 
@@ -901,7 +901,7 @@ bool Sensors::sps30I2CInit() {
         DEBUG("-->[SLIB] SPS30 Measurement OK");
         Serial.println("-->[SLIB] I2C detected SPS30 sensor :)");
         device_selected = "SENSIRION";
-        device_type = Sensirion;
+        device_type = SSPS30;
         if (sps30.I2C_expect() == 4)
             DEBUG("[E][SLIB] SPS30 due to I2C buffersize only PM values  \n");
         return true;
@@ -1221,7 +1221,7 @@ bool Sensors::serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx) 
             break;
 
         case SERIALPORT2:
-            if (pms_type == Sensirion)
+            if (pms_type == SSPS30)
                 Serial2.begin(speed_baud);
             else
                 Serial2.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx, false);
@@ -1245,7 +1245,7 @@ bool Sensors::serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx) 
 #if defined(INCLUDE_SOFTWARE_SERIAL)
                 DEBUG("-->[SLIB] swSerial init on pin: ", String(pms_rx).c_str());
                 static SoftwareSerial swSerial(pms_rx, pms_tx);
-                if (pms_type == Sensirion)
+                if (pms_type == SSPS30)
                     swSerial.begin(speed_baud);
                 else if (pms_type == Panasonic)
                     swSerial.begin(speed_baud, SWSERIAL_8E1, pms_rx, pms_tx, false);

@@ -69,7 +69,7 @@ typedef void (*voidCbFn)();
 class Sensors {
    public:
     /// Supported devices. Auto is for Honeywell and Plantower sensors and similars
-    enum SENSOR_TYPE { Auto, Panasonic, Sensirion, SDS011, Mhz19, CM1106, SENSEAIRS8, SSCD30, SSCD4x };
+    enum SENSOR_TYPE { Auto, Panasonic, SSPS30, SDS011, Mhz19, CM1106, SENSEAIRS8, SSCD30, SSCD4x };
     
     /// SPS30 values. Only for Sensirion SPS30 sensor.
     struct sps_values val;
