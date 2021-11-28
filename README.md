@@ -38,6 +38,7 @@ NOTE: Panasonic via UART in ESP8266 maybe needs select in detection
 | SHT31       | i2c |  Auto | STABLE |
 | AHT10       | i2c |  Auto | STABLE |
 | BME280      | i2c |  Auto | STABLE |
+| BMP280      | i2c |  Auto | TESTING |
 | BME680      | i2c |  Auto | STABLE |
 | DHTxx       | TwoWire |  Auto | DEPRECATED |
 
