@@ -995,12 +995,12 @@ void Sensors::am2320Init() {
 void Sensors::sht31Init() {
     DEBUG("-->[SLIB] SHT31 starting SHT31 sensor..");
     sht31 = Adafruit_SHT31();
-    if (sht31.begin(0x44)) Serial.println("-->[SLIB] I2C detected SHT31 sensor :)");
+    if (sht31.begin()) Serial.println("-->[SLIB] I2C detected SHT31 sensor :)");
 }
 
 void Sensors::bme280Init() {
     DEBUG("-->[SLIB] BME280 starting BME280 sensor..");
-    if (bme280.begin(0x76)) Serial.println("-->[SLIB] I2C detected BME280 sensor :)");
+    if (bme280.begin()) Serial.println("-->[SLIB] I2C detected BME280 sensor :)");
 }
 
 void Sensors::bmp280Init() {
