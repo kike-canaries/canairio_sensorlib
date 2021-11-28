@@ -4,6 +4,7 @@
 #include <AHT10.h>
 #include <AM232X.h>
 #include <Adafruit_BME280.h>
+#include <Adafruit_BMP280.h>
 #include <Adafruit_BME680.h>
 #include <Adafruit_SHT31.h>
 #include <Adafruit_Sensor.h>
@@ -103,6 +104,8 @@ class Sensors {
     AM232X am2320;
     // BME280 (Humidity, Pressure, Altitude and Temperature)
     Adafruit_BME280 bme280;
+    // BMP280 (Humidity, Pressure, Altitude and Temperature)
+    Adafruit_BMP280 bmp280;
     // BME680 (Humidity, Gas, IAQ, Pressure, Altitude and Temperature)
     Adafruit_BME680 bme680; 
     // AHT10
@@ -210,6 +213,9 @@ class Sensors {
 
     void bme280Init();
     void bme280Read();
+
+    void bmp280Init();
+    void bmp280Read();
 
     void bme680Init();
     void bme680Read();

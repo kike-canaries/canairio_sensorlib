@@ -518,6 +518,17 @@ void Sensors::bme280Read() {
     DEBUG("-->[SLIB] BME280 read > done!");
 }
 
+void Sensors::bmp280Read() {
+    float temp1 = bmp280.readTemperature();
+    float press1 = bmp280.readPressure();
+    if (press1 == 0) return;
+    temp = temp1-toffset;
+    pres = bmp280.readPressure();
+    alt = bmp280.readAltitude(SEALEVELPRESSURE_HPA);
+    dataReady = true;
+    DEBUG("-->[SLIB] BME280 read > done!");
+}
+
 void Sensors::bme680Read() {
     unsigned long endTime = bme680.beginReading();
     if (endTime == 0) return;
@@ -990,6 +1001,18 @@ void Sensors::sht31Init() {
 void Sensors::bme280Init() {
     DEBUG("-->[SLIB] BME280 starting BME280 sensor..");
     if (bme280.begin(0x76)) Serial.println("-->[SLIB] I2C detected BME280 sensor :)");
+}
+
+void Sensors::bmp280Init() {
+    DEBUG("-->[SLIB] BMP280 starting BMP280 sensor..");
+    if (!bmp280.begin()) return;
+    Serial.println("-->[SLIB] I2C detected BMP280 sensor :)");
+    // Default settings from datasheet.
+    bmp280.setSampling(Adafruit_BMP280::MODE_NORMAL,  // Operating Mode.
+                    Adafruit_BMP280::SAMPLING_X2,     // Temp. oversampling
+                    Adafruit_BMP280::SAMPLING_X16,    // Pressure oversampling
+                    Adafruit_BMP280::FILTER_X16,      // Filtering.
+                    Adafruit_BMP280::STANDBY_MS_500); // Standby time.
 }
 
 void Sensors::bme680Init() {
