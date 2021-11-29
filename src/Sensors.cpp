@@ -245,6 +245,7 @@ float Sensors::getTemperature() {
 void Sensors::setTempOffset(float offset){
     toffset = offset;
     setSCD30TempOffset(toffset);
+    setSCD4xTempOffset(toffset);
 }
 
 float Sensors::getGas() {
@@ -1027,7 +1028,7 @@ void Sensors::CO2scd30Init() {
         delay(10);
     }
 
-    if(scd30.getTemperatureOffset() != toffset) {
+    if(uint16_t((scd30.getTemperatureOffset()*100)) != (uint16_t(toffset*100))) {
         Serial.println("-->[SLIB] SCD30 setting new temp offset: " + String(toffset));
         setSCD30TempOffset(toffset);
         delay(10);
