@@ -1054,7 +1054,6 @@ void Sensors::CO2scd30Init() {
     }
 
     if(scd30.getTemperatureOffset() != toffset) {
-        Serial.println("-->[SLIB] SCD30 setting new temp offset: " + String(toffset));
         setSCD30TempOffset(toffset);
         delay(10);
     }
