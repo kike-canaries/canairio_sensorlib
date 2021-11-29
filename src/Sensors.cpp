@@ -23,6 +23,7 @@ void Sensors::loop() {
         dhtRead();
         am2320Read();
         bme280Read();
+        bmp280Read();
         bme680Read();
         aht10Read();
         sht31Read();
@@ -81,6 +82,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     am2320Init();
     sht31Init();
     bme280Init();
+    bmp280Init();
     bme680Init();
     aht10Init();
     dhtInit();
