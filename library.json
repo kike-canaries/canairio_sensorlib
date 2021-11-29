@@ -80,7 +80,7 @@
     {"name":"AHT10", "owner":"enjoyneering","version":"1.1.0"},
     {"name":"sps30", "owner":"paulvha","version":"1.4.11"},
     {"name":"MH-Z19", "owner":"wifwaf", "version":"1.5.3"},
-    {"name":"SparkFun SCD30 Arduino Library","owner":"sparkfun","version":"1.0.10"},
+    {"name":"SparkFun SCD30 Arduino Library","owner":"sparkfun","version":"1.0.16"},
     {"name":"Sensirion Core","owner":"sensirion","version":"0.5.3"},
     {"name":"Sensirion I2C SCD4x","owner":"sensirion","version":"0.3.1"},
     {"name":"DHT_nonblocking", "version":"https://github.com/hpsaturn/DHT_nonblocking/archive/master.zip"},
