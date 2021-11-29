@@ -245,6 +245,7 @@ float Sensors::getTemperature() {
 void Sensors::setTempOffset(float offset){
     toffset = offset;
     setSCD30TempOffset(toffset);
+    setSCD4xTempOffset(toffset);
 }
 
 float Sensors::getGas() {
