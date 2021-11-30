@@ -1080,7 +1080,7 @@ void Sensors::setSCD30AltitudeOffset(float offset) {
 }
 
 void Sensors::CO2scd4xInit() {
-    float tTemperatureOffset;
+    float tTemperatureOffset, offsetDifference;
     uint16_t tSensorAltitude;
     uint16_t error;
     char errorMessage[256];
@@ -1111,7 +1111,8 @@ void Sensors::CO2scd4xInit() {
         delay(1);
     }
 
-    if (tTemperatureOffset != toffset) {
+    offsetDifference = abs((toffset*100) - (tTemperatureOffset*100)); 
+    if(offsetDifference > 0.5) { // Accounts for SCD4x conversion rounding errors in temperature offset
         Serial.println("-->[SLIB] SCD4x setting new temp offset: " + String(toffset));
         setSCD4xTempOffset(toffset);
         delay(1);
