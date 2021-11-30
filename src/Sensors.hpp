@@ -4,6 +4,7 @@
 #include <AHT10.h>
 #include <AM232X.h>
 #include <Adafruit_BME280.h>
+#include <Adafruit_BMP280.h>
 #include <Adafruit_BME680.h>
 #include <Adafruit_SHT31.h>
 #include <Adafruit_Sensor.h>
@@ -69,7 +70,7 @@ typedef void (*voidCbFn)();
 class Sensors {
    public:
     /// Supported devices. Auto is for Honeywell and Plantower sensors and similars
-    enum SENSOR_TYPE { Auto, Panasonic, Sensirion, SDS011, Mhz19, CM1106, SENSEAIRS8, SSCD30, SSCD4x };
+    enum SENSOR_TYPE { Auto, Panasonic, SSPS30, SDS011, Mhz19, CM1106, SENSEAIRS8, SSCD30, SSCD4x };
     
     /// SPS30 values. Only for Sensirion SPS30 sensor.
     struct sps_values val;
@@ -103,6 +104,8 @@ class Sensors {
     AM232X am2320;
     // BME280 (Humidity, Pressure, Altitude and Temperature)
     Adafruit_BME280 bme280;
+    // BMP280 (Humidity, Pressure, Altitude and Temperature)
+    Adafruit_BMP280 bmp280;
     // BME680 (Humidity, Gas, IAQ, Pressure, Altitude and Temperature)
     Adafruit_BME680 bme680; 
     // AHT10
@@ -210,6 +213,9 @@ class Sensors {
 
     void bme280Init();
     void bme280Read();
+
+    void bmp280Init();
+    void bmp280Read();
 
     void bme680Init();
     void bme680Read();
