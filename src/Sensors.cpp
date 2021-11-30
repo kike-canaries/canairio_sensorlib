@@ -23,6 +23,7 @@ void Sensors::loop() {
         dhtRead();
         am2320Read();
         bme280Read();
+        bmp280Read();
         bme680Read();
         aht10Read();
         sht31Read();
@@ -30,7 +31,7 @@ void Sensors::loop() {
         CO2scd4xRead();
         PMGCJA5Read();
 
-        if(i2conly && device_type == Sensirion) sps30Read();
+        if(i2conly && device_type == SSPS30) sps30Read();
 
         if(!dataReady)DEBUG("-->[SLIB] Any data from sensors? check your wirings!");
 
@@ -81,6 +82,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     am2320Init();
     sht31Init();
     bme280Init();
+    bmp280Init();
     bme680Init();
     aht10Init();
     dhtInit();
@@ -245,6 +247,7 @@ float Sensors::getTemperature() {
 void Sensors::setTempOffset(float offset){
     toffset = offset;
     setSCD30TempOffset(toffset);
+    setSCD4xTempOffset(toffset);
 }
 
 float Sensors::getGas() {
@@ -463,7 +466,7 @@ bool Sensors::pmSensorRead() {
             return pmPanasonicRead();
             break;
 
-        case Sensirion:
+        case SSPS30:
             return sps30Read();
             break;
 
@@ -509,12 +512,24 @@ void Sensors::am2320Read() {
 void Sensors::bme280Read() {
     float humi1 = bme280.readHumidity();
     float temp1 = bme280.readTemperature();
-    if (humi1 != 0) humi = humi1;
-    if (temp1 != 0) {
-        temp = temp1-toffset;
-        dataReady = true;
-        DEBUG("-->[SLIB] BME280 read > done!");
-    }
+    if (isnan(humi1) || humi1 == 0) return;
+    humi = humi1;
+    temp = temp1-toffset;
+    pres = bme280.readPressure();
+    alt = bme280.readAltitude(SEALEVELPRESSURE_HPA);
+    dataReady = true;
+    DEBUG("-->[SLIB] BME280 read > done!");
+}
+
+void Sensors::bmp280Read() {
+    float temp1 = bmp280.readTemperature();
+    float press1 = bmp280.readPressure();
+    if (press1 == 0) return;
+    temp = temp1-toffset;
+    pres = bmp280.readPressure();
+    alt = bmp280.readAltitude(SEALEVELPRESSURE_HPA);
+    dataReady = true;
+    DEBUG("-->[SLIB] BME280 read > done!");
 }
 
 void Sensors::bme680Read() {
@@ -665,7 +680,7 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
     else if (pms_type == Panasonic) {
         DEBUG("-->[SLIB] UART detecting Panasonic PM sensor..");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
-    } else if (pms_type == Sensirion) {
+    } else if (pms_type == SSPS30) {
         DEBUG("-->[SLIB] UART detecting SPS30 PM sensor..");
         if (!serialInit(pms_type, 115200, pms_rx, pms_tx)) return false;
     } else if (pms_type == SDS011) {
@@ -703,10 +718,10 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
 bool Sensors::pmSensorAutoDetect(int pms_type) {
     delay(1000);  // sync serial
 
-    if (pms_type == Sensirion) {
+    if (pms_type == SSPS30) {
         if (sps30UARTInit()) {
             device_selected = "SENSIRION";
-            device_type = Sensirion;
+            device_type = SSPS30;
             return true;
         }
     }
@@ -880,7 +895,7 @@ bool Sensors::sps30UARTInit() {
 }
 
 bool Sensors::sps30I2CInit() {
-    if (device_type == Sensirion) return false;
+    if (device_type == SSPS30) return false;
     
     DEBUG("-->[SLIB] I2C SPS30 starting sensor..");
 
@@ -901,7 +916,7 @@ bool Sensors::sps30I2CInit() {
         DEBUG("-->[SLIB] SPS30 Measurement OK");
         Serial.println("-->[SLIB] I2C detected SPS30 sensor :)");
         device_selected = "SENSIRION";
-        device_type = Sensirion;
+        device_type = SSPS30;
         if (sps30.I2C_expect() == 4)
             DEBUG("[E][SLIB] SPS30 due to I2C buffersize only PM values  \n");
         return true;
@@ -983,12 +998,24 @@ void Sensors::am2320Init() {
 void Sensors::sht31Init() {
     DEBUG("-->[SLIB] SHT31 starting SHT31 sensor..");
     sht31 = Adafruit_SHT31();
-    if (sht31.begin(0x44)) Serial.println("-->[SLIB] I2C detected SHT31 sensor :)");
+    if (sht31.begin()) Serial.println("-->[SLIB] I2C detected SHT31 sensor :)");
 }
 
 void Sensors::bme280Init() {
     DEBUG("-->[SLIB] BME280 starting BME280 sensor..");
-    if (bme280.begin(0x76)) Serial.println("-->[SLIB] I2C detected BME280 sensor :)");
+    if (bme280.begin()) Serial.println("-->[SLIB] I2C detected BME280 sensor :)");
+}
+
+void Sensors::bmp280Init() {
+    DEBUG("-->[SLIB] BMP280 starting BMP280 sensor..");
+    if (!bmp280.begin()) return;
+    Serial.println("-->[SLIB] I2C detected BMP280 sensor :)");
+    // Default settings from datasheet.
+    bmp280.setSampling(Adafruit_BMP280::MODE_NORMAL,  // Operating Mode.
+                    Adafruit_BMP280::SAMPLING_X2,     // Temp. oversampling
+                    Adafruit_BMP280::SAMPLING_X16,    // Pressure oversampling
+                    Adafruit_BMP280::FILTER_X16,      // Filtering.
+                    Adafruit_BMP280::STANDBY_MS_500); // Standby time.
 }
 
 void Sensors::bme680Init() {
@@ -1027,8 +1054,7 @@ void Sensors::CO2scd30Init() {
         delay(10);
     }
 
-    if(scd30.getTemperatureOffset() != toffset) {
-        Serial.println("-->[SLIB] SCD30 setting new temp offset: " + String(toffset));
+    if(uint16_t((scd30.getTemperatureOffset()*100)) != (uint16_t(toffset*100))) {
         setSCD30TempOffset(toffset);
         delay(10);
     }
@@ -1054,7 +1080,7 @@ void Sensors::setSCD30AltitudeOffset(float offset) {
 }
 
 void Sensors::CO2scd4xInit() {
-    float tTemperatureOffset;
+    float tTemperatureOffset, offsetDifference;
     uint16_t tSensorAltitude;
     uint16_t error;
     char errorMessage[256];
@@ -1085,7 +1111,8 @@ void Sensors::CO2scd4xInit() {
         delay(1);
     }
 
-    if (tTemperatureOffset != toffset) {
+    offsetDifference = abs((toffset*100) - (tTemperatureOffset*100)); 
+    if(offsetDifference > 0.5) { // Accounts for SCD4x conversion rounding errors in temperature offset
         Serial.println("-->[SLIB] SCD4x setting new temp offset: " + String(toffset));
         setSCD4xTempOffset(toffset);
         delay(1);
@@ -1221,7 +1248,7 @@ bool Sensors::serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx) 
             break;
 
         case SERIALPORT2:
-            if (pms_type == Sensirion)
+            if (pms_type == SSPS30)
                 Serial2.begin(speed_baud);
             else
                 Serial2.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx, false);
@@ -1245,7 +1272,7 @@ bool Sensors::serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx) 
 #if defined(INCLUDE_SOFTWARE_SERIAL)
                 DEBUG("-->[SLIB] swSerial init on pin: ", String(pms_rx).c_str());
                 static SoftwareSerial swSerial(pms_rx, pms_tx);
-                if (pms_type == Sensirion)
+                if (pms_type == SSPS30)
                     swSerial.begin(speed_baud);
                 else if (pms_type == Panasonic)
                     swSerial.begin(speed_baud, SWSERIAL_8E1, pms_rx, pms_tx, false);
