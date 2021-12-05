@@ -64,7 +64,7 @@ publish_release () {
   echo "***********************************************"
   echo ""
   COMMIT_LOG=`git log -1 --format='%ci %H %s'`
-  github-release upload --owner kike-canaries --repo canairio_sensorlib --tag "rev${SRC_VER}" --release-name "v${SRC_VER} rev${SRC_REV}" --body "${COMMIT_LOG}" $OUTPUT
+  github-release upload --owner kike-canaries --repo canairio_sensorlib --tag "v${SRC_VER}" --release-name "v${SRC_VER} rev${SRC_REV}" --body "${COMMIT_LOG}" $OUTPUT
   echo ""
   echo "***********************************************"
   echo "*************     done    *********************" 
