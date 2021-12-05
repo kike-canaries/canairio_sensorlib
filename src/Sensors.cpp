@@ -524,8 +524,6 @@ void Sensors::bme280Read() {
 void Sensors::bmp280Read() {
     float temp1 = bmp280.readTemperature();
     float press1 = bmp280.readPressure();
-    DEBUG("-->[SLIB] BMP280 try read > temp: ", String(temp1).c_str());
-    DEBUG("-->[SLIB] BMP280 try read > press: ", String(press1).c_str());
     if (press1 == 0) return;
     temp = temp1-toffset;
     pres = bmp280.readPressure();
@@ -1010,13 +1008,7 @@ void Sensors::bme280Init() {
 
 void Sensors::bmp280Init() {
     DEBUG("-->[SLIB] BMP280 starting BMP280 sensor..");
-    if (!bmp280.begin()) {
-        if (bmp280.begin(BMP280_ADDRESS_ALT)) Serial.println("-->[SLIB] I2C detected BMP280 sensor :)");
-        else {
-            DEBUG("[E][SLIB] BMP280 could not initialize.");
-            return;
-        }
-    }
+    if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return;
     Serial.println("-->[SLIB] I2C detected BMP280 sensor :)");
     // Default settings from datasheet.
     bmp280.setSampling(Adafruit_BMP280::MODE_NORMAL,  // Operating Mode.
