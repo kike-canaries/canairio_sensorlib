@@ -529,7 +529,7 @@ void Sensors::bmp280Read() {
     pres = bmp280.readPressure();
     alt = bmp280.readAltitude(SEALEVELPRESSURE_HPA);
     dataReady = true;
-    DEBUG("-->[SLIB] BME280 read > done!");
+    DEBUG("-->[SLIB] BMP280 read > done!");
 }
 
 void Sensors::bme680Read() {
