@@ -1,6 +1,6 @@
 {
   "name": "CanAirIO Air Quality Sensors Library",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "homepage":"https://canair.io",
   "keywords": 
   [ 
@@ -16,6 +16,9 @@
     "PMS7003",
     "PMS5003",
     "AM2320",
+    "BMP280",
+    "BME280",
+    "BME680",
     "mhz19",
     "scd30",
     "scd4x",
