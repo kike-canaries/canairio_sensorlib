@@ -154,7 +154,7 @@ class Sensors {
 
     int getUARTDeviceTypeSelected();
 
-    String getDeviceSelected();
+    String getMainDeviceSelected();
 
     int getMainSensorTypeSelected();
 
