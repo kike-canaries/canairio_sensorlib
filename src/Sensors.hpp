@@ -135,14 +135,14 @@ class Sensors {
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
     void loop();
     bool isDataReady();
-    bool isPmSensorConfigured();
     void setSampleTime(int seconds);
     void setOnDataCallBack(voidCbFn cb);
     void setOnErrorCallBack(errorCbFn cb);
     void setDebugMode(bool enable);
     void setDHTparameters(int dht_sensor_pin = DHT_SENSOR_PIN, int dht_sensor_type = DHT_SENSOR_TYPE);
-    int getPmDeviceTypeSelected();
-    String getPmDeviceSelected();
+    bool isUARTSensorConfigured();
+    int getUARTDeviceTypeSelected();
+    String getUARTDeviceSelected();
 
     uint16_t getPM1();
     uint16_t getPM25();
@@ -190,7 +190,7 @@ class Sensors {
     voidCbFn _onDataCb = nullptr;
 
     String device_selected;
-    int device_type = -1;
+    int dev_uart_type = -1;
     bool dataReady;
     
     uint16_t pm1;   // PM1
