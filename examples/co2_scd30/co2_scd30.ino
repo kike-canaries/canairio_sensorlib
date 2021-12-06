@@ -49,13 +49,11 @@ void setup() {
     sensors.detectI2COnly(true);                     // force to only i2c sensors
 
     // sensors.setCO2RecalibrationFactor(400);       // calibration method (in outdoors)
-
-    sensors.scd30.setTemperatureOffset(2.0);         // example to set temp offset
+    // sensors.scd30.setTemperatureOffset(2.0);      // example to set temp offset
 
     sensors.init();
 
-    if (sensors.isPmSensorConfigured())
-        Serial.println("-->[SETUP] Sensor configured: " + sensors.getPmDeviceSelected());
+    Serial.println("-->[SETUP] Sensor configured: " + sensors.getMainDeviceSelected());
 
     delay(500);
 }

@@ -64,9 +64,8 @@ void setup() {
     // sensors.init(sensors.Auto,PMS_RX,PMS_TX);    // Auto detection, custom RX,TX and custom DHT config
 
     sensors.init(); 
-
-    if(sensors.isPmSensorConfigured())
-        Serial.println("-->[SETUP] Sensor configured: " + sensors.getPmDeviceSelected());
+    
+    Serial.println("-->[SETUP] Sensor configured: " + sensors.getMainDeviceSelected());
 
     delay(500);
 }

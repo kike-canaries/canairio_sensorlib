@@ -119,9 +119,7 @@ void setup() {
     // sensors.s8.set_ABC_period(period)
     // ...
 
-
-    if(sensors.isPmSensorConfigured())
-        Serial.println("-->[SETUP] Sensor configured: " + sensors.getPmDeviceSelected());
+    Serial.println("-->[SETUP] Sensor configured: " + sensors.getMainDeviceSelected());
 
     delay(500);
 }

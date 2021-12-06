@@ -49,10 +49,9 @@ void setup() {
 
     // sensors.setCO2RecalibrationFactor(400);       // calibration method (in outdoors)
     
-    sensors.init(sensors.CM1106);
-
-    if (sensors.isPmSensorConfigured())
-        Serial.println("-->[SETUP] Sensor configured: " + sensors.getPmDeviceSelected());
+    sensors.init(sensors.CM1106);                    // forced UART sensor. Empty for auto detection
+    
+    Serial.println("-->[SETUP] Sensor configured: " + sensors.getMainDeviceSelected());
 
     delay(500);
 }
