@@ -63,14 +63,15 @@ using namespace std;
 //H&T definitions
 #define SEALEVELPRESSURE_HPA (1013.25)
 
-
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
 
 class Sensors {
    public:
     /// Supported devices. Auto is for Honeywell and Plantower sensors and similars
-    enum SENSOR_TYPE { Auto, Panasonic, SSPS30, SDS011, Mhz19, CM1106, SENSEAIRS8, SSCD30, SSCD4x };
+    enum UART_SENSOR_TYPE { Auto, Panasonic, SSPS30, SDS011, Mhz19, CM1106, SENSEAIRS8, SSCD30, SSCD4x };
+
+    enum MAIN_SENSOR_TYPE { SENSOR_NONE, SENSOR_PM, SENSOR_CO2 };
     
     /// SPS30 values. Only for Sensirion SPS30 sensor.
     struct sps_values val;
@@ -116,63 +117,95 @@ class Sensors {
     float dhthumi, dhttemp;
     // Mhz19 sensor
     MHZ19 mhz19;
-    // CM1106
-    // it using the auto detected hardware serial;
     // SCD30 sensor
     SCD30 scd30;
     // CM1106 UART
     CM1106_UART *cm1106;
+
     CM1106_sensor cm1106sensor;
+
     CM1106_ABC abc;
     // Panasonic SN-GCJA5
     SFE_PARTICLE_SENSOR pmGCJA5;
     // SenseAir S8 CO2 sensor
     S8_UART *s8;
+
     S8_sensor s8sensor;
     // SCD4x sensor
     SensirionI2CScd4x scd4x;
 
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
+    
     void loop();
+
     bool isDataReady();
-    bool isPmSensorConfigured();
+
     void setSampleTime(int seconds);
+
     void setOnDataCallBack(voidCbFn cb);
+
     void setOnErrorCallBack(errorCbFn cb);
+
     void setDebugMode(bool enable);
+
     void setDHTparameters(int dht_sensor_pin = DHT_SENSOR_PIN, int dht_sensor_type = DHT_SENSOR_TYPE);
-    int getPmDeviceTypeSelected();
-    String getPmDeviceSelected();
+
+    bool isUARTSensorConfigured();
+
+    int getUARTDeviceTypeSelected();
+
+    String getMainDeviceSelected();
+
+    int getMainSensorTypeSelected();
 
     uint16_t getPM1();
+
     uint16_t getPM25();
+
     uint16_t getPM4();
+
     uint16_t getPM10();
+
     uint16_t getCO2();
 
     float getCO2humi();
+
     float getCO2temp();
 
     float getTemperature();
+
     float getHumidity();
+
     float getPressure();
+
     float getAltitude();
+
     float getGas();
 
     void setTempOffset(float offset);
+    
     void setCO2AltitudeOffset(float altitude);
 
     String getFormatTemp();
+
     String getFormatPress();
+    
     String getFormatHum();
+
     String getFormatGas();
+
     String getFormatAlt();
 
     String getStringPM1();
+
     String getStringPM25();
+
     String getStringPM4();
+
     String getStringPM10();
+
     String getStringCO2();
+
     String getStringCO2temp(); 
 
     void setCO2RecalibrationFactor(int ppmValue);
@@ -190,7 +223,7 @@ class Sensors {
     voidCbFn _onDataCb = nullptr;
 
     String device_selected;
-    int device_type = -1;
+    int dev_uart_type = -1;
     bool dataReady;
     
     uint16_t pm1;   // PM1

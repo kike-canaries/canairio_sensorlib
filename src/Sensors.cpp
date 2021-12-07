@@ -31,7 +31,7 @@ void Sensors::loop() {
         CO2scd4xRead();
         PMGCJA5Read();
 
-        if(i2conly && device_type == SSPS30) sps30Read();
+        if(i2conly && dev_uart_type == SSPS30) sps30Read();
 
         if(!dataReady)DEBUG("-->[SLIB] Any data from sensors? check your wirings!");
 
@@ -94,7 +94,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
 void Sensors::setSampleTime(int seconds) {
     sample_time = seconds;
     Serial.println("-->[SLIB] new sample time: " + String(seconds));
-    if(getPmDeviceSelected().equals("SCD30")){
+    if(getMainDeviceSelected().equals("SCD30")){
         scd30.setMeasurementInterval(seconds * 2);
         Serial.println("-->[SLIB] SCD30 interval time to (2x): " + String(seconds * 2));
     }
@@ -104,24 +104,24 @@ void Sensors::setSampleTime(int seconds) {
 void Sensors::setCO2RecalibrationFactor(int ppmValue)
 {
     Serial.print("DEVICE SELECTED: ");
-    Serial.println(getPmDeviceSelected());
-    if (getPmDeviceSelected().equals("SCD30")) {
+    Serial.println(getMainDeviceSelected());
+    if (getMainDeviceSelected().equals("SCD30")) {
         Serial.println("-->[SLIB] SCD30 setting calibration to: " + String(ppmValue));
         scd30.setForcedRecalibrationFactor(ppmValue);
     }
- if (getPmDeviceSelected().equals("CM1106")) {
+ if (getMainDeviceSelected().equals("CM1106")) {
         Serial.println("-->[SLIB] CM1106 setting calibration to: " + String(ppmValue));
         cm1106->start_calibration(ppmValue);
     }   
-    if (getPmDeviceSelected().equals("MHZ19")) {
+    if (getMainDeviceSelected().equals("MHZ19")) {
         Serial.println("-->[SLIB] MH-Z19 setting calibration to: " + String(ppmValue));
         mhz19.calibrate();
     }
-    if (getPmDeviceSelected().equals("SENSEAIRS8")) {
+    if (getMainDeviceSelected().equals("SENSEAIRS8")) {
         Serial.println("-->[SLIB] SenseAir S8 setting calibration to: " + String(ppmValue));
         if (s8->manual_calibration()) Serial.println("-->[SLIB] S8 calibration ready.");
     }
-    if (getPmDeviceSelected().equals("SCD4x")) {
+    if (getMainDeviceSelected().equals("SCD4x")) {
         Serial.println("-->[SLIB] SCD4x setting calibration to: " + String(ppmValue));
         uint16_t frcCorrection;
         uint16_t error = 0;
@@ -144,10 +144,10 @@ void Sensors::setCO2AltitudeOffset(float altitude){
     this->altoffset = altitude;
     this->hpa = hpaCalculation(altitude);       //hPa hectopascal calculation based on altitude
 
-    if (getPmDeviceSelected().equals("SCD30")) {
+    if (getMainDeviceSelected().equals("SCD30")) {
         setSCD30AltitudeOffset(altoffset);
     }
-    if (getPmDeviceSelected().equals("SCD4x")) {
+    if (getMainDeviceSelected().equals("SCD4x")) {
         scd4x.stopPeriodicMeasurement();
         delay(510);
         scd4x.setSensorAltitude(altoffset);
@@ -262,16 +262,22 @@ float Sensors::getPressure() {
     return pres;
 }
 
-bool Sensors::isPmSensorConfigured() {
-    return device_type >= 0;
+bool Sensors::isUARTSensorConfigured() {
+    return dev_uart_type >= 0;
 }
 
-String Sensors::getPmDeviceSelected() {
+String Sensors::getMainDeviceSelected() {
     return device_selected;
 }
 
-int Sensors::getPmDeviceTypeSelected() {
-    return device_type;
+int Sensors::getUARTDeviceTypeSelected() {
+    return dev_uart_type;
+}
+
+int Sensors::getMainSensorTypeSelected() {
+    if (device_selected.isEmpty()) return SENSOR_NONE;
+    else if (dev_uart_type >= 0 && dev_uart_type <= SDS011) return SENSOR_PM; // TODO: we need dev_i2c_type ??
+    return SENSOR_CO2;
 }
 
 void Sensors::detectI2COnly(bool enable) {
@@ -457,7 +463,7 @@ bool Sensors::senseAirS8Read() {
  * @return true if data is loaded from sensor
  */
 bool Sensors::pmSensorRead() {
-    switch (device_type) {
+    switch (dev_uart_type) {
         case Auto:
             return pmGenericRead();
             break;
@@ -590,7 +596,7 @@ void Sensors::CO2scd4xRead()
     char errorMessage[256];
     uint16_t tCO2 = 0;
     float tCO2temp, tCO2humi = 0; // we need temp vars, without it override values
-    if (getPmDeviceSelected() != "SCD4x") return;
+    if (getMainDeviceSelected() != "SCD4x") return;
     error = scd4x.readMeasurement(tCO2, tCO2temp, tCO2humi);
     if (error) {
         DEBUG("[E][SLIB] SCD4x Error reading measurement: ", String(error).c_str());
@@ -607,7 +613,7 @@ void Sensors::CO2scd4xRead()
 }
 
 void Sensors::PMGCJA5Read() {
-    if (!getPmDeviceSelected().equals("PANASONIC_I2C")) return;
+    if (!getMainDeviceSelected().equals("PANASONIC_I2C")) return;
     pm1 = pmGCJA5.getPM1_0();
     pm25 = pmGCJA5.getPM2_5();
     pm10 = pmGCJA5.getPM10();
@@ -702,7 +708,7 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
     while (!pmSensorAutoDetect(pms_type) && try_sensor_init++ < 2);
 
     // get device selected..
-    if (device_type >= 0) {
+    if (dev_uart_type >= 0) {
         DEBUG("-->[SLIB] UART detected: ", device_selected.c_str());
         return true;
     }
@@ -721,7 +727,7 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
     if (pms_type == SSPS30) {
         if (sps30UARTInit()) {
             device_selected = "SENSIRION";
-            device_type = SSPS30;
+            dev_uart_type = SSPS30;
             return true;
         }
     }
@@ -729,7 +735,7 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
     if (pms_type == SDS011) {
         if (pmSDS011Read()) {
             device_selected = "SDS011";
-            device_type = SDS011;
+            dev_uart_type = SDS011;
             return true;
         }
     }
@@ -737,7 +743,7 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
     if (pms_type == Mhz19) {
         if (CO2Mhz19Init()) {
             device_selected = "MHZ19";
-            device_type = Mhz19;
+            dev_uart_type = Mhz19;
             return true;
         }
     }
@@ -745,7 +751,7 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
     if (pms_type == CM1106) {
         if (CO2CM1106Init()) {
             device_selected = "CM1106";
-            device_type = CM1106;
+            dev_uart_type = CM1106;
             return true;
         }
     }
@@ -753,7 +759,7 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
     if (pms_type == SENSEAIRS8) {
         if (senseAirS8Init()) {
             device_selected = "SENSEAIRS8";
-            device_type = SENSEAIRS8;
+            dev_uart_type = SENSEAIRS8;
             return true;
         }
     }
@@ -761,13 +767,13 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
     if (pms_type <= Panasonic) {
         if (pmGenericRead()) {
             device_selected = "GENERIC";
-            device_type = Auto;
+            dev_uart_type = Auto;
             return true;
         }
         delay(1000);  // sync serial
         if (pmPanasonicRead()) {
             device_selected = "PANASONIC";
-            device_type = Panasonic;
+            dev_uart_type = Panasonic;
             return true;
         }
     }
@@ -895,7 +901,7 @@ bool Sensors::sps30UARTInit() {
 }
 
 bool Sensors::sps30I2CInit() {
-    if (device_type == SSPS30) return false;
+    if (dev_uart_type == SSPS30) return false;
     
     DEBUG("-->[SLIB] I2C SPS30 starting sensor..");
 
@@ -916,7 +922,7 @@ bool Sensors::sps30I2CInit() {
         DEBUG("-->[SLIB] SPS30 Measurement OK");
         Serial.println("-->[SLIB] I2C detected SPS30 sensor :)");
         device_selected = "SENSIRION";
-        device_type = SSPS30;
+        dev_uart_type = SSPS30; // TODO: it isn't a uart, but it's a uart-like device
         if (sps30.I2C_expect() == 4)
             DEBUG("[E][SLIB] SPS30 due to I2C buffersize only PM values  \n");
         return true;
@@ -1047,7 +1053,6 @@ void Sensors::CO2scd30Init() {
     delay(10);
 
     device_selected = "SCD30";  // TODO: sync this constants with app
-    device_type = SSCD30;
 
     DEBUG("-->[SLIB] SCD30 current temperature offset: ",String(scd30.getTemperatureOffset()).c_str());
     DEBUG("-->[SLIB] SCD30 current altitude offset: ", String(scd30.getAltitudeCompensation()).c_str());
@@ -1069,7 +1074,7 @@ void Sensors::CO2scd30Init() {
 
 /// set SCD30 temperature compensation
 void Sensors::setSCD30TempOffset(float offset) {
-    if (getPmDeviceSelected().equals("SCD30")) {
+    if (getMainDeviceSelected().equals("SCD30")) {
         Serial.println("-->[SLIB] SCD30 new temperature offset: " + String(offset));
         scd30.setTemperatureOffset(offset);
     }
@@ -1077,7 +1082,7 @@ void Sensors::setSCD30TempOffset(float offset) {
 
 /// set SCD30 altitude compensation
 void Sensors::setSCD30AltitudeOffset(float offset) {
-    if (getPmDeviceSelected().equals("SCD30")) {
+    if (getMainDeviceSelected().equals("SCD30")) {
         Serial.println("-->[SLIB] SCD30 new altitude offset: " + String(offset));
         scd30.setAltitudeCompensation(uint16_t(offset));
     }
@@ -1103,7 +1108,6 @@ void Sensors::CO2scd4xInit() {
     }
 
     device_selected = "SCD4x";  // TODO: sync this constants with app
-    device_type = SSCD4x;
 
     scd4x.getTemperatureOffset(tTemperatureOffset);
     scd4x.getSensorAltitude(tSensorAltitude);
@@ -1140,7 +1144,7 @@ void Sensors::CO2scd4xInit() {
 
 /// set SCD4x temperature compensation
 void Sensors::setSCD4xTempOffset(float offset) {
-    if (getPmDeviceSelected().equals("SCD4x")) {
+    if (getMainDeviceSelected().equals("SCD4x")) {
         Serial.println("-->[SLIB] SCD4x new temperature offset: " + String(offset));
         scd4x.stopPeriodicMeasurement();
         delay(510);    
@@ -1151,7 +1155,7 @@ void Sensors::setSCD4xTempOffset(float offset) {
 
 /// set SCD4x altitude compensation
 void Sensors::setSCD4xAltitudeOffset(float offset) {
-    if (getPmDeviceSelected().equals("SCD4x")) {
+    if (getMainDeviceSelected().equals("SCD4x")) {
         Serial.println("-->[SLIB] SCD4x new altitude offset: " + String(offset));
         scd4x.stopPeriodicMeasurement();
         delay(510);    
@@ -1161,12 +1165,12 @@ void Sensors::setSCD4xAltitudeOffset(float offset) {
 }
 
 void Sensors::PMGCJA5Init() {
-    if (device_type == Panasonic) return;
+    if (dev_uart_type == Panasonic) return;
     DEBUG("-->[SLIB] GCJA5 starting PANASONIC GCJA5 sensor..");
     if (!pmGCJA5.begin()) return;
     Serial.println("-->[SLIB] I2C detected SN-GCJA5 sensor :)");
     device_selected = "PANASONIC_I2C";
-    device_type = Auto;
+    dev_uart_type = Auto;  // TODO: it isn't a uart, but it's a uart-like device
     uint8_t status = pmGCJA5.getStatusFan();
     DEBUG("-->[SLIB] GCJA5 FAN status: ", String(status).c_str());
 }

@@ -51,10 +51,9 @@ void setup() {
     sensors.setOnErrorCallBack(&onSensorDataError);  // [optional] error callback
     sensors.setDebugMode(true);                      // [optional] debug mode
 
-    sensors.init(sensors.SDS011);
+    sensors.init(sensors.SDS011);                    // forced for SDS011 via UART, empty for auto detection
 
-    if (sensors.isPmSensorConfigured())
-        Serial.println("-->[SETUP] Sensor configured: " + sensors.getPmDeviceSelected());
+    Serial.println("-->[SETUP] Sensor configured: " + sensors.getMainDeviceSelected());
 
     delay(500);
 }

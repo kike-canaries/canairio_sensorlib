@@ -47,19 +47,13 @@ void setup() {
     sensors.setOnErrorCallBack(&onSensorDataError);  // [optional] error callback
     sensors.setDebugMode(false);                     // [optional] debug mode
     sensors.detectI2COnly(true);                     // force to only i2c sensors
-
-    if (sensors.getPmDeviceSelected().equals("SCD4x")) {
-        Serial.println("-->[SETUP] SCD4x  detected");
-    }
-
-    sensors.setCO2RecalibrationFactor(1282);       // calibration method (in outdoors)
-
-    sensors.scd4x.setTemperatureOffset(2.0);         // example to set temp offset
+    
+    // sensors.setCO2RecalibrationFactor(1282);      // calibration method (in outdoors)
+    // sensors.scd4x.setTemperatureOffset(2.0);      // example to set temp offset
 
     sensors.init();
 
-    if (sensors.isPmSensorConfigured())
-        Serial.println("-->[SETUP] Sensor configured: " + sensors.getPmDeviceSelected());
+    Serial.println("-->[SETUP] Sensor configured: " + sensors.getMainDeviceSelected());
 
     delay(500);
 }
