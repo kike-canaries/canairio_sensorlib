@@ -8,7 +8,8 @@
 ######################################################
 
 SRC_VER=`cat library.properties | grep version | sed -n -e 's/^.*version=//p'`
-SRC_REV=`cat platformio.ini | grep SRC_REV | sed -n -e 's/^.*SRC_REV=//p'`
+HDR_VER=`cat src/Sensors.hpp | grep CSL_VERSION | awk '{ print $3 }'`
+SRC_REV=`cat src/Sensors.hpp | grep CSL_REVISION | awk '{ print $3 }'`
 DATE=`date +%Y%m%d`
 RELDIR="releases"
 RELNAME="CanAirIOAirQualitySensorsLibrary-${SRC_VER}.tar.gz"
@@ -28,6 +29,29 @@ showHelp () {
   echo "./deploy_release github"
   echo "./deploy_release pio"
   echo ""
+}
+
+validate_version() {
+  if [ "\"${SRC_VER}\"" != "${HDR_VER}" ]; then
+      echo ""
+      echo "Error: Version mistmatch with header version!"
+      echo ""
+      echo "revision library: $SRC_REV"
+      echo "version library : \"$SRC_VER\""
+      echo "version header  : $HDR_VER"
+      exit 1
+  fi
+}
+
+validate_branch () {
+  current_branch=`git rev-parse --abbrev-ref HEAD` 
+
+  if [ ${current_branch} != "master" ]; then
+    echo ""
+    echo "Error: you are in ${current_branch} branch please change to master branch."
+    echo ""
+    exit 1
+  fi 
 }
 
 clean () {
@@ -76,18 +100,11 @@ publish_pio () {
   pio package publish
 }
 
-current_branch=`git rev-parse --abbrev-ref HEAD` 
-
-if [ ${current_branch} != "master" ]; then
-  echo ""
-  echo "Error: you are in ${current_branch} branch please change to master branch."
-  echo ""
-  exit 1
-fi 
-
 if [ "$1" = "" ]; then
   showHelp
 else
+  validate_version
+  validate_branch
   case "$1" in
     clean)
       clean
