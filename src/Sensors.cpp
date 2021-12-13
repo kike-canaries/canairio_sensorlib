@@ -63,9 +63,11 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
 #endif
     if (devmode) Serial.println("-->[SLIB] debug is enable.");
 
-    Serial.println("-->[SLIB] temperature offset: " + String(toffset));
-    Serial.println("-->[SLIB] altitude offset: " + String(altoffset));
-    Serial.println("-->[SLIB] forced only i2c sensors: " + String(i2conly));
+    Serial.println("-->[SLIB] Sensorlib version :\t" + getLibraryVersion());
+    Serial.println("-->[SLIB] Sensorlib revision:\t" + String(getLibraryRevision()));
+    Serial.println("-->[SLIB] temperature offset:\t" + String(toffset));
+    Serial.println("-->[SLIB] altitude offset   :\t" + String(altoffset));
+    Serial.println("-->[SLIB] only i2c sensors  :\t" + String(i2conly));
 
     if (!i2conly && !sensorSerialInit(pms_type, pms_rx, pms_tx)) {
         DEBUG("-->[SLIB] not found any PM sensor via UART");
@@ -93,7 +95,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
 /// set loop time interval for each sensor sample
 void Sensors::setSampleTime(int seconds) {
     sample_time = seconds;
-    Serial.println("-->[SLIB] new sample time: " + String(seconds));
+    Serial.println("-->[SLIB] new sample time   :\t" + String(seconds));
     if(getMainDeviceSelected().equals("SCD30")){
         scd30.setMeasurementInterval(seconds * 2);
         Serial.println("-->[SLIB] SCD30 interval time to (2x): " + String(seconds * 2));
@@ -282,6 +284,14 @@ int Sensors::getMainSensorTypeSelected() {
 
 void Sensors::detectI2COnly(bool enable) {
     i2conly = enable;
+}
+
+String Sensors::getLibraryVersion() {
+    return String(CSL_VERSION);
+}
+
+int16_t Sensors::getLibraryRevision() {
+    return CSL_REVISION;
 }
 
 /******************************************************************************
