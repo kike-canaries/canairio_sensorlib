@@ -95,8 +95,8 @@ void Sensors::setSampleTime(int seconds) {
     sample_time = seconds;
     Serial.println("-->[SLIB] new sample time: " + String(seconds));
     if(getMainDeviceSelected().equals("SCD30")){
-        scd30.setMeasurementInterval(seconds * 2);
-        Serial.println("-->[SLIB] SCD30 interval time to (2x): " + String(seconds * 2));
+        scd30.setMeasurementInterval(seconds);
+        Serial.println("-->[SLIB] SCD30 interval time to: " + String(seconds));
     }
 }
 
