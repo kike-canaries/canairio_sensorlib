@@ -95,10 +95,10 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
 /// set loop time interval for each sensor sample
 void Sensors::setSampleTime(int seconds) {
     sample_time = seconds;
-    Serial.println("-->[SLIB] new sample time   :\t" + String(seconds));
+    Serial.println("-->[SLIB] new sample time     :\t" + String(seconds));
     if(getMainDeviceSelected().equals("SCD30")){
         scd30.setMeasurementInterval(seconds);
-        Serial.println("-->[SLIB] SCD30 interval time to: " + String(seconds));
+        if (devmode) Serial.println("-->[SLIB] SCD30 interval time :\t" + String(seconds));
     }
 }
 
@@ -111,7 +111,7 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue)
         Serial.println("-->[SLIB] SCD30 setting calibration to: " + String(ppmValue));
         scd30.setForcedRecalibrationFactor(ppmValue);
     }
- if (getMainDeviceSelected().equals("CM1106")) {
+    if (getMainDeviceSelected().equals("CM1106")) {
         Serial.println("-->[SLIB] CM1106 setting calibration to: " + String(ppmValue));
         cm1106->start_calibration(ppmValue);
     }   
