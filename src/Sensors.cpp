@@ -95,7 +95,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
 /// set loop time interval for each sensor sample
 void Sensors::setSampleTime(int seconds) {
     sample_time = seconds;
-    Serial.println("-->[SLIB] new sample time    :\t" + String(seconds));
+    Serial.println("-->[SLIB] new sample time   :\t" + String(seconds));
     if(getMainDeviceSelected().equals("SCD30")){
         scd30.setMeasurementInterval(seconds);
         if (devmode) Serial.println("-->[SLIB] SCD30 interval time :\t" + String(seconds));
