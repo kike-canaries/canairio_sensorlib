@@ -17,14 +17,12 @@
 #include <s8_uart.h>
 #include <SensirionI2CScd4x.h>
 
-using namespace std;
-#include <vector>
+#define CSL_VERSION "0.4.2"
+#define CSL_REVISION  341
 
-/******************************************************************************
-* S E T U P  ESP32 B O A R D S  A N D  F I E L D S
-* -------------------------------------------
-* Please select the board on platformio.ini file or pass it via build flag
-******************************************************************************/
+/***************************************************************
+* S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
+***************************************************************/
 #ifdef WEMOSOLED
 #define PMS_RX 13           // config for Wemos board & TTGO18650
 #define PMS_TX 15           // some old TTGO18650 have PMS_RX 18 & PMS_TX 17
@@ -211,6 +209,10 @@ class Sensors {
     void setCO2RecalibrationFactor(int ppmValue);
 
     void detectI2COnly(bool enable);
+
+    String getLibraryVersion();
+    
+    int16_t getLibraryRevision();
 
    private:
     /// DHT library
