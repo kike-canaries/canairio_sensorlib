@@ -43,6 +43,10 @@
 #define PMS_RX 13  
 #define PMS_TX 12
 #define DHT_SENSOR_PIN 17
+#elif ESP32PICOD4
+#define PMS_RX 1
+#define PMS_TX 3
+#define DHT_SENSOR_PIN 12
 #else                       // ** DEFAULT **
 #define PMS_RX 17           // config for D1MIN1 / TTGO T7 / Default for main ESP32 dev boards
 #define PMS_TX 16
