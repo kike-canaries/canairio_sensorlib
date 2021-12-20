@@ -17,8 +17,8 @@
 #include <s8_uart.h>
 #include <SensirionI2CScd4x.h>
 
-#define CSL_VERSION "0.4.2"
-#define CSL_REVISION  341
+#define CSL_VERSION "0.4.3"
+#define CSL_REVISION  342
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
