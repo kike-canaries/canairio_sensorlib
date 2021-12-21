@@ -77,6 +77,8 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
 
 #ifdef M5COREINK
     Wire.begin(25,26);  // M5CoreInk hat pines (header on top)
+#elif ESP32PICOD4
+    Wire.begin(23,19);  // ESP32PicoD4 hat pines (header on top)
 #endif
     Wire.begin();
     

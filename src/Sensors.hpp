@@ -45,8 +45,8 @@
 #define PMS_TX 12
 #define DHT_SENSOR_PIN 17
 #elif ESP32PICOD4
-#define PMS_RX 1
-#define PMS_TX 3
+#define PMS_RX 5
+#define PMS_TX 18
 #define DHT_SENSOR_PIN 12
 #elif ESP32GENERIC          // **DEFAULT** for pre-defined ESP32 board in PlatformIO environment
 #define PMS_RX RX
