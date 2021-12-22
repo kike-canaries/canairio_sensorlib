@@ -45,7 +45,7 @@
 #define PMS_TX 12
 #define DHT_SENSOR_PIN 17
 #elif ESP32PICOD4
-#define PMS_RX 5
+#define PMS_RX 19
 #define PMS_TX 18
 #define DHT_SENSOR_PIN 12
 #elif ESP32GENERIC          // **DEFAULT** for pre-defined ESP32 board in PlatformIO environment
@@ -316,7 +316,7 @@ class Sensors {
 
     void onSensorError(const char *msg);
 
-    bool serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx);
+    bool serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx);
     String hwSerialRead(unsigned int lenght_buffer);
     void restart();  // restart serial (it isn't works sometimes)
     void DEBUG(const char *text, const char *textb = "");
