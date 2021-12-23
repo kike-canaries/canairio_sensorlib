@@ -52,6 +52,10 @@
 #define PMS_RX RX
 #define PMS_TX TX
 #define DHT_SENSOR_PIN 12
+#elif M5STICKCPLUS          // **DEFAULT** for pre-defined ESP32 board in PlatformIO environment
+#define PMS_RX 32
+#define PMS_TX 33
+#define DHT_SENSOR_PIN 34
 #else                       // **DEFAULT** for legacy CanAirIO devices:
 #define PMS_RX 17           // D1MIN1 / TTGOT7 / ESP32DEVKIT Default for main ESP32 dev boards
 #define PMS_TX 16

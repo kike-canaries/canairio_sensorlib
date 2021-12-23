@@ -75,12 +75,11 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
         DEBUG("-->[SLIB] not found any PM sensor via UART");
     }
 
-#ifdef M5COREINK
-    Wire.begin(25,26);  // M5CoreInk hat pines (header on top)
-// #elif ESP32PICOD4
-    // Wire.begin(23,19);  // ESP32PicoD4 hat pines (header on top)
-#endif
+#ifdef M5STICKCPLUS
+    Wire.begin(0,26);  // M5CoreInk hat pines (header on top)
+#else
     Wire.begin();
+#endif
     
     DEBUG("-->[SLIB] trying to load I2C sensors..");
     sps30I2CInit();
