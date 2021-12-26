@@ -152,25 +152,38 @@ CanAirIO sensorlib auto configuration demo on [Youtube](https://www.youtube.com/
 
 The current version of library supports 3 kinds of wiring connection, UART, i2c and TwoWire, in the main boards the library using the defaults pins of each board, but in some special cases the pins are:
 
-### UART
+## UART
 
-The library has [pre-defined some UART pin configs](https://github.com/kike-canaries/canairio_sensorlib/blob/master/src/Sensors.hpp#L19-L52), these are selected on compiling time. Maybe you don't need change anything with your board.  
+### Predefined UART
 
-Also you can define the UART pins in the init() method, please see below.  
+The library has [pre-defined some UART pin configs](https://github.com/kike-canaries/canairio_sensorlib/blob/master/src/Sensors.hpp#L19-L52), these are selected on compiling time. Maybe you don't need change anything with your board, and maybe the nexts alternatives works for you:
 
-#### Custom UART RX/TX:
+| Board model    |  TX   | RX  |      Notes 
+|:---------------|:---:|:---:|:------------------:|
+| ESP32GENERIC   | 1  | 3  | ESP32 Pio defaults
+| TTGOT7 / ESP32DEVKIT / D1MINI / NODEFINED | 16 | 17 | CanAirIO devices **
+| TTGO_TDISPLAY  | 12 | 13 | |
+| M5COREINK      | 14 | 13 | |
+| TTGO TQ        | 18 | 13 | |
+| HELTEC         | 18 | 17 | | 
+| WEMOSOLED      | 15 | 13 | |
+| ESP32PICOD4    | 3  | 1  | |
+  
+** This pines are when you compile your project without specific any build variable or you board isn't in the list.  
 
-You can pass the custom pins if it isn't autodected:
+### Custom UART:
+
+Also you could define a custom UART pins in the init() method if it isn't autodected:
 
 ```cpp
 sensors.init(sensors.Auto,RX,TX); // custom RX, custom TX pines.
 ```
 
-### I2C (recommended)
+## I2C (recommended)
 
 We are using the default pins for each board, some times it's pins are 21,22, please check your board schematic.
 
-### TwoWire (deprecated soon)
+## TwoWire (deprecated soon)
 
 For now we are using it only for DHT sensors in PIN 23. For more info please review the next lines [here](https://github.com/kike-canaries/canairio_sensorlib/blob/master/src/Sensors.hpp#L19-L52).
 

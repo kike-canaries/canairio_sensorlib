@@ -75,10 +75,11 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
         DEBUG("-->[SLIB] not found any PM sensor via UART");
     }
 
-#ifdef M5COREINK
-    Wire.begin(25,26);  // M5CoreInk hat pines (header on top)
-#endif
+#ifdef M5STICKCPLUS
+    Wire.begin(0,26);  // M5CoreInk hat pines (header on top)
+#else
     Wire.begin();
+#endif
     
     DEBUG("-->[SLIB] trying to load I2C sensors..");
     sps30I2CInit();
@@ -688,27 +689,27 @@ void Sensors::sps30Errorloop(char *mess, uint8_t r) {
 bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
     // set UART for autodetection sensors (Honeywell, Plantower)
     if (pms_type == Auto) {
-        DEBUG("-->[SLIB] UART detecting Generic PM sensor..");
+        DEBUG("-->[SLIB] UART detecting type\t: Auto");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     }
     // set UART for custom sensors
     else if (pms_type == Panasonic) {
-        DEBUG("-->[SLIB] UART detecting Panasonic PM sensor..");
+        DEBUG("-->[SLIB] UART detecting type\t: Panasonic");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     } else if (pms_type == SSPS30) {
-        DEBUG("-->[SLIB] UART detecting SPS30 PM sensor..");
+        DEBUG("-->[SLIB] UART detecting type\t: SSPS30");
         if (!serialInit(pms_type, 115200, pms_rx, pms_tx)) return false;
     } else if (pms_type == SDS011) {
-        DEBUG("-->[SLIB] UART detecting SDS011 PM sensor..");
+        DEBUG("-->[SLIB] UART detecting type\t: SDS011");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     } else if (pms_type == Mhz19) {
-        DEBUG("-->[SLIB] UART detecting MHZ19 sensor..");
+        DEBUG("-->[SLIB] UART detecting type\t: Mhz19");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     } else if (pms_type == CM1106) {
-        DEBUG("-->[SLIB] UART detecting CM1106 sensor..");
+        DEBUG("-->[SLIB] UART detecting type\t: CM1106");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     } else if (pms_type == SENSEAIRS8) {
-        DEBUG("-->[SLIB] UART detecting SenseAir S8 sensor..");
+        DEBUG("-->[SLIB] UART detecting type\t: SENSEAIRS8");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     }
 
@@ -1211,7 +1212,8 @@ void Sensors::DEBUG(const char *text, const char *textb) {
     }
 }
 
-bool Sensors::serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx) {
+bool Sensors::serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx) {
+    if(devmode)Serial.printf("-->[SLIB] UART init with speed\t: %lu RX:%i TX:%i\n", speed_baud, pms_rx, pms_tx);
     switch (SENSOR_COMMS) {
         case SERIALPORT:
             Serial.begin(speed_baud);
