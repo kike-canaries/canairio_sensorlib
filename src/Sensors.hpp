@@ -83,7 +83,32 @@ class Sensors {
     enum UART_SENSOR_TYPE { Auto, Panasonic, SSPS30, SDS011, Mhz19, CM1106, SENSEAIRS8, SSCD30, SSCD4x };
 
     enum MAIN_SENSOR_TYPE { SENSOR_NONE, SENSOR_PM, SENSOR_CO2 };
-    
+
+    enum SENSOR_UNIT { PM1, PM25, PM4, PM10, MCO2, HUM, TEMP, CO2TEMP, CO2HUM, PRESS, ALT, GAS, VOC };
+
+#define SENSOR_UNITS             \
+    X(PM1, "Monday", true)    \
+    X(PM25, "Tuesday", true)   \
+    X(PM10, "Wednesday", true) \
+    X(MCO2, "Thursday", true)  \
+    X(HUM, "Friday", true)    \
+    X(TEMP, "Saturday", false) \
+    X(CO2TEMP, "Saturday", false) \
+    X(CO2HUM, "Saturday", false) \
+    X(PRESS, "Saturday", false) \
+    X(ALT, "Saturday", false) \
+    X(GAS, "Saturday", false) \
+    X(VOC, "Saturday", false) 
+
+#define X(day, name, workday) day, enum WeekDay : size_t { WEEK_DAYS };
+#undef X
+
+#define X(day, name, workday) name, char const *weekday_name[] = { WEEK_DAYS };
+#undef X
+
+#define X(day, name, workday) workday, bool weekday_workday[]{ WEEK_DAYS };
+#undef X
+
     /// SPS30 values. Only for Sensirion SPS30 sensor.
     struct sps_values val;
 
