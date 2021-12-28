@@ -15,6 +15,7 @@ void Sensors::loop() {
     if ((millis() - pmLoopTimeStamp > sample_time * (uint32_t)1000)) {  // sample time for each capture
         pmLoopTimeStamp = millis();
         dataReady = false;
+        resetUnitsRegister();
         if(!i2conly ) {
             dataReady = pmSensorRead();
             DEBUG("-->[SLIB] UART data ready\t: ",String(dataReady).c_str());
@@ -41,7 +42,8 @@ void Sensors::loop() {
             _onErrorCb("[W][SLIB] No data from any sensor!");
 
         printValues();
-
+        printUnitsRegister();
+        if (units_registered_count == 0) resetAllVariables();
     }
 
     dhtRead();  // DHT2x sensors need check fastest
@@ -529,6 +531,8 @@ void Sensors::bme280Read() {
     float humi1 = bme280.readHumidity();
     float temp1 = bme280.readTemperature();
     if (isnan(humi1) || humi1 == 0 || isnan(temp1)) return;
+    unitRegister(UNIT::TEMP);
+    unitRegister(UNIT::HUM);
     humi = humi1;
     temp = temp1-toffset;
     pres = bme280.readPressure();
@@ -583,6 +587,8 @@ void Sensors::sht31Read() {
     float temp1 = sht31.readTemperature();
     if (!isnan(humi1)) humi = humi1;
     if (!isnan(temp1)) {
+        unitRegister(UNIT::TEMP);
+        unitRegister(UNIT::HUM);
         temp = temp1-toffset;
         dataReady = true;
         DEBUG("-->[SLIB] SHT31 read > done!");
@@ -653,7 +659,7 @@ void Sensors::dhtRead() {
     if (dhtIsReady(&dhttemp, &dhthumi) == true) {
         temp = dhttemp-toffset;
         humi = dhthumi;
-        dataReady = true;
+        dataReady = true; 
         DEBUG("-->[SLIB] DHTXX read > done!");
     }
 }
@@ -1199,6 +1205,53 @@ void Sensors::printValues() {
     char output[256];
     sprintf(output, "PM1:%03d PM25:%03d PM10:%03d CO2:%04d CO2humi:%03f%% CO2temp:%03f°C H:%03f%% T:%03f°C", pm1, pm25, pm10, CO2Val, CO2humi, CO2temp, humi, temp);
     DEBUG("-->[SLIB]", output);
+}
+
+bool Sensors::isUnitRegistered(int unit) {
+    for (int i = 0; i < MAX_UNITS_SUPPORTED; i++) {
+        if (units_registered[i] == unit) return true;
+    }
+    return false;
+}
+
+void Sensors::unitRegister(int unit) {
+    if (isUnitRegistered(unit)) return;
+    units_registered[units_registered_count++] = unit;
+}
+
+void Sensors::resetUnitsRegister() {
+    units_registered_count = 0;
+    for (int i = 0; i < MAX_UNITS_SUPPORTED; i++) {
+        units_registered[i] = 0;
+    }
+}
+
+uint8_t Sensors::getUnitsRegisterCount() {
+    return units_registered_count;
+}
+
+void Sensors::resetAllVariables() {
+    pm1 = 0;
+    pm25 = 0;
+    pm10 = 0;
+    CO2Val = 0;
+    CO2humi = 0.0;
+    CO2temp = 0.0;
+    humi = 0.0;
+    temp = 0.0;
+    alt = 0.0;
+    gas = 0.0;
+    pres = 0.0;
+}
+
+void Sensors::printUnitsRegister() {
+    Serial.print("-->[SLIB] Sensors registered\t: ");
+    int i = 0;
+    while (units_registered[i++] != 0) {
+        Serial.print(units_registered[i-1]);
+        Serial.print(" ");
+    }
+    Serial.println();
 }
 
 void Sensors::DEBUG(const char *text, const char *textb) {

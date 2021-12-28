@@ -85,26 +85,40 @@ class Sensors {
     enum MAIN_SENSOR_TYPE { SENSOR_NONE, SENSOR_PM, SENSOR_CO2 };
 
 #define SENSOR_UNITS         \
-    X(PM1, "PM1.0", true)    \
-    X(PM25, "PM2.5", true)   \
-    X(PM10, "PM10", true)    \
-    X(CO2, "PPM", true)      \
-    X(HUM, "%", true)        \
-    X(TEMP, "°C", false)     \
-    X(CO2TEMP, "°C", false)  \
-    X(CO2HUM, "%", false)    \
-    X(PRESS, "hPa", false)   \
-    X(ALT, "m", false)       \
-    X(GAS, "Ω", false) 
+    X(PM1, "PM1.0", "PM1")    \
+    X(PM25, "PM2.5", "PM25")   \
+    X(PM10, "PM10", "PM10")    \
+    X(CO2, "PPM", "CO2")      \
+    X(HUM, "%", "Humi")        \
+    X(TEMP, "°C", "Temp")     \
+    X(CO2TEMP, "°C", "CO2Temp")  \
+    X(CO2HUM, "%", "CO2Humi")    \
+    X(PRESS, "hPa", "Press")   \
+    X(ALT, "m", "Alt")       \
+    X(GAS, "Ω", "Gas") 
 
-#define X(unit, symbol, scale) unit, enum UNIT : size_t { SENSOR_UNITS };
+#define X(unit, symbol, name) unit, 
+enum UNIT : size_t 
+{ 
+    SENSOR_UNITS 
+};
 #undef X
 
-#define X(unit, symbol, scale) symbol, char const *unit_symbol[] = { SENSOR_UNITS };
-#undef X
+// #define X(unit, symbol, name) symbol, 
+// const char *unit_symbol[] 
+// { 
+//     SENSOR_UNITS 
+// };
+// #undef X
 
-#define X(unit, symbol, scale) scale, bool unit_scale[]{ SENSOR_UNITS };
-#undef X
+// #define X(unit, symbol, name) name,
+// char const *unit_name[] 
+// { 
+//     SENSOR_UNITS 
+// };
+// #undef X
+
+#define MAX_UNITS_SUPPORTED 20
 
     /// SPS30 values. Only for Sensirion SPS30 sensor.
     struct sps_values val;
@@ -262,6 +276,9 @@ class Sensors {
     String device_selected;
     int dev_uart_type = -1;
     bool dataReady;
+
+    uint8_t units_registered [MAX_UNITS_SUPPORTED];
+    uint8_t units_registered_count;
     
     uint16_t pm1;   // PM1
     uint16_t pm25;  // PM2.5
@@ -274,9 +291,9 @@ class Sensors {
     float alt = 0.0;
     float gas = 0.0;
     
-    uint16_t CO2Val;         // CO2 in ppm
-    float CO2humi = 0.0;  // temperature of the CO2 sensor
-    float CO2temp = 0.0;  // temperature of the CO2 sensor
+    uint16_t CO2Val;      // CO2 in ppm
+    float CO2humi = 0.0;  // humidity of CO2 sensor
+    float CO2temp = 0.0;  // temperature of CO2 sensor
 
     void am2320Init();
     void am2320Read();
@@ -348,6 +365,19 @@ class Sensors {
     void DEBUG(const char *text, const char *textb = "");
 
     void printValues();
+
+    void unitRegister(int unit);
+
+    bool isUnitRegistered(int unit);
+
+    void resetUnitsRegister();
+
+    void printUnitsRegister();
+
+    uint8_t getUnitsRegisterCount();
+
+    void resetAllVariables();
+
 
 // @todo use DEBUG_ESP_PORT ?
 #ifdef WM_DEBUG_PORT
