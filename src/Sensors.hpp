@@ -84,29 +84,26 @@ class Sensors {
 
     enum MAIN_SENSOR_TYPE { SENSOR_NONE, SENSOR_PM, SENSOR_CO2 };
 
-    enum SENSOR_UNIT { PM1, PM25, PM4, PM10, MCO2, HUM, TEMP, CO2TEMP, CO2HUM, PRESS, ALT, GAS, VOC };
-
-#define SENSOR_UNITS             \
+#define SENSOR_UNITS         \
     X(PM1, "PM1.0", true)    \
     X(PM25, "PM2.5", true)   \
-    X(PM10, "PM10", true) \
-    X(MCO2, "Thursday", true)  \
-    X(HUM, "Friday", true)    \
-    X(TEMP, "Saturday", false) \
-    X(CO2TEMP, "Saturday", false) \
-    X(CO2HUM, "Saturday", false) \
-    X(PRESS, "Saturday", false) \
-    X(ALT, "Saturday", false) \
-    X(GAS, "Saturday", false) \
-    X(VOC, "Saturday", false) 
+    X(PM10, "PM10", true)    \
+    X(CO2, "PPM", true)      \
+    X(HUM, "%", true)        \
+    X(TEMP, "°C", false)     \
+    X(CO2TEMP, "°C", false)  \
+    X(CO2HUM, "%", false)    \
+    X(PRESS, "hPa", false)   \
+    X(ALT, "m", false)       \
+    X(GAS, "Ω", false) 
 
-#define X(day, name, workday) day, enum WeekDay : size_t { WEEK_DAYS };
+#define X(unit, symbol, scale) unit, enum UNIT : size_t { SENSOR_UNITS };
 #undef X
 
-#define X(day, name, workday) name, char const *weekday_name[] = { WEEK_DAYS };
+#define X(unit, symbol, scale) symbol, char const *unit_symbol[] = { SENSOR_UNITS };
 #undef X
 
-#define X(day, name, workday) workday, bool weekday_workday[]{ WEEK_DAYS };
+#define X(unit, symbol, scale) scale, bool unit_scale[]{ SENSOR_UNITS };
 #undef X
 
     /// SPS30 values. Only for Sensirion SPS30 sensor.
