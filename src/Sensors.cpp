@@ -221,7 +221,7 @@ String Sensors::getStringPM10() {
 }
 
 uint16_t Sensors::getCO2() {
-    return CO2;
+    return CO2Val;
 }
 
 String Sensors::getStringCO2() {
@@ -435,9 +435,9 @@ bool Sensors::sps30Read() {
 }
 
 bool Sensors::CO2Mhz19Read() {
-    CO2 = mhz19.getCO2();              // Request CO2 (as ppm)
+    CO2Val = mhz19.getCO2();              // Request CO2 (as ppm)
     CO2temp = mhz19.getTemperature()-toffset;  // Request Temperature (as Celsius)
-    if (CO2 > 0) {
+    if (CO2Val > 0) {
         if(altoffset != 0) CO2correctionAlt();
         dataReady = true;
         DEBUG("-->[SLIB] MHZ14-9 read > done!");
@@ -447,8 +447,8 @@ bool Sensors::CO2Mhz19Read() {
 }
 
 bool Sensors::CO2CM1106Read() {
-    CO2 = cm1106->get_co2();;
-    if (CO2 > 0) {
+    CO2Val = cm1106->get_co2();;
+    if (CO2Val > 0) {
         dataReady = true;
         if(altoffset != 0) CO2correctionAlt();
         DEBUG("-->[SLIB] CM1106 read > done!");
@@ -458,8 +458,8 @@ bool Sensors::CO2CM1106Read() {
 }
 
 bool Sensors::senseAirS8Read() {
-    CO2 = s8->get_co2();      // Request CO2 (as ppm)
-    if (CO2 > 0) {
+    CO2Val = s8->get_co2();      // Request CO2 (as ppm)
+    if (CO2Val > 0) {
         if(altoffset != 0) CO2correctionAlt();
         dataReady = true;
         DEBUG("-->[SLIB] SENSEAIRS8 read > done!");
@@ -592,7 +592,7 @@ void Sensors::sht31Read() {
 void Sensors::CO2scd30Read() {
     uint16_t tCO2 = scd30.getCO2();  // we need temp var, without it override CO2
     if (tCO2 > 0) {
-        CO2 = tCO2;
+        CO2Val = tCO2;
         CO2humi = scd30.getHumidity();
         CO2temp = scd30.getTemperature();
         dataReady = true;
@@ -614,7 +614,7 @@ void Sensors::CO2scd4xRead()
         DEBUG("[E][SLIB] SCD4x msg\t: ", errorMessage);
         return;
     } else {
-        CO2 = tCO2;
+        CO2Val = tCO2;
         CO2humi = tCO2humi;
         CO2temp = tCO2temp;
         dataReady = true;
@@ -1180,10 +1180,10 @@ void Sensors::dhtInit() {
 // Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
 
 void Sensors::CO2correctionAlt() {
-    DEBUG("-->[SLIB] CO2 altitud original\t: ", String(CO2).c_str());
-    float CO2cor = (0.016 * ((1013.25 - hpa) /10 ) * (CO2 - 400)) + CO2;       // Increment of 1.6% for every hpa of difference at sea level
-    CO2 = round (CO2cor);
-    DEBUG("-->[SLIB] CO2 compensated\t: ", String(CO2).c_str());
+    DEBUG("-->[SLIB] CO2 altitud original\t: ", String(CO2Val).c_str());
+    float CO2cor = (0.016 * ((1013.25 - hpa) /10 ) * (CO2Val - 400)) + CO2Val;       // Increment of 1.6% for every hpa of difference at sea level
+    CO2Val = round (CO2cor);
+    DEBUG("-->[SLIB] CO2 compensated\t: ", String(CO2Val).c_str());
 }
 
 float Sensors::hpaCalculation(float altitude) {
@@ -1197,7 +1197,7 @@ float Sensors::hpaCalculation(float altitude) {
 
 void Sensors::printValues() {
     char output[256];
-    sprintf(output, "PM1:%03d PM25:%03d PM10:%03d CO2:%04d CO2humi:%03f%% CO2temp:%03f°C H:%03f%% T:%03f°C", pm1, pm25, pm10, CO2, CO2humi, CO2temp, humi, temp);
+    sprintf(output, "PM1:%03d PM25:%03d PM10:%03d CO2:%04d CO2humi:%03f%% CO2temp:%03f°C H:%03f%% T:%03f°C", pm1, pm25, pm10, CO2Val, CO2humi, CO2temp, humi, temp);
     DEBUG("-->[SLIB]", output);
 }
 

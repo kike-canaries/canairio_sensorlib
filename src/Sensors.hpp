@@ -87,9 +87,9 @@ class Sensors {
     enum SENSOR_UNIT { PM1, PM25, PM4, PM10, MCO2, HUM, TEMP, CO2TEMP, CO2HUM, PRESS, ALT, GAS, VOC };
 
 #define SENSOR_UNITS             \
-    X(PM1, "Monday", true)    \
-    X(PM25, "Tuesday", true)   \
-    X(PM10, "Wednesday", true) \
+    X(PM1, "PM1.0", true)    \
+    X(PM25, "PM2.5", true)   \
+    X(PM10, "PM10", true) \
     X(MCO2, "Thursday", true)  \
     X(HUM, "Friday", true)    \
     X(TEMP, "Saturday", false) \
@@ -277,7 +277,7 @@ class Sensors {
     float alt = 0.0;
     float gas = 0.0;
     
-    uint16_t CO2;         // CO2 in ppm
+    uint16_t CO2Val;         // CO2 in ppm
     float CO2humi = 0.0;  // temperature of the CO2 sensor
     float CO2temp = 0.0;  // temperature of the CO2 sensor
 
