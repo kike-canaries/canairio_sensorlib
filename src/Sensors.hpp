@@ -75,23 +75,25 @@
 #define SEALEVELPRESSURE_HPA (1013.25)
 
 #define SENSOR_UNITS         \
-    X(PM1, "PM1.0", "PM1")    \
-    X(PM25, "PM2.5", "PM25")   \
-    X(PM10, "PM10", "PM10")    \
+    X(NUNIT, "NUNIT", "NUNIT")    \
+    X(PM1, "µg/m³", "PM1")    \
+    X(PM25, "µg/m³", "PM25")   \
+    X(PM4, "µg/m³", "PM4")   \
+    X(PM10, "µg/m³", "PM10")    \
     X(TEMP, "°C", "T")     \
     X(HUM, "%", "H")        \
-    X(CO2, "PPM", "CO2")      \
+    X(CO2, "ppm", "CO2")      \
     X(CO2TEMP, "°C", "CO2T")  \
     X(CO2HUM, "%", "CO2H")    \
     X(PRESS, "hPa", "P")   \
     X(ALT, "m", "Alt")       \
     X(GAS, "Ω", "Gas") 
 
+#define MAX_UNITS_SUPPORTED 13   // Max number of units supported (TODO: make dynamic)
+
 #define X(unit, symbol, name) unit, 
 enum UNIT : size_t { SENSOR_UNITS }; 
 #undef X
-
-#define MAX_UNITS_SUPPORTED 11   // Max number of units supported (TODO: make dynamic)
 
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
@@ -355,6 +357,8 @@ class Sensors {
     bool isUnitRegistered(int unit);
 
     void resetUnitsRegister();
+
+    uint8_t * getUnitsRegister();
 
     void printUnitsRegister();
 

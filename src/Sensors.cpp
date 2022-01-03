@@ -323,6 +323,10 @@ bool Sensors::pmGenericRead() {
             DEBUG("-->[SLIB] UART PMGENERIC read > done!");
             pm25 = txtMsg[6] * 256 + (char)(txtMsg[7]);
             pm10 = txtMsg[8] * 256 + (char)(txtMsg[9]);
+
+            unitRegister(UNIT::PM25);
+            unitRegister(UNIT::PM10);
+
             if (pm25 > 1000 && pm10 > 1000) {
                 onSensorError("[E][SLIB] UART PMGENERIC out of range pm25 > 1000");
             } else
@@ -346,6 +350,11 @@ bool Sensors::pmPanasonicRead() {
         pm1 = txtMsg[2] * 256 + (char)(txtMsg[1]);
         pm25 = txtMsg[6] * 256 + (char)(txtMsg[5]);
         pm10 = txtMsg[10] * 256 + (char)(txtMsg[9]);
+
+        unitRegister(UNIT::PM1);
+        unitRegister(UNIT::PM25);
+        unitRegister(UNIT::PM10);
+
         if (pm25 > 2000 && pm10 > 2000) {
             onSensorError("[E][SLIB] PANASONIC out of range pm25 > 2000");
         } else
@@ -368,6 +377,10 @@ bool Sensors::pmSDS011Read() {
             DEBUG("-->[SLIB] SDS011 read > done!");
             pm25 = (txtMsg[3] * 256 + (char)(txtMsg[2])) / 10;
             pm10 = (txtMsg[5] * 256 + (char)(txtMsg[4])) / 10;
+
+            unitRegister(UNIT::PM25);
+            unitRegister(UNIT::PM10);
+
             if (pm25 > 1000 && pm10 > 1000) {
                 onSensorError("[E][SLIB] SDS011 out of range pm25 > 1000");
             } else
@@ -435,6 +448,11 @@ bool Sensors::sps30Read() {
     pm4 = round(val.MassPM4);
     pm10 = round(val.MassPM10);
 
+    unitRegister(UNIT::PM1);
+    unitRegister(UNIT::PM25);
+    unitRegister(UNIT::PM4);
+    unitRegister(UNIT::PM10);
+
     if(i2conly && sample_time > 30) sps30.stop();  // power saving validation
 
     if (pm25 > 1000 && pm10 > 1000) {
@@ -454,6 +472,8 @@ bool Sensors::CO2Mhz19Read() {
         if(altoffset != 0) CO2correctionAlt();
         dataReady = true;
         DEBUG("-->[SLIB] MHZ14-9 read > done!");
+        unitRegister(UNIT::CO2);
+        unitRegister(UNIT::CO2TEMP);
         return true;
     }
     return false;
@@ -465,6 +485,7 @@ bool Sensors::CO2CM1106Read() {
         dataReady = true;
         if(altoffset != 0) CO2correctionAlt();
         DEBUG("-->[SLIB] CM1106 read > done!");
+        unitRegister(UNIT::CO2);
         return true;
     }
     return false;
@@ -476,6 +497,7 @@ bool Sensors::senseAirS8Read() {
         if(altoffset != 0) CO2correctionAlt();
         dataReady = true;
         DEBUG("-->[SLIB] SENSEAIRS8 read > done!");
+        unitRegister(UNIT::CO2);
         return true;
     }
     return false;
@@ -663,8 +685,8 @@ void Sensors::PMGCJA5Read() {
     pm10 = pmGCJA5.getPM10();
     dataReady = true;
     DEBUG("-->[SLIB] GCJA5 read > done!");
-    unitRegister(UNIT::PM25);
     unitRegister(UNIT::PM1);
+    unitRegister(UNIT::PM25);
     unitRegister(UNIT::PM10);
 }
 
@@ -1257,6 +1279,10 @@ void Sensors::resetUnitsRegister() {
     for (int i = 0; i < MAX_UNITS_SUPPORTED; i++) {
         units_registered[i] = 0;
     }
+}
+
+uint8_t * Sensors::getUnitsRegister() {
+    return units_registered;
 }
 
 uint8_t Sensors::getUnitsRegisterCount() {
