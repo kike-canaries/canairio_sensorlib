@@ -2,6 +2,15 @@
 
 DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
 
+#define X(unit, symbol, name) symbol, 
+const char *unit_symbol[] = { SENSOR_UNITS };
+#undef X
+
+#define X(unit, symbol, name) name,
+char const *unit_name[] = { SENSOR_UNITS }; 
+#undef X
+
+
 /***********************************************************************************
  *  P U B L I C   M E T H O D S
  * *********************************************************************************/
@@ -1248,7 +1257,8 @@ void Sensors::printUnitsRegister() {
     Serial.print("-->[SLIB] Sensors registered\t: ");
     int i = 0;
     while (units_registered[i++] != 0) {
-        Serial.print(units_registered[i-1]);
+        Serial.print(unit_name[units_registered[i-1]]);
+        Serial.print(unit_symbol[units_registered[i-1]]);
         Serial.print(" ");
     }
     Serial.println();

@@ -89,34 +89,17 @@ class Sensors {
     X(PM25, "PM2.5", "PM25")   \
     X(PM10, "PM10", "PM10")    \
     X(CO2, "PPM", "CO2")      \
-    X(HUM, "%", "Humi")        \
-    X(TEMP, "°C", "Temp")     \
-    X(CO2TEMP, "°C", "CO2Temp")  \
-    X(CO2HUM, "%", "CO2Humi")    \
-    X(PRESS, "hPa", "Press")   \
+    X(CO2TEMP, "°C", "CO2T")  \
+    X(CO2HUM, "%", "CO2H")    \
+    X(HUM, "%", "H")        \
+    X(TEMP, "°C", "T")     \
+    X(PRESS, "hPa", "P")   \
     X(ALT, "m", "Alt")       \
     X(GAS, "Ω", "Gas") 
 
 #define X(unit, symbol, name) unit, 
-enum UNIT : size_t 
-{ 
-    SENSOR_UNITS 
-};
+enum UNIT : size_t { SENSOR_UNITS }; 
 #undef X
-
-// #define X(unit, symbol, name) symbol, 
-// const char *unit_symbol[] 
-// { 
-//     SENSOR_UNITS 
-// };
-// #undef X
-
-// #define X(unit, symbol, name) name,
-// char const *unit_name[] 
-// { 
-//     SENSOR_UNITS 
-// };
-// #undef X
 
 #define MAX_UNITS_SUPPORTED 20
 
