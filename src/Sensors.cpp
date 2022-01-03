@@ -53,7 +53,7 @@ void Sensors::loop() {
             _onErrorCb("[W][SLIB] No data from any sensor!");
 
         printValues();
-        printUnitsRegister();
+        printUnitsRegistered();
         if (units_registered_count == 0) resetAllVariables();
     }
 
@@ -1255,8 +1255,8 @@ float Sensors::hpaCalculation(float altitude) {
 }
 
 // Print some sensors values
-
 void Sensors::printValues() {
+    if (!devmode) return;
     char output[256];
     sprintf(output, "PM1:%03d PM25:%03d PM10:%03d CO2:%04d CO2humi:%03f%% CO2temp:%03f°C H:%03f%% T:%03f°C", pm1, pm25, pm10, CO2Val, CO2humi, CO2temp, humi, temp);
     DEBUG("-->[SLIB]", output);
@@ -1289,20 +1289,11 @@ uint8_t Sensors::getUnitsRegisterCount() {
     return units_registered_count;
 }
 
-void Sensors::printUnitsRegister() {
-    Serial.println("-->[SLIB] Sensors units: ");
-    // Serial.printf("-->[SLIB] testing unit call for GAS: %s(%s)\n", unit_name[GAS] , unit_symbol[GAS]);
-
+void Sensors::printUnitsRegistered() { 
+    if (!devmode) return;
+    Serial.printf("-->[SLIB] Sensors units count\t: %i\n", units_registered_count);
+    Serial.print("-->[SLIB] Sensors units registered\t: ");
     int i = 0;
-
-    for (i = 0; i < MAX_UNITS_SUPPORTED; i++) {
-        Serial.printf("-->[SLIB] UNIT: %s(%s)\n", unit_name[i] , unit_symbol[i]);
-    }
-
-    Serial.printf("-->[SLIB] Sensors unit registered\t: %i\n", units_registered_count);
-    Serial.print("-->[SLIB] Current sensors registered\t: ");
-
-    i = 0;
     while (units_registered[i++] != 0) {
         Serial.print(unit_name[units_registered[i-1]]);
         Serial.print(",");

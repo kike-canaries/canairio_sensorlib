@@ -360,7 +360,7 @@ class Sensors {
 
     uint8_t * getUnitsRegister();
 
-    void printUnitsRegister();
+    void printUnitsRegistered();
 
     uint8_t getUnitsRegisterCount();
 
