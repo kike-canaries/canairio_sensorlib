@@ -10,6 +10,8 @@ const char *unit_symbol[] = { SENSOR_UNITS };
 char const *unit_name[] = { SENSOR_UNITS }; 
 #undef X
 
+uint8_t units_registered [MAX_UNITS_SUPPORTED];
+
 
 /***********************************************************************************
  *  P U B L I C   M E T H O D S
@@ -533,21 +535,23 @@ void Sensors::am2320Read() {
         temp = temp1-toffset;
         dataReady = true;
         DEBUG("-->[SLIB] AM2320 read > done!");
+        unitRegister(UNIT::TEMP);
+        unitRegister(UNIT::HUM);
     }
 }
 
 void Sensors::bme280Read() {
     float humi1 = bme280.readHumidity();
     float temp1 = bme280.readTemperature();
-    if (isnan(humi1) || humi1 == 0 || isnan(temp1)) return;
-    unitRegister(UNIT::TEMP);
-    unitRegister(UNIT::HUM);
+    if (isnan(humi1) || humi1 == 0 || isnan(temp1)) return; 
     humi = humi1;
     temp = temp1-toffset;
     pres = bme280.readPressure();
     alt = bme280.readAltitude(SEALEVELPRESSURE_HPA);
     dataReady = true;
     DEBUG("-->[SLIB] BME280 read > done!");
+    unitRegister(UNIT::TEMP);
+    unitRegister(UNIT::HUM);
 }
 
 void Sensors::bmp280Read() {
@@ -559,6 +563,9 @@ void Sensors::bmp280Read() {
     alt = bmp280.readAltitude(SEALEVELPRESSURE_HPA);
     dataReady = true;
     DEBUG("-->[SLIB] BMP280 read > done!");
+    unitRegister(UNIT::TEMP);
+    unitRegister(UNIT::PRESS);
+    unitRegister(UNIT::ALT);
 }
 
 void Sensors::bme680Read() {
@@ -577,6 +584,10 @@ void Sensors::bme680Read() {
 
         dataReady = true;
         DEBUG("-->[SLIB] BME680 read > done!");
+        unitRegister(UNIT::TEMP);
+        unitRegister(UNIT::HUM);
+        unitRegister(UNIT::PRESS);
+        unitRegister(UNIT::GAS);
     }
 }
 
@@ -588,6 +599,8 @@ void Sensors::aht10Read() {
         temp = temp1-toffset;
         dataReady = true;
         DEBUG("-->[SLIB] AHT10 read > done!");
+        unitRegister(UNIT::TEMP);
+        unitRegister(UNIT::HUM);
     }
 }
 
@@ -595,12 +608,12 @@ void Sensors::sht31Read() {
     float humi1 = sht31.readHumidity();
     float temp1 = sht31.readTemperature();
     if (!isnan(humi1)) humi = humi1;
-    if (!isnan(temp1)) {
-        unitRegister(UNIT::TEMP);
-        unitRegister(UNIT::HUM);
+    if (!isnan(temp1)) { 
         temp = temp1-toffset;
         dataReady = true;
         DEBUG("-->[SLIB] SHT31 read > done!");
+        unitRegister(UNIT::TEMP);
+        unitRegister(UNIT::HUM);
     }
 }
 
@@ -612,6 +625,9 @@ void Sensors::CO2scd30Read() {
         CO2temp = scd30.getTemperature();
         dataReady = true;
         DEBUG("-->[SLIB] SCD30 read > done!");
+        unitRegister(UNIT::CO2);
+        unitRegister(UNIT::CO2TEMP);
+        unitRegister(UNIT::CO2HUM);
     }
 }
 
@@ -634,6 +650,9 @@ void Sensors::CO2scd4xRead()
         CO2temp = tCO2temp;
         dataReady = true;
         DEBUG("-->[SLIB] SCD4x read > done!");
+        unitRegister(UNIT::CO2);
+        unitRegister(UNIT::CO2TEMP);
+        unitRegister(UNIT::CO2HUM);
     }
 }
 
@@ -644,6 +663,9 @@ void Sensors::PMGCJA5Read() {
     pm10 = pmGCJA5.getPM10();
     dataReady = true;
     DEBUG("-->[SLIB] GCJA5 read > done!");
+    unitRegister(UNIT::PM25);
+    unitRegister(UNIT::PM1);
+    unitRegister(UNIT::PM10);
 }
 
 bool Sensors::dhtIsReady(float *temperature, float *humidity) {
@@ -670,6 +692,8 @@ void Sensors::dhtRead() {
         humi = dhthumi;
         dataReady = true; 
         DEBUG("-->[SLIB] DHTXX read > done!");
+        unitRegister(UNIT::TEMP);
+        unitRegister(UNIT::HUM);
     }
 }
 
@@ -1239,6 +1263,27 @@ uint8_t Sensors::getUnitsRegisterCount() {
     return units_registered_count;
 }
 
+void Sensors::printUnitsRegister() {
+    Serial.println("-->[SLIB] Sensors units: ");
+    // Serial.printf("-->[SLIB] testing unit call for GAS: %s(%s)\n", unit_name[GAS] , unit_symbol[GAS]);
+
+    int i = 0;
+
+    for (i = 0; i < MAX_UNITS_SUPPORTED; i++) {
+        Serial.printf("-->[SLIB] UNIT: %s(%s)\n", unit_name[i] , unit_symbol[i]);
+    }
+
+    Serial.printf("-->[SLIB] Sensors unit registered\t: %i\n", units_registered_count);
+    Serial.print("-->[SLIB] Current sensors registered\t: ");
+
+    i = 0;
+    while (units_registered[i++] != 0) {
+        Serial.print(unit_name[units_registered[i-1]]);
+        Serial.print(",");
+    }
+    Serial.println();
+}
+
 void Sensors::resetAllVariables() {
     pm1 = 0;
     pm25 = 0;
@@ -1251,17 +1296,6 @@ void Sensors::resetAllVariables() {
     alt = 0.0;
     gas = 0.0;
     pres = 0.0;
-}
-
-void Sensors::printUnitsRegister() {
-    Serial.print("-->[SLIB] Sensors registered\t: ");
-    int i = 0;
-    while (units_registered[i++] != 0) {
-        Serial.print(unit_name[units_registered[i-1]]);
-        Serial.print(unit_symbol[units_registered[i-1]]);
-        Serial.print(" ");
-    }
-    Serial.println();
 }
 
 void Sensors::DEBUG(const char *text, const char *textb) {

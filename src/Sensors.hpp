@@ -74,25 +74,15 @@
 //H&T definitions
 #define SEALEVELPRESSURE_HPA (1013.25)
 
-typedef void (*errorCbFn)(const char *msg);
-typedef void (*voidCbFn)();
-
-class Sensors {
-   public:
-    /// Supported devices. Auto is for Honeywell and Plantower sensors and similars
-    enum UART_SENSOR_TYPE { Auto, Panasonic, SSPS30, SDS011, Mhz19, CM1106, SENSEAIRS8, SSCD30, SSCD4x };
-
-    enum MAIN_SENSOR_TYPE { SENSOR_NONE, SENSOR_PM, SENSOR_CO2 };
-
 #define SENSOR_UNITS         \
     X(PM1, "PM1.0", "PM1")    \
     X(PM25, "PM2.5", "PM25")   \
     X(PM10, "PM10", "PM10")    \
+    X(TEMP, "°C", "T")     \
+    X(HUM, "%", "H")        \
     X(CO2, "PPM", "CO2")      \
     X(CO2TEMP, "°C", "CO2T")  \
     X(CO2HUM, "%", "CO2H")    \
-    X(HUM, "%", "H")        \
-    X(TEMP, "°C", "T")     \
     X(PRESS, "hPa", "P")   \
     X(ALT, "m", "Alt")       \
     X(GAS, "Ω", "Gas") 
@@ -101,15 +91,27 @@ class Sensors {
 enum UNIT : size_t { SENSOR_UNITS }; 
 #undef X
 
-#define MAX_UNITS_SUPPORTED 20
+#define MAX_UNITS_SUPPORTED 11   // Max number of units supported (TODO: make dynamic)
 
-    /// SPS30 values. Only for Sensirion SPS30 sensor.
+typedef void (*errorCbFn)(const char *msg);
+typedef void (*voidCbFn)();
+
+class Sensors {
+   public:
+
+    // UART sensors supported
+    enum UART_SENSOR_TYPE { Auto, Panasonic, SSPS30, SDS011, Mhz19, CM1106, SENSEAIRS8, SSCD30, SSCD4x };
+
+    // MAIN SENSOR TYPE
+    enum MAIN_SENSOR_TYPE { SENSOR_NONE, SENSOR_PM, SENSOR_CO2 };
+
+    // SPS30 values. Only for Sensirion SPS30 sensor.
     struct sps_values val;
 
-    /// Debug mode for increase verbose.
+    // Debug mode for increase verbose.
     bool devmode;
 
-    /// Initial sample time for all sensors
+    // Initial sample time for all sensors
     int sample_time = 5;
 
     // temperature offset (for final temp output)
@@ -260,7 +262,6 @@ enum UNIT : size_t { SENSOR_UNITS };
     int dev_uart_type = -1;
     bool dataReady;
 
-    uint8_t units_registered [MAX_UNITS_SUPPORTED];
     uint8_t units_registered_count;
     
     uint16_t pm1;   // PM1
