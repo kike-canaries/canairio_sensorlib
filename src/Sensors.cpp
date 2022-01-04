@@ -12,7 +12,6 @@ char const *unit_name[] = { SENSOR_UNITS };
 
 uint8_t units_registered [MAX_UNITS_SUPPORTED];
 
-
 /***********************************************************************************
  *  P U B L I C   M E T H O D S
  * *********************************************************************************/
@@ -1262,14 +1261,14 @@ void Sensors::printValues() {
     DEBUG("-->[SLIB]", output);
 }
 
-bool Sensors::isUnitRegistered(int unit) {
+bool Sensors::isUnitRegistered(UNIT unit) {
     for (int i = 0; i < MAX_UNITS_SUPPORTED; i++) {
         if (units_registered[i] == unit) return true;
     }
     return false;
 }
 
-void Sensors::unitRegister(int unit) {
+void Sensors::unitRegister(UNIT unit) {
     if (isUnitRegistered(unit)) return;
     units_registered[units_registered_count++] = unit;
 }
@@ -1281,18 +1280,68 @@ void Sensors::resetUnitsRegister() {
     }
 }
 
-uint8_t * Sensors::getUnitsRegister() {
+uint8_t * Sensors::getUnitsRegistered() {
     return units_registered;
 }
 
-uint8_t Sensors::getUnitsRegisterCount() {
+uint8_t Sensors::getUnitsRegisteredCount() {
     return units_registered_count;
+}
+
+String Sensors::getUnitName(UNIT unit) {
+    return String(unit_name[unit]);
+}
+
+String Sensors::getUnitSymbol(UNIT unit) {
+    return String(unit_symbol[unit]);
+}
+
+int Sensors::getNextUnit() {
+    for (int i = current_unit; i < MAX_UNITS_SUPPORTED; i++) {
+        if (units_registered[i] != 0) {
+            current_unit = i + 1;
+            return units_registered[i];
+        }
+    }
+    current_unit = 0;
+    return 0;
+}
+
+uint32_t Sensors::getUnitValue(UNIT unit) {
+    switch (unit) {
+        case PM1:
+            return pm1;
+        case PM25:
+            return pm25;
+        case PM10:
+            return pm10;
+        case PM4:
+            return pm4;
+        case CO2:
+            return CO2Val;
+        case CO2HUM:
+            return (uint32_t) CO2humi;
+        case CO2TEMP:
+            return (uint32_t) CO2temp;
+        case HUM:
+            return (uint32_t) humi;
+        case TEMP:
+            return (uint32_t) temp;
+        case PRESS:
+            return (uint32_t) hpa;
+        case ALT:
+            return (uint32_t) alt;
+        case GAS:
+            return (uint32_t) gas;
+        default:
+            return 0;
+    }
 }
 
 void Sensors::printUnitsRegistered() { 
     if (!devmode) return;
     Serial.printf("-->[SLIB] Sensors units count\t: %i\n", units_registered_count);
-    Serial.print("-->[SLIB] Sensors units registered\t: ");
+    Serial.print("-->[SLIB] Units registered   \t: ");
     int i = 0;
     while (units_registered[i++] != 0) {
         Serial.print(unit_name[units_registered[i-1]]);

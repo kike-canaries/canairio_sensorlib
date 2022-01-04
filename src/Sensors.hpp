@@ -76,23 +76,23 @@
 
 #define SENSOR_UNITS         \
     X(NUNIT, "NUNIT", "NUNIT")    \
-    X(PM1, "µg/m³", "PM1")    \
-    X(PM25, "µg/m³", "PM25")   \
-    X(PM4, "µg/m³", "PM4")   \
-    X(PM10, "µg/m³", "PM10")    \
-    X(TEMP, "°C", "T")     \
-    X(HUM, "%", "H")        \
+    X(PM1, "ug/m3", "PM1")    \
+    X(PM25, "ug/m3", "PM2.5")   \
+    X(PM4, "ug/m3", "PM4")   \
+    X(PM10, "ug/m3", "PM10")    \
+    X(TEMP, "C", "Temp")     \
+    X(HUM, "%", "Hum")        \
     X(CO2, "ppm", "CO2")      \
-    X(CO2TEMP, "°C", "CO2T")  \
+    X(CO2TEMP, "C", "CO2T")  \
     X(CO2HUM, "%", "CO2H")    \
-    X(PRESS, "hPa", "P")   \
+    X(PRESS, "hPa", "Press")   \
     X(ALT, "m", "Alt")       \
-    X(GAS, "Ω", "Gas") 
+    X(GAS, "Ohm", "Gas") 
 
 #define MAX_UNITS_SUPPORTED 13   // Max number of units supported (TODO: make dynamic)
 
 #define X(unit, symbol, name) unit, 
-enum UNIT : size_t { SENSOR_UNITS }; 
+typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
 #undef X
 
 typedef void (*errorCbFn)(const char *msg);
@@ -250,6 +250,18 @@ class Sensors {
     
     int16_t getLibraryRevision();
 
+    uint8_t getUnitsRegisteredCount();
+
+    bool isUnitRegistered(UNIT unit);
+
+    String getUnitName(UNIT unit);
+
+    String getUnitSymbol(UNIT unit);
+
+    int getNextUnit();
+
+    uint32_t getUnitValue(UNIT unit);
+
    private:
     /// DHT library
     uint32_t delayMS;
@@ -265,6 +277,7 @@ class Sensors {
     bool dataReady;
 
     uint8_t units_registered_count;
+    uint8_t current_unit = 0;
     
     uint16_t pm1;   // PM1
     uint16_t pm25;  // PM2.5
@@ -352,20 +365,15 @@ class Sensors {
 
     void printValues();
 
-    void unitRegister(int unit);
-
-    bool isUnitRegistered(int unit);
+    void unitRegister(UNIT unit);
 
     void resetUnitsRegister();
 
-    uint8_t * getUnitsRegister();
-
     void printUnitsRegistered();
-
-    uint8_t getUnitsRegisterCount();
 
     void resetAllVariables();
 
+    uint8_t * getUnitsRegistered();
 
 // @todo use DEBUG_ESP_PORT ?
 #ifdef WM_DEBUG_PORT
