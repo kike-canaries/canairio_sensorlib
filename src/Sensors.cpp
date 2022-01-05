@@ -911,7 +911,7 @@ bool Sensors::senseAirS8Init() {
     s8->get_firmware_version(s8sensor.firm_version);
     int len = strlen(s8sensor.firm_version);
     if (len == 0) {
-        DEBUG("[E][SLIB]SENSEAIR S8 not detected!");
+        DEBUG("[E][SLIB] SENSEAIR S8 not detected!");
         return false;
     }
     // Show S8 sensor info
