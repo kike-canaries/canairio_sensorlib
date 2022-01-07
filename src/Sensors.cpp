@@ -2,6 +2,16 @@
 
 DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
 
+#define X(unit, symbol, name) symbol, 
+const char *unit_symbol[] = { SENSOR_UNITS };
+#undef X
+
+#define X(unit, symbol, name) name,
+char const *unit_name[] = { SENSOR_UNITS }; 
+#undef X
+
+uint8_t units_registered [MAX_UNITS_SUPPORTED];
+
 /***********************************************************************************
  *  P U B L I C   M E T H O D S
  * *********************************************************************************/
@@ -15,6 +25,7 @@ void Sensors::loop() {
     if ((millis() - pmLoopTimeStamp > sample_time * (uint32_t)1000)) {  // sample time for each capture
         pmLoopTimeStamp = millis();
         dataReady = false;
+        resetUnitsRegister();
         if(!i2conly ) {
             dataReady = pmSensorRead();
             DEBUG("-->[SLIB] UART data ready\t: ",String(dataReady).c_str());
@@ -41,7 +52,8 @@ void Sensors::loop() {
             _onErrorCb("[W][SLIB] No data from any sensor!");
 
         printValues();
-
+        printUnitsRegistered();
+        if (units_registered_count == 0) resetAllVariables();
     }
 
     dhtRead();  // DHT2x sensors need check fastest
@@ -75,10 +87,11 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
         DEBUG("-->[SLIB] not found any PM sensor via UART");
     }
 
-#ifdef M5COREINK
-    Wire.begin(25,26);  // M5CoreInk hat pines (header on top)
-#endif
+#ifdef M5STICKCPLUS
+    Wire.begin(0,26);  // M5CoreInk hat pines (header on top)
+#else
     Wire.begin();
+#endif
     
     DEBUG("-->[SLIB] trying to load I2C sensors..");
     sps30I2CInit();
@@ -220,7 +233,7 @@ String Sensors::getStringPM10() {
 }
 
 uint16_t Sensors::getCO2() {
-    return CO2;
+    return CO2Val;
 }
 
 String Sensors::getStringCO2() {
@@ -309,6 +322,10 @@ bool Sensors::pmGenericRead() {
             DEBUG("-->[SLIB] UART PMGENERIC read > done!");
             pm25 = txtMsg[6] * 256 + (char)(txtMsg[7]);
             pm10 = txtMsg[8] * 256 + (char)(txtMsg[9]);
+
+            unitRegister(UNIT::PM25);
+            unitRegister(UNIT::PM10);
+
             if (pm25 > 1000 && pm10 > 1000) {
                 onSensorError("[E][SLIB] UART PMGENERIC out of range pm25 > 1000");
             } else
@@ -332,6 +349,11 @@ bool Sensors::pmPanasonicRead() {
         pm1 = txtMsg[2] * 256 + (char)(txtMsg[1]);
         pm25 = txtMsg[6] * 256 + (char)(txtMsg[5]);
         pm10 = txtMsg[10] * 256 + (char)(txtMsg[9]);
+
+        unitRegister(UNIT::PM1);
+        unitRegister(UNIT::PM25);
+        unitRegister(UNIT::PM10);
+
         if (pm25 > 2000 && pm10 > 2000) {
             onSensorError("[E][SLIB] PANASONIC out of range pm25 > 2000");
         } else
@@ -354,6 +376,10 @@ bool Sensors::pmSDS011Read() {
             DEBUG("-->[SLIB] SDS011 read > done!");
             pm25 = (txtMsg[3] * 256 + (char)(txtMsg[2])) / 10;
             pm10 = (txtMsg[5] * 256 + (char)(txtMsg[4])) / 10;
+
+            unitRegister(UNIT::PM25);
+            unitRegister(UNIT::PM10);
+
             if (pm25 > 1000 && pm10 > 1000) {
                 onSensorError("[E][SLIB] SDS011 out of range pm25 > 1000");
             } else
@@ -421,6 +447,11 @@ bool Sensors::sps30Read() {
     pm4 = round(val.MassPM4);
     pm10 = round(val.MassPM10);
 
+    unitRegister(UNIT::PM1);
+    unitRegister(UNIT::PM25);
+    unitRegister(UNIT::PM4);
+    unitRegister(UNIT::PM10);
+
     if(i2conly && sample_time > 30) sps30.stop();  // power saving validation
 
     if (pm25 > 1000 && pm10 > 1000) {
@@ -434,34 +465,38 @@ bool Sensors::sps30Read() {
 }
 
 bool Sensors::CO2Mhz19Read() {
-    CO2 = mhz19.getCO2();              // Request CO2 (as ppm)
+    CO2Val = mhz19.getCO2();              // Request CO2 (as ppm)
     CO2temp = mhz19.getTemperature()-toffset;  // Request Temperature (as Celsius)
-    if (CO2 > 0) {
+    if (CO2Val > 0) {
         if(altoffset != 0) CO2correctionAlt();
         dataReady = true;
         DEBUG("-->[SLIB] MHZ14-9 read > done!");
+        unitRegister(UNIT::CO2);
+        unitRegister(UNIT::CO2TEMP);
         return true;
     }
     return false;
 }
 
 bool Sensors::CO2CM1106Read() {
-    CO2 = cm1106->get_co2();;
-    if (CO2 > 0) {
+    CO2Val = cm1106->get_co2();;
+    if (CO2Val > 0) {
         dataReady = true;
         if(altoffset != 0) CO2correctionAlt();
         DEBUG("-->[SLIB] CM1106 read > done!");
+        unitRegister(UNIT::CO2);
         return true;
     }
     return false;
 }
 
 bool Sensors::senseAirS8Read() {
-    CO2 = s8->get_co2();      // Request CO2 (as ppm)
-    if (CO2 > 0) {
+    CO2Val = s8->get_co2();      // Request CO2 (as ppm)
+    if (CO2Val > 0) {
         if(altoffset != 0) CO2correctionAlt();
         dataReady = true;
         DEBUG("-->[SLIB] SENSEAIRS8 read > done!");
+        unitRegister(UNIT::CO2);
         return true;
     }
     return false;
@@ -521,19 +556,23 @@ void Sensors::am2320Read() {
         temp = temp1-toffset;
         dataReady = true;
         DEBUG("-->[SLIB] AM2320 read > done!");
+        unitRegister(UNIT::TEMP);
+        unitRegister(UNIT::HUM);
     }
 }
 
 void Sensors::bme280Read() {
     float humi1 = bme280.readHumidity();
     float temp1 = bme280.readTemperature();
-    if (isnan(humi1) || humi1 == 0 || isnan(temp1)) return;
+    if (isnan(humi1) || humi1 == 0 || isnan(temp1)) return; 
     humi = humi1;
     temp = temp1-toffset;
     pres = bme280.readPressure();
     alt = bme280.readAltitude(SEALEVELPRESSURE_HPA);
     dataReady = true;
     DEBUG("-->[SLIB] BME280 read > done!");
+    unitRegister(UNIT::TEMP);
+    unitRegister(UNIT::HUM);
 }
 
 void Sensors::bmp280Read() {
@@ -545,6 +584,9 @@ void Sensors::bmp280Read() {
     alt = bmp280.readAltitude(SEALEVELPRESSURE_HPA);
     dataReady = true;
     DEBUG("-->[SLIB] BMP280 read > done!");
+    unitRegister(UNIT::TEMP);
+    unitRegister(UNIT::PRESS);
+    unitRegister(UNIT::ALT);
 }
 
 void Sensors::bme680Read() {
@@ -563,6 +605,10 @@ void Sensors::bme680Read() {
 
         dataReady = true;
         DEBUG("-->[SLIB] BME680 read > done!");
+        unitRegister(UNIT::TEMP);
+        unitRegister(UNIT::HUM);
+        unitRegister(UNIT::PRESS);
+        unitRegister(UNIT::GAS);
     }
 }
 
@@ -574,6 +620,8 @@ void Sensors::aht10Read() {
         temp = temp1-toffset;
         dataReady = true;
         DEBUG("-->[SLIB] AHT10 read > done!");
+        unitRegister(UNIT::TEMP);
+        unitRegister(UNIT::HUM);
     }
 }
 
@@ -581,21 +629,26 @@ void Sensors::sht31Read() {
     float humi1 = sht31.readHumidity();
     float temp1 = sht31.readTemperature();
     if (!isnan(humi1)) humi = humi1;
-    if (!isnan(temp1)) {
+    if (!isnan(temp1)) { 
         temp = temp1-toffset;
         dataReady = true;
         DEBUG("-->[SLIB] SHT31 read > done!");
+        unitRegister(UNIT::TEMP);
+        unitRegister(UNIT::HUM);
     }
 }
 
 void Sensors::CO2scd30Read() {
     uint16_t tCO2 = scd30.getCO2();  // we need temp var, without it override CO2
     if (tCO2 > 0) {
-        CO2 = tCO2;
+        CO2Val = tCO2;
         CO2humi = scd30.getHumidity();
         CO2temp = scd30.getTemperature();
         dataReady = true;
         DEBUG("-->[SLIB] SCD30 read > done!");
+        unitRegister(UNIT::CO2);
+        unitRegister(UNIT::CO2TEMP);
+        unitRegister(UNIT::CO2HUM);
     }
 }
 
@@ -613,11 +666,14 @@ void Sensors::CO2scd4xRead()
         DEBUG("[E][SLIB] SCD4x msg\t: ", errorMessage);
         return;
     } else {
-        CO2 = tCO2;
+        CO2Val = tCO2;
         CO2humi = tCO2humi;
         CO2temp = tCO2temp;
         dataReady = true;
         DEBUG("-->[SLIB] SCD4x read > done!");
+        unitRegister(UNIT::CO2);
+        unitRegister(UNIT::CO2TEMP);
+        unitRegister(UNIT::CO2HUM);
     }
 }
 
@@ -628,6 +684,9 @@ void Sensors::PMGCJA5Read() {
     pm10 = pmGCJA5.getPM10();
     dataReady = true;
     DEBUG("-->[SLIB] GCJA5 read > done!");
+    unitRegister(UNIT::PM1);
+    unitRegister(UNIT::PM25);
+    unitRegister(UNIT::PM10);
 }
 
 bool Sensors::dhtIsReady(float *temperature, float *humidity) {
@@ -652,8 +711,10 @@ void Sensors::dhtRead() {
     if (dhtIsReady(&dhttemp, &dhthumi) == true) {
         temp = dhttemp-toffset;
         humi = dhthumi;
-        dataReady = true;
+        dataReady = true; 
         DEBUG("-->[SLIB] DHTXX read > done!");
+        unitRegister(UNIT::TEMP);
+        unitRegister(UNIT::HUM);
     }
 }
 
@@ -688,27 +749,27 @@ void Sensors::sps30Errorloop(char *mess, uint8_t r) {
 bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
     // set UART for autodetection sensors (Honeywell, Plantower)
     if (pms_type == Auto) {
-        DEBUG("-->[SLIB] UART detecting Generic PM sensor..");
+        DEBUG("-->[SLIB] UART detecting type\t: Auto");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     }
     // set UART for custom sensors
     else if (pms_type == Panasonic) {
-        DEBUG("-->[SLIB] UART detecting Panasonic PM sensor..");
+        DEBUG("-->[SLIB] UART detecting type\t: Panasonic");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     } else if (pms_type == SSPS30) {
-        DEBUG("-->[SLIB] UART detecting SPS30 PM sensor..");
+        DEBUG("-->[SLIB] UART detecting type\t: SSPS30");
         if (!serialInit(pms_type, 115200, pms_rx, pms_tx)) return false;
     } else if (pms_type == SDS011) {
-        DEBUG("-->[SLIB] UART detecting SDS011 PM sensor..");
+        DEBUG("-->[SLIB] UART detecting type\t: SDS011");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     } else if (pms_type == Mhz19) {
-        DEBUG("-->[SLIB] UART detecting MHZ19 sensor..");
+        DEBUG("-->[SLIB] UART detecting type\t: Mhz19");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     } else if (pms_type == CM1106) {
-        DEBUG("-->[SLIB] UART detecting CM1106 sensor..");
+        DEBUG("-->[SLIB] UART detecting type\t: CM1106");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     } else if (pms_type == SENSEAIRS8) {
-        DEBUG("-->[SLIB] UART detecting SenseAir S8 sensor..");
+        DEBUG("-->[SLIB] UART detecting type\t: SENSEAIRS8");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     }
 
@@ -850,7 +911,7 @@ bool Sensors::senseAirS8Init() {
     s8->get_firmware_version(s8sensor.firm_version);
     int len = strlen(s8sensor.firm_version);
     if (len == 0) {
-        DEBUG("[E][SLIB]SENSEAIR S8 not detected!");
+        DEBUG("[E][SLIB] SENSEAIR S8 not detected!");
         return false;
     }
     // Show S8 sensor info
@@ -1179,10 +1240,10 @@ void Sensors::dhtInit() {
 // Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
 
 void Sensors::CO2correctionAlt() {
-    DEBUG("-->[SLIB] CO2 altitud original\t: ", String(CO2).c_str());
-    float CO2cor = (0.016 * ((1013.25 - hpa) /10 ) * (CO2 - 400)) + CO2;       // Increment of 1.6% for every hpa of difference at sea level
-    CO2 = round (CO2cor);
-    DEBUG("-->[SLIB] CO2 compensated\t: ", String(CO2).c_str());
+    DEBUG("-->[SLIB] CO2 altitud original\t: ", String(CO2Val).c_str());
+    float CO2cor = (0.016 * ((1013.25 - hpa) /10 ) * (CO2Val - 400)) + CO2Val;       // Increment of 1.6% for every hpa of difference at sea level
+    CO2Val = round (CO2cor);
+    DEBUG("-->[SLIB] CO2 compensated\t: ", String(CO2Val).c_str());
 }
 
 float Sensors::hpaCalculation(float altitude) {
@@ -1193,11 +1254,114 @@ float Sensors::hpaCalculation(float altitude) {
 }
 
 // Print some sensors values
-
 void Sensors::printValues() {
+    if (!devmode) return;
     char output[256];
-    sprintf(output, "PM1:%03d PM25:%03d PM10:%03d CO2:%04d CO2humi:%03f%% CO2temp:%03f°C H:%03f%% T:%03f°C", pm1, pm25, pm10, CO2, CO2humi, CO2temp, humi, temp);
+    sprintf(output, "PM1:%03d PM25:%03d PM10:%03d CO2:%04d CO2humi:%03f%% CO2temp:%03f°C H:%03f%% T:%03f°C", pm1, pm25, pm10, CO2Val, CO2humi, CO2temp, humi, temp);
     DEBUG("-->[SLIB]", output);
+}
+
+bool Sensors::isUnitRegistered(UNIT unit) {
+    for (int i = 0; i < MAX_UNITS_SUPPORTED; i++) {
+        if (units_registered[i] == unit) return true;
+    }
+    return false;
+}
+
+void Sensors::unitRegister(UNIT unit) {
+    if (isUnitRegistered(unit)) return;
+    units_registered[units_registered_count++] = unit;
+}
+
+void Sensors::resetUnitsRegister() {
+    units_registered_count = 0;
+    for (int i = 0; i < MAX_UNITS_SUPPORTED; i++) {
+        units_registered[i] = 0;
+    }
+}
+
+uint8_t * Sensors::getUnitsRegistered() {
+    return units_registered;
+}
+
+uint8_t Sensors::getUnitsRegisteredCount() {
+    return units_registered_count;
+}
+
+String Sensors::getUnitName(UNIT unit) {
+    return String(unit_name[unit]);
+}
+
+String Sensors::getUnitSymbol(UNIT unit) {
+    return String(unit_symbol[unit]);
+}
+
+int Sensors::getNextUnit() {
+    for (int i = current_unit; i < MAX_UNITS_SUPPORTED; i++) {
+        if (units_registered[i] != 0) {
+            current_unit = i + 1;
+            return units_registered[i];
+        }
+    }
+    current_unit = 0;
+    return 0;
+}
+
+uint32_t Sensors::getUnitValue(UNIT unit) {
+    switch (unit) {
+        case PM1:
+            return pm1;
+        case PM25:
+            return pm25;
+        case PM10:
+            return pm10;
+        case PM4:
+            return pm4;
+        case CO2:
+            return CO2Val;
+        case CO2HUM:
+            return (uint32_t) CO2humi;
+        case CO2TEMP:
+            return (uint32_t) CO2temp;
+        case HUM:
+            return (uint32_t) humi;
+        case TEMP:
+            return (uint32_t) temp;
+        case PRESS:
+            return (uint32_t) hpa;
+        case ALT:
+            return (uint32_t) alt;
+        case GAS:
+            return (uint32_t) gas;
+        default:
+            return 0;
+    }
+}
+
+void Sensors::printUnitsRegistered() { 
+    if (!devmode) return;
+    Serial.printf("-->[SLIB] Sensors units count\t: %i\n", units_registered_count);
+    Serial.print("-->[SLIB] Units registered   \t: ");
+    int i = 0;
+    while (units_registered[i++] != 0) {
+        Serial.print(unit_name[units_registered[i-1]]);
+        Serial.print(",");
+    }
+    Serial.println();
+}
+
+void Sensors::resetAllVariables() {
+    pm1 = 0;
+    pm25 = 0;
+    pm10 = 0;
+    CO2Val = 0;
+    CO2humi = 0.0;
+    CO2temp = 0.0;
+    humi = 0.0;
+    temp = 0.0;
+    alt = 0.0;
+    gas = 0.0;
+    pres = 0.0;
 }
 
 void Sensors::DEBUG(const char *text, const char *textb) {
@@ -1211,7 +1375,8 @@ void Sensors::DEBUG(const char *text, const char *textb) {
     }
 }
 
-bool Sensors::serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx) {
+bool Sensors::serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx) {
+    if(devmode)Serial.printf("-->[SLIB] UART init with speed\t: %lu RX:%i TX:%i\n", speed_baud, pms_rx, pms_tx);
     switch (SENSOR_COMMS) {
         case SERIALPORT:
             Serial.begin(speed_baud);

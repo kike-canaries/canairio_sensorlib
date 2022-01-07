@@ -17,24 +17,25 @@
 #include <s8_uart.h>
 #include <SensirionI2CScd4x.h>
 
-#define CSL_VERSION "0.4.2"
-#define CSL_REVISION  341
+#define CSL_VERSION "0.4.3"
+#define CSL_REVISION  342
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
 ***************************************************************/
+
 #ifdef WEMOSOLED
 #define PMS_RX 13           // config for Wemos board & TTGO18650
 #define PMS_TX 15           // some old TTGO18650 have PMS_RX 18 & PMS_TX 17
-#define DHT_SENSOR_PIN 23  
+#define DHT_SENSOR_PIN 23   // default DHT sensor pin 
 #elif HELTEC
 #define PMS_RX 17           // config for Heltec board, ESP32Sboard & ESPDUINO-32. Use Uart2
 #define PMS_TX 18           // some old ESP32Sboard have PMS_RX 27 & PMS_TX 25. Jump Uart2 tx from 16 to 18. !6 used by Oled.
-#define DHT_SENSOR_PIN 23    
+#define DHT_SENSOR_PIN 23
 #elif TTGO_TQ
 #define PMS_RX 13  
 #define PMS_TX 18
-#define DHT_SENSOR_PIN 23    
+#define DHT_SENSOR_PIN 23
 #elif M5COREINK
 #define PMS_RX 13           // config for backward header in M5CoreInk
 #define PMS_TX 14
@@ -43,10 +44,22 @@
 #define PMS_RX 13  
 #define PMS_TX 12
 #define DHT_SENSOR_PIN 17
-#else                       // ** DEFAULT **
-#define PMS_RX 17           // config for D1MIN1 / TTGO T7 / Default for main ESP32 dev boards
+#elif ESP32PICOD4
+#define PMS_RX 19
+#define PMS_TX 18
+#define DHT_SENSOR_PIN 12
+#elif ESP32GENERIC          // **DEFAULT** for pre-defined ESP32 board in PlatformIO environment
+#define PMS_RX RX
+#define PMS_TX TX
+#define DHT_SENSOR_PIN 12
+#elif M5STICKCPLUS          // **DEFAULT** for pre-defined ESP32 board in PlatformIO environment
+#define PMS_RX 32
+#define PMS_TX 33
+#define DHT_SENSOR_PIN 34
+#else                       // **DEFAULT** for legacy CanAirIO devices:
+#define PMS_RX 17           // D1MIN1 / TTGOT7 / ESP32DEVKIT Default for main ESP32 dev boards
 #define PMS_TX 16
-#define DHT_SENSOR_PIN 23      
+#define DHT_SENSOR_PIN 23   // default DHT sensor pin 
 #endif
 
 // DHT sensor type
@@ -61,23 +74,46 @@
 //H&T definitions
 #define SEALEVELPRESSURE_HPA (1013.25)
 
+#define SENSOR_UNITS         \
+    X(NUNIT, "NUNIT", "NUNIT")    \
+    X(PM1, "ug/m3", "PM1")    \
+    X(PM25, "ug/m3", "PM2.5")   \
+    X(PM4, "ug/m3", "PM4")   \
+    X(PM10, "ug/m3", "PM10")    \
+    X(TEMP, "C", "Temp")     \
+    X(HUM, "%", "Hum")        \
+    X(CO2, "ppm", "CO2")      \
+    X(CO2TEMP, "C", "CO2T")  \
+    X(CO2HUM, "%", "CO2H")    \
+    X(PRESS, "hPa", "Press")   \
+    X(ALT, "m", "Alt")       \
+    X(GAS, "Ohm", "Gas") 
+
+#define MAX_UNITS_SUPPORTED 13   // Max number of units supported (TODO: make dynamic)
+
+#define X(unit, symbol, name) unit, 
+typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
+#undef X
+
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
 
 class Sensors {
    public:
-    /// Supported devices. Auto is for Honeywell and Plantower sensors and similars
+
+    // UART sensors supported
     enum UART_SENSOR_TYPE { Auto, Panasonic, SSPS30, SDS011, Mhz19, CM1106, SENSEAIRS8, SSCD30, SSCD4x };
 
+    // MAIN SENSOR TYPE
     enum MAIN_SENSOR_TYPE { SENSOR_NONE, SENSOR_PM, SENSOR_CO2 };
-    
-    /// SPS30 values. Only for Sensirion SPS30 sensor.
+
+    // SPS30 values. Only for Sensirion SPS30 sensor.
     struct sps_values val;
 
-    /// Debug mode for increase verbose.
+    // Debug mode for increase verbose.
     bool devmode;
 
-    /// Initial sample time for all sensors
+    // Initial sample time for all sensors
     int sample_time = 5;
 
     // temperature offset (for final temp output)
@@ -214,6 +250,18 @@ class Sensors {
     
     int16_t getLibraryRevision();
 
+    uint8_t getUnitsRegisteredCount();
+
+    bool isUnitRegistered(UNIT unit);
+
+    String getUnitName(UNIT unit);
+
+    String getUnitSymbol(UNIT unit);
+
+    int getNextUnit();
+
+    uint32_t getUnitValue(UNIT unit);
+
    private:
     /// DHT library
     uint32_t delayMS;
@@ -227,6 +275,9 @@ class Sensors {
     String device_selected;
     int dev_uart_type = -1;
     bool dataReady;
+
+    uint8_t units_registered_count;
+    uint8_t current_unit = 0;
     
     uint16_t pm1;   // PM1
     uint16_t pm25;  // PM2.5
@@ -239,9 +290,9 @@ class Sensors {
     float alt = 0.0;
     float gas = 0.0;
     
-    uint16_t CO2;         // CO2 in ppm
-    float CO2humi = 0.0;  // temperature of the CO2 sensor
-    float CO2temp = 0.0;  // temperature of the CO2 sensor
+    uint16_t CO2Val;      // CO2 in ppm
+    float CO2humi = 0.0;  // humidity of CO2 sensor
+    float CO2temp = 0.0;  // temperature of CO2 sensor
 
     void am2320Init();
     void am2320Read();
@@ -307,12 +358,22 @@ class Sensors {
 
     void onSensorError(const char *msg);
 
-    bool serialInit(int pms_type, long speed_baud, int pms_rx, int pms_tx);
+    bool serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx);
     String hwSerialRead(unsigned int lenght_buffer);
     void restart();  // restart serial (it isn't works sometimes)
     void DEBUG(const char *text, const char *textb = "");
 
     void printValues();
+
+    void unitRegister(UNIT unit);
+
+    void resetUnitsRegister();
+
+    void printUnitsRegistered();
+
+    void resetAllVariables();
+
+    uint8_t * getUnitsRegistered();
 
 // @todo use DEBUG_ESP_PORT ?
 #ifdef WM_DEBUG_PORT
