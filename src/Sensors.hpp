@@ -74,23 +74,46 @@
 //H&T definitions
 #define SEALEVELPRESSURE_HPA (1013.25)
 
+#define SENSOR_UNITS         \
+    X(NUNIT, "NUNIT", "NUNIT")    \
+    X(PM1, "ug/m3", "PM1")    \
+    X(PM25, "ug/m3", "PM2.5")   \
+    X(PM4, "ug/m3", "PM4")   \
+    X(PM10, "ug/m3", "PM10")    \
+    X(TEMP, "C", "Temp")     \
+    X(HUM, "%", "Hum")        \
+    X(CO2, "ppm", "CO2")      \
+    X(CO2TEMP, "C", "CO2T")  \
+    X(CO2HUM, "%", "CO2H")    \
+    X(PRESS, "hPa", "Press")   \
+    X(ALT, "m", "Alt")       \
+    X(GAS, "Ohm", "Gas") 
+
+#define MAX_UNITS_SUPPORTED 13   // Max number of units supported (TODO: make dynamic)
+
+#define X(unit, symbol, name) unit, 
+typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
+#undef X
+
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
 
 class Sensors {
    public:
-    /// Supported devices. Auto is for Honeywell and Plantower sensors and similars
+
+    // UART sensors supported
     enum UART_SENSOR_TYPE { Auto, Panasonic, SSPS30, SDS011, Mhz19, CM1106, SENSEAIRS8, SSCD30, SSCD4x };
 
+    // MAIN SENSOR TYPE
     enum MAIN_SENSOR_TYPE { SENSOR_NONE, SENSOR_PM, SENSOR_CO2 };
-    
-    /// SPS30 values. Only for Sensirion SPS30 sensor.
+
+    // SPS30 values. Only for Sensirion SPS30 sensor.
     struct sps_values val;
 
-    /// Debug mode for increase verbose.
+    // Debug mode for increase verbose.
     bool devmode;
 
-    /// Initial sample time for all sensors
+    // Initial sample time for all sensors
     int sample_time = 5;
 
     // temperature offset (for final temp output)
@@ -227,6 +250,18 @@ class Sensors {
     
     int16_t getLibraryRevision();
 
+    uint8_t getUnitsRegisteredCount();
+
+    bool isUnitRegistered(UNIT unit);
+
+    String getUnitName(UNIT unit);
+
+    String getUnitSymbol(UNIT unit);
+
+    int getNextUnit();
+
+    uint32_t getUnitValue(UNIT unit);
+
    private:
     /// DHT library
     uint32_t delayMS;
@@ -240,6 +275,9 @@ class Sensors {
     String device_selected;
     int dev_uart_type = -1;
     bool dataReady;
+
+    uint8_t units_registered_count;
+    uint8_t current_unit = 0;
     
     uint16_t pm1;   // PM1
     uint16_t pm25;  // PM2.5
@@ -252,9 +290,9 @@ class Sensors {
     float alt = 0.0;
     float gas = 0.0;
     
-    uint16_t CO2;         // CO2 in ppm
-    float CO2humi = 0.0;  // temperature of the CO2 sensor
-    float CO2temp = 0.0;  // temperature of the CO2 sensor
+    uint16_t CO2Val;      // CO2 in ppm
+    float CO2humi = 0.0;  // humidity of CO2 sensor
+    float CO2temp = 0.0;  // temperature of CO2 sensor
 
     void am2320Init();
     void am2320Read();
@@ -326,6 +364,16 @@ class Sensors {
     void DEBUG(const char *text, const char *textb = "");
 
     void printValues();
+
+    void unitRegister(UNIT unit);
+
+    void resetUnitsRegister();
+
+    void printUnitsRegistered();
+
+    void resetAllVariables();
+
+    uint8_t * getUnitsRegistered();
 
 // @todo use DEBUG_ESP_PORT ?
 #ifdef WM_DEBUG_PORT

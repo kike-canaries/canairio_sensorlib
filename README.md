@@ -67,14 +67,6 @@ Full list of all sub libraries supported [here](https://github.com/kike-canaries
 ```Java
 sensors.setOnDataCallBack(&onSensorDataOk);   // all data read callback
 sensors.init();                               // start all sensors and
-                                              // try to detect UART sensors like:
-                                              // Panasonic, Honeywell or Plantower.
-                                              // For special UART sensors try select it:
-                                              // init(sensors.Sensirion)
-                                              // init(sensors.Mhz19)
-                                              // init(sensors.CM1106)
-                                              // init(sensors.SENSEAIRS8)
-                                              // For I2C sensors, with empty parameter is enough.
 ```
 
 # Full implementation
@@ -104,10 +96,19 @@ void setup() {
     sensors.setCO2AltitudeOffset(cfg.altoffset);    // [optional] CO2 altitude compensation
     sensors.setDebugMode(false);                    // [optional] debug mode enable/disable
     sensors.detectI2COnly(true);                    // [optional] force to only i2c sensors
-    sensors.init();                                 // start all sensors with auto detection mode.
-                                                    // Also you can try to select one:
-                                                    // sensors.init(sensors.Sensirion);
-                                                    // All i2c sensors are autodetected.
+    sensors.init();                                 // Auto detection to UART and i2c sensors
+
+    // Alternatives only for UART sensors (TX/RX):
+
+    // sensors.init(sensors.Auto);                  // Auto detection to UART sensors (Honeywell, Plantower, Panasonic)
+    // sensors.init(sensors.Panasonic);             // Force UART detection to Panasonic sensor
+    // sensors.init(sensors.Sensirion);             // Force UART detection to Sensirion sensor
+    // sensors.init(sensors.Mhz19);                 // Force UART detection to Mhz14 or Mhz19 CO2 sensor
+    // sensors.init(sensors.SDS011);                // Force UART detection to SDS011 sensor
+    // sensors.init(sensors.CM1106);                // Force UART detection to CM1106 CO2 sensor
+    // sensors.init(sensors.SENSEAIRS8);            // Force UART detection to SenseAirS8 CO2 sensor
+    // sensors.init(sensors.Auto,PMS_RX,PMS_TX);    // Auto detection on custom RX,TX
+ 
 
     // Also you can access to sub library objects, and perform for example calls like next:
 
@@ -141,7 +142,73 @@ On your serial monitor you should have something like that:
 -->[MAIN] PM1.0: 002 PM2.5: 002 PM10: 002
 ```
 
-# Demo
+# Multivariable demo
+
+In this demo with two devices and multiple sensors, you can choose the possible sub sensors units:
+
+[![CanAirIO multivariable demo](https://img.youtube.com/vi/-5Va47Bap48/0.jpg)](https://www.youtube.com/watch?v=-5Va47Bap48)
+
+# Multivariable implementation
+
+The last version added new getters to have the current status of each unit of each sensor connected to the device in real time.  
+
+For example:
+
+```cpp
+/**
+ * Example or alternative of the selection of the main sensor unit
+ */
+
+void getMainValue() {
+    // If the main sensor (CO2 or PM2.5) was not detected but the temperature is registered
+    if (sensors.getMainDeviceSelected().isEmpty() && sensors.isUnitRegistered(UNIT::TEMP)) {  
+        mainValue = (uint32_t) sensors.getTemperature();
+        uName = sensors.getUnitName(UNIT::TEMP);
+        uSymbol = sensors.getUnitSymbol(UNIT::TEMP);
+    // The main sensor is a particle meter device
+    } else if (sensors.getMainSensorTypeSelected() == Sensors::SENSOR_PM) {
+        mainValue = sensors.getPM25();
+        uName = sensors.getUnitName(UNIT::PM25);
+        uSymbol = sensors.getUnitSymbol(UNIT::PM25);
+    // The main sensor is a CO2 device
+    } else if (sensors.getMainSensorTypeSelected() == Sensors::SENSOR_CO2) {
+        mainValue = sensors.getCO2();
+        uName = sensors.getUnitName(UNIT::CO2);
+        uSymbol = sensors.getUnitSymbol(UNIT::CO2);
+    }
+}
+
+/**
+ * Example or alternative of the selection of the minor sensor unit
+ */
+
+void getMinorValue(UNIT mainUnit) {
+    minorValue = (uint32_t)sensors.getUnitValue(mainUnit);
+    uName = sensors.getUnitName(mainUnit);
+    uSymbol = sensors.getUnitSymbol(mainUnit);
+}
+
+
+void onSensorDataOk() {
+    
+    Serial.println("");
+
+    getMainValue(); // choose the main sensor possible
+    Serial.println ("-->[MAIN] Main sensor unit     \t: "+uName+": "+String(mainValue)+" "+uSymbol);
+
+    getMinorValue(nextUnit); // Load values ot the minor sensor. (see the loop)
+    Serial.println ("-->[MAIN] Secondary sensor unit\t: "+uName+": "+String(minorValue)+" "+uSymbol);
+
+    Serial.println("");
+
+    // example for choose and change the next unit able: 
+    nextUnit = (UNIT)sensors.getNextUnit(); // Change the minor sensor
+
+}
+``` 
+
+
+# UART detection demo 
 
 [![CanAirIO auto configuration demo](https://img.youtube.com/vi/hmukAmG5Eec/0.jpg)](https://www.youtube.com/watch?v=hmukAmG5Eec)
 
