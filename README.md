@@ -49,12 +49,15 @@ NOTE: DHT22 is supported but is not recommended
 - Unified variables for all sensors 
 - Auto UART port selection (Hw, Sw, UART1, UART2, etc)
 - Multiple i2c reads and one UART sensor read support
+- Real time registry of sensors unit registered (see multivariable)
 - Preselected main stream UART pins from popular boards
 - Auto config UART port for Plantower, Honeywell and Panasonic sensors
 - Unified calibration trigger for all CO2 sensors
 - Unified CO2 Altitude compensation
 - Unified temperature offset for CO2 and environment sensors
 - Public access to main objects of each library (full methods access)
+- Get unit symbol and name and each sub-sensor
+- Get the main sensor detected. Two main groups: CO2 and PM
 - Basic debug mode support toggle in execution
 - Basic power saving management with sample time > 30s on SPS30  
 
@@ -332,23 +335,24 @@ Also you can make a donation, be a patreon or buy a device:
 - [x] Auto detection for UART sensors (Honeywell, Panasonic and Plantower)
 - [x] Added SPS30 library with auto UART detection
 - [x] Disable/enable logs (debug mode flag)
-- [x] Added bme280, aht10, sht31, am2320 i2c sensors
+- [x] Added bme280, bmp280, aht10, sht31, am2320 i2c sensors
 - [x] Exposed public sub-libraries objects, sps30, aht10, etc.
 - [x] Added old DHT sensors 
 - [x] Added CO2 sensors: MHZ19, SCD30, CM1106 via UART
 - [x] Added SDS011 particle metter
-- [x] BME680 support (from TTGO-T7 CanAirIO version)
+- [x] BME680 support
 - [x] Added Sensirion SPS30 and Panasonic SN-GCJA5 via i2c
 - [x] Enable/Disable UART detection for force only i2c
 - [x] Temperature and Altitude compensation
 - [x] SenseAir S8 via UART support
+- [x] Multivariable selection (getNextUnit(),getUnitName(),etc)
+- [ ] Improve to sensor dynamic registry 
 - [ ] IAQ indicator from BME680 Bosch library
 
 # Projects using this Library
 
 - [CanAirIO Device](https://github.com/kike-canaries/canairio_firmware): ESP32 Air quality device for mobile and fixed stations. (PM2.5 and CO2)
 - [Medidor de CO2](https://emariete.com/medidor-co2-display-tft-color-ttgo-t-display-sensirion-scd30): Un medidor de CO2 de alta calidad con pantalla en color. (CO2)    
-
 
 # Credits
 
