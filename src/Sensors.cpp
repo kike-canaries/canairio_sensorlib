@@ -88,7 +88,8 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     }
 
 #ifdef M5STICKCPLUS
-    Wire.begin(0,26);  // M5CoreInk hat pines (header on top)
+    Wire.begin(32,33);  // M5CoreInk hat pines (header on top)
+    Wire1.begin(0,26);  // M5CoreInk hat pines (header on top)
 #else
     Wire.begin();
 #endif
@@ -593,23 +594,18 @@ void Sensors::bme680Read() {
     unsigned long endTime = bme680.beginReading();
     if (endTime == 0) return;
     if (!bme680.endReading()) return;
-
     float temp1 = bme680.temperature;
-
-    if (temp1 != 0) {
-        temp = temp1-toffset;
-        humi = bme680.humidity;
-        pres = bme680.pressure / 100.0;
-        gas  = bme680.gas_resistance / 1000.0;
-        alt  = bme680.readAltitude(SEALEVELPRESSURE_HPA);
-
-        dataReady = true;
-        DEBUG("-->[SLIB] BME680 read > done!");
-        unitRegister(UNIT::TEMP);
-        unitRegister(UNIT::HUM);
-        unitRegister(UNIT::PRESS);
-        unitRegister(UNIT::GAS);
-    }
+    temp = temp1 - toffset;
+    humi = bme680.humidity;
+    pres = bme680.pressure / 100.0;
+    gas = bme680.gas_resistance / 1000.0;
+    alt = bme680.readAltitude(SEALEVELPRESSURE_HPA);
+    dataReady = true;
+    DEBUG("-->[SLIB] BME680 read > done!");
+    unitRegister(UNIT::TEMP);
+    unitRegister(UNIT::HUM);
+    unitRegister(UNIT::PRESS);
+    unitRegister(UNIT::GAS);
 }
 
 void Sensors::aht10Read() {
@@ -652,33 +648,23 @@ void Sensors::CO2scd30Read() {
     }
 }
 
-void Sensors::CO2scd4xRead()
-{
-    uint16_t error = 0;
-    char errorMessage[256];
+void Sensors::CO2scd4xRead() {
     uint16_t tCO2 = 0;
-    float tCO2temp, tCO2humi = 0; // we need temp vars, without it override values
-    if (getMainDeviceSelected() != "SCD4x") return;
-    error = scd4x.readMeasurement(tCO2, tCO2temp, tCO2humi);
-    if (error) {
-        DEBUG("[E][SLIB] SCD4x Error reading measurement\t: ", String(error).c_str());
-        errorToString(error, errorMessage, 256);
-        DEBUG("[E][SLIB] SCD4x msg\t: ", errorMessage);
-        return;
-    } else {
-        CO2Val = tCO2;
-        CO2humi = tCO2humi;
-        CO2temp = tCO2temp;
-        dataReady = true;
-        DEBUG("-->[SLIB] SCD4x read > done!");
-        unitRegister(UNIT::CO2);
-        unitRegister(UNIT::CO2TEMP);
-        unitRegister(UNIT::CO2HUM);
-    }
+    float tCO2temp, tCO2humi = 0;
+    uint16_t error = scd4x.readMeasurement(tCO2, tCO2temp, tCO2humi);
+    if (error) return;
+    CO2Val = tCO2;
+    CO2humi = tCO2humi;
+    CO2temp = tCO2temp;
+    dataReady = true;
+    DEBUG("-->[SLIB] SCD4x read > done!");
+    unitRegister(UNIT::CO2);
+    unitRegister(UNIT::CO2TEMP);
+    unitRegister(UNIT::CO2HUM);
 }
 
 void Sensors::PMGCJA5Read() {
-    if (!getMainDeviceSelected().equals("PANASONIC_I2C")) return;
+    if (!pmGCJA5.isConnected()) return;
     pm1 = pmGCJA5.getPM1_0();
     pm25 = pmGCJA5.getPM2_5();
     pm10 = pmGCJA5.getPM10();
@@ -708,14 +694,13 @@ void Sensors::setDHTparameters(int dht_sensor_pin, int dht_sensor_type) {
 }
 
 void Sensors::dhtRead() {
-    if (dhtIsReady(&dhttemp, &dhthumi) == true) {
-        temp = dhttemp-toffset;
-        humi = dhthumi;
-        dataReady = true; 
-        DEBUG("-->[SLIB] DHTXX read > done!");
-        unitRegister(UNIT::TEMP);
-        unitRegister(UNIT::HUM);
-    }
+    if (dhtIsReady(&dhttemp, &dhthumi) != true) return;
+    temp = dhttemp - toffset;
+    humi = dhthumi;
+    dataReady = true;
+    DEBUG("-->[SLIB] DHTXX read > done!");
+    unitRegister(UNIT::TEMP);
+    unitRegister(UNIT::HUM);
 }
 
 void Sensors::onSensorError(const char *msg) {
@@ -1115,6 +1100,7 @@ void Sensors::aht10Init() {
 void Sensors::CO2scd30Init() {
     DEBUG("-->[SLIB] SCD30 starting CO2 SCD30 sensor..");
     if (!scd30.begin()) return;
+    // if (!scd30.begin() && !scd30.begin(Wire1,false,true)) return;
     Serial.println("-->[SLIB] I2C sensor detected\t: SCD30");
     delay(10);
 
