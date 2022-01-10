@@ -88,13 +88,12 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     }
 
 #ifdef M5STICKCPLUS
-    Wire.begin(32,33);  // M5CoreInk hat pines (header on top)
-    Wire1.begin(0,26);  // M5CoreInk hat pines (header on top)
+    Wire.begin(32,33); // M5CoreInk Ext port (default for all sensors)
+    Wire1.begin(0,26);   // M5CoreInk hat pines (header on top)
 #else
     Wire.begin();
 #endif
     
-    DEBUG("-->[SLIB] trying to load I2C sensors..");
     sps30I2CInit();
     PMGCJA5Init();
     am2320Init();
@@ -837,14 +836,14 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
 }
 
 bool Sensors::CO2Mhz19Init() {
-    DEBUG("-->[SLIB] MH-Z19 starting MH-Z14 or MH-Z19 sensor..");
+    DEBUG("-->[SLIB] try to enable sensor \t: MH-Z14/Z19..");
     mhz19.begin(*_serial);
     mhz19.autoCalibration(false); 
     return true;
 }
 
 bool Sensors::CO2CM1106Init() {
-    DEBUG("-->[SLIB] CM1106 starting CM1106 sensor..");
+    DEBUG("-->[SLIB] try to enable sensor \t: CM1106..");
     cm1106 = new CM1106_UART(*_serial);
 
     // Check if CM1106 is available
@@ -929,7 +928,7 @@ bool Sensors::senseAirS8Init() {
 
 bool Sensors::sps30UARTInit() {
     // Begin communication channel
-    DEBUG("-->[SLIB] UART SPS30 starting sensor..");
+    DEBUG("-->[SLIB] try to enable sensor \t: SPS30 on UART..");
 
     // set driver debug level
     if (CORE_DEBUG_LEVEL > 0) sps30.EnableDebugging(true);
@@ -955,7 +954,7 @@ bool Sensors::sps30UARTInit() {
 bool Sensors::sps30I2CInit() {
     if (dev_uart_type == SSPS30) return false;
     
-    DEBUG("-->[SLIB] I2C SPS30 starting sensor..");
+    DEBUG("-->[SLIB] try to enable sensor \t: I2C SPS30..");
     // set driver debug level
     if (CORE_DEBUG_LEVEL > 0) sps30.EnableDebugging(true);
     // Begin communication channel;
@@ -1048,39 +1047,47 @@ void Sensors::sps30DeviceInfo() {
 }
 
 void Sensors::am2320Init() {
-    DEBUG("-->[SLIB] AM2320 starting AM2320 sensor..");
+    DEBUG("-->[SLIB] try to enable sensor \t: AM2320..");
     if (am2320.begin()) Serial.println("-->[SLIB] I2C sensor detected\t: AM2320");
 }
 
 void Sensors::sht31Init() {
-    DEBUG("-->[SLIB] SHT31 starting SHT31 sensor..");
+    DEBUG("-->[SLIB] try to enable sensor \t: SHT31..");
     sht31 = Adafruit_SHT31();
-    if (sht31.begin()) Serial.println("-->[SLIB] I2C sensor detected\t: SHT31");
+    if (!sht31.begin()) {
+        sht31 = Adafruit_SHT31(&Wire1);
+        if (!sht31.begin()) return; 
+    }
+    Serial.println("-->[SLIB] I2C sensor detected\t: SHT31");
 }
 
 void Sensors::bme280Init() {
-    DEBUG("-->[SLIB] BME280 starting BME280 sensor..");
-    if (bme280.begin()) Serial.println("-->[SLIB] I2C sensor detected\t: BME280");
+    DEBUG("-->[SLIB] try to enable sensor \t: BME280..");
+    if (!bme280.begin() && !bme280.begin(BME280_ADDRESS,&Wire1)) return; 
+    Serial.println("-->[SLIB] I2C sensor detected\t: BME280");
 }
 
 void Sensors::bmp280Init() {
-    DEBUG("-->[SLIB] BMP280 starting BMP280 sensor..");
-    if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return;
+    DEBUG("-->[SLIB] try to enable sensor \t: BMP280..");
+
+    if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) {
+        bmp280 = Adafruit_BMP280(&Wire1);
+        if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return;
+    }
     Serial.println("-->[SLIB] I2C sensor detected\t: BMP280");
-    // Default settings from datasheet.
     bmp280.setSampling(Adafruit_BMP280::MODE_NORMAL,  // Operating Mode.
                     Adafruit_BMP280::SAMPLING_X2,     // Temp. oversampling
                     Adafruit_BMP280::SAMPLING_X16,    // Pressure oversampling
                     Adafruit_BMP280::FILTER_X16,      // Filtering.
                     Adafruit_BMP280::STANDBY_MS_500); // Standby time.
-    Adafruit_Sensor *bmp_temp = bmp280.getTemperatureSensor();
-    Adafruit_Sensor *bmp_pressure = bmp280.getPressureSensor();
-    if(devmode) bmp_temp->printSensorDetails();
-    if(devmode) bmp_pressure->printSensorDetails();
+    // Adafruit_Sensor *bmp_temp = bmp280.getTemperatureSensor();
+    // Adafruit_Sensor *bmp_pressure = bmp280.getPressureSensor();
+    // if(devmode) bmp_temp->printSensorDetails();
+    // if(devmode) bmp_pressure->printSensorDetails();
 }
 
 void Sensors::bme680Init() {
-    DEBUG("-->[SLIB] BME680 starting BME680 sensor..");
+    DEBUG("-->[SLIB] try to enable sensor \t: BME680..");
     if (!bme680.begin()) return;
     Serial.println("-->[SLIB] I2C sensor detected\t: BME680");
     bme680.setTemperatureOversampling(BME680_OS_8X);
@@ -1092,15 +1099,14 @@ void Sensors::bme680Init() {
 }
 
 void Sensors::aht10Init() {
-    DEBUG("-->[SLIB] AHT10 starting AHT10 sensor..");
+    DEBUG("-->[SLIB] try to enable sensor \t: AHT10..");
     aht10 = AHT10(AHT10_ADDRESS_0X38);
     if (aht10.begin()) Serial.println("-->[SLIB] I2C sensor detected\t: AHT10");
 }
 
 void Sensors::CO2scd30Init() {
-    DEBUG("-->[SLIB] SCD30 starting CO2 SCD30 sensor..");
-    if (!scd30.begin()) return;
-    // if (!scd30.begin() && !scd30.begin(Wire1,false,true)) return;
+    DEBUG("-->[SLIB] try to enable sensor \t: SCD30 on UART..");
+    if (!scd30.begin() && !scd30.begin(Wire1,false,true)) return;
     Serial.println("-->[SLIB] I2C sensor detected\t: SCD30");
     delay(10);
 
@@ -1141,7 +1147,7 @@ void Sensors::setSCD30AltitudeOffset(float offset) {
 }
 
 void Sensors::CO2scd4xInit() {
-    DEBUG("-->[SLIB] SCD4x starting CO2 SCD4x sensor..");
+    DEBUG("-->[SLIB] try to enable sensor \t: SCD4x..");
     float tTemperatureOffset, offsetDifference;
     uint16_t tSensorAltitude;
     uint16_t error;
@@ -1149,7 +1155,7 @@ void Sensors::CO2scd4xInit() {
     scd4x.begin(Wire);
     error = scd4x.stopPeriodicMeasurement();
     if (error) {
-        DEBUG("[E][SLIB] SCD4x stopping periodic error\t: ", String(error).c_str());
+        DEBUG("[E][SLIB] SCD4x stopping error \t:", String(error).c_str());
         errorToString(error, errorMessage, 256);
         DEBUG("[E][SLIB] SCD4x error msg\t:", errorMessage);
         return;
@@ -1179,7 +1185,7 @@ void Sensors::CO2scd4xInit() {
 
     error = scd4x.startPeriodicMeasurement();
     if (error) {
-        DEBUG("[E][SLIB] SCD4x Error Starting Periodic Measurement\t: ", String(error).c_str());
+        DEBUG("[E][SLIB] SCD4x Error starting Periodic Measurement\t: ", String(error).c_str());
         errorToString(error, errorMessage, 256);
         DEBUG("[E][SLIB] SCD4x error msg\t:", errorMessage);
         return;
@@ -1211,13 +1217,13 @@ void Sensors::setSCD4xAltitudeOffset(float offset) {
 
 void Sensors::PMGCJA5Init() {
     if (dev_uart_type == Panasonic) return;
-    DEBUG("-->[SLIB] GCJA5 starting PANASONIC GCJA5 sensor..");
+    DEBUG("-->[SLIB] try to enable sensor \t: PANASONIC GCJA5..");
     if (!pmGCJA5.begin()) return;
     Serial.println("-->[SLIB] I2C sensor detected\t: SN-GCJA5");
     device_selected = "PANASONIC_I2C";
     dev_uart_type = Auto;  // TODO: it isn't a uart, but it's a uart-like device
     uint8_t status = pmGCJA5.getStatusFan();
-    DEBUG("-->[SLIB] GCJA5 FAN status\t: ", String(status).c_str());
+    DEBUG("-->[SLIB] GCJA5 FAN status \t:", String(status).c_str());
 }
 
 void Sensors::dhtInit() {
