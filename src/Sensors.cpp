@@ -32,12 +32,12 @@ void Sensors::loop() {
         }
 
         dhtRead();
-        am2320Read();
         bme280Read();
         bmp280Read();
         bme680Read();
         aht10Read();
         sht31Read();
+        am2320Read();
         CO2scd30Read();
         CO2scd4xRead();
         PMGCJA5Read();
@@ -1064,15 +1064,16 @@ void Sensors::sht31Init() {
 
 void Sensors::bme280Init() {
     DEBUG("-->[SLIB] try to enable sensor \t: BME280..");
-    if (!bme280.begin() && !bme280.begin(BME280_ADDRESS,&Wire1)) return; 
+    // if (!bme280.begin() && !bme280.begin(BME280_ADDRESS,&Wire1)) return; 
+    if (!bme280.begin()) return; 
     Serial.println("-->[SLIB] I2C sensor detected :D\t: BME280");
 }
 
 void Sensors::bmp280Init() {
     DEBUG("-->[SLIB] try to enable sensor \t: BMP280..");
-
+    // if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return;
     if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) {
-        bmp280 = Adafruit_BMP280(&Wire1);
+        this->bmp280 = Adafruit_BMP280(&Wire1);
         if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return;
     }
     Serial.println("-->[SLIB] I2C sensor detected :D\t: BMP280");
@@ -1106,7 +1107,7 @@ void Sensors::aht10Init() {
 }
 
 void Sensors::CO2scd30Init() {
-    DEBUG("-->[SLIB] try to enable sensor \t: SCD30 on UART..");
+    DEBUG("-->[SLIB] try to enable sensor \t: SCD30..");
     if (!scd30.begin() && !scd30.begin(Wire1,false,true)) return;
     Serial.println("-->[SLIB] I2C sensor detected :D\t: SCD30");
     delay(10);
@@ -1219,7 +1220,7 @@ void Sensors::setSCD4xAltitudeOffset(float offset) {
 void Sensors::PMGCJA5Init() {
     if (dev_uart_type == Panasonic) return;
     DEBUG("-->[SLIB] try to enable sensor \t: PANASONIC GCJA5..");
-    if (!pmGCJA5.begin() && !pmGCJA5.begin(Wire1)) return;
+    if (!pmGCJA5.begin()) return;
     Serial.println("-->[SLIB] I2C sensor detected :D\t: SN-GCJA5");
     device_selected = "PANASONIC_I2C";
     dev_uart_type = Auto;  // TODO: it isn't a uart, but it's a uart-like device
