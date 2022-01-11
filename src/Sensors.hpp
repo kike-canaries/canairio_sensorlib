@@ -260,7 +260,7 @@ class Sensors {
 
     int getNextUnit();
 
-    uint32_t getUnitValue(UNIT unit);
+    float getUnitValue(UNIT unit);
 
    private:
     /// DHT library
