@@ -1075,15 +1075,15 @@ void Sensors::bmp280Init() {
         if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return;
     }
     Serial.println("-->[SLIB] I2C sensor detected\t: BMP280");
-    bmp280.setSampling(Adafruit_BMP280::MODE_NORMAL,  // Operating Mode.
-                    Adafruit_BMP280::SAMPLING_X2,     // Temp. oversampling
-                    Adafruit_BMP280::SAMPLING_X16,    // Pressure oversampling
-                    Adafruit_BMP280::FILTER_X16,      // Filtering.
-                    Adafruit_BMP280::STANDBY_MS_500); // Standby time.
-    // Adafruit_Sensor *bmp_temp = bmp280.getTemperatureSensor();
-    // Adafruit_Sensor *bmp_pressure = bmp280.getPressureSensor();
-    // if(devmode) bmp_temp->printSensorDetails();
-    // if(devmode) bmp_pressure->printSensorDetails();
+    bmp280.setSampling(Adafruit_BMP280::MODE_NORMAL,      // Operating Mode.
+                       Adafruit_BMP280::SAMPLING_X2,      // Temp. oversampling
+                       Adafruit_BMP280::SAMPLING_X16,     // Pressure oversampling
+                       Adafruit_BMP280::FILTER_X16,       // Filtering.
+                       Adafruit_BMP280::STANDBY_MS_500);  // Standby time.
+    Adafruit_Sensor *bmp_temp = bmp280.getTemperatureSensor();
+    Adafruit_Sensor *bmp_pressure = bmp280.getPressureSensor();
+    if (devmode) bmp_temp->printSensorDetails();
+    if (devmode) bmp_pressure->printSensorDetails();
 }
 
 void Sensors::bme680Init() {
