@@ -72,7 +72,7 @@
 #define SENSOR_COMMS SERIALPORT2  // UART OR I2C
 
 //H&T definitions
-#define SEALEVELPRESSURE_HPA (1013.25)
+#define SEALEVELPRESSURE_HPA 1036.25
 
 #define SENSOR_UNITS         \
     X(NUNIT, "NUNIT", "NUNIT")    \

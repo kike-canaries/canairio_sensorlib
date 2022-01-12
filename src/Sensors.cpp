@@ -578,10 +578,11 @@ void Sensors::bme280Read() {
 void Sensors::bmp280Read() {
     float temp1 = bmp280.readTemperature();
     float press1 = bmp280.readPressure();
-    if (press1 == 0) return;
+    float alt1 = bmp280.readAltitude(SEALEVELPRESSURE_HPA);
+    if (press1 == 0 || isnan(temp1) || isnan(alt1)) return;
     temp = temp1-toffset;
-    pres = bmp280.readPressure();
-    alt = bmp280.readAltitude(SEALEVELPRESSURE_HPA);
+    pres = press1;
+    alt = alt1;
     dataReady = true;
     DEBUG("-->[SLIB] BMP280 read \t\t: done!");
     unitRegister(UNIT::TEMP);
@@ -1064,8 +1065,7 @@ void Sensors::sht31Init() {
 
 void Sensors::bme280Init() {
     DEBUG("-->[SLIB] try to enable sensor \t: BME280..");
-    // if (!bme280.begin() && !bme280.begin(BME280_ADDRESS,&Wire1)) return; 
-    if (!bme280.begin()) return; 
+    if (!bme280.begin() && !bme280.begin(BME280_ADDRESS,&Wire1)) return; 
     Serial.println("-->[SLIB] I2C sensor detected :D\t: BME280");
 }
 
