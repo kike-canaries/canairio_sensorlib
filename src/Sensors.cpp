@@ -28,7 +28,7 @@ void Sensors::loop() {
         resetUnitsRegister();
         if(!i2conly ) {
             dataReady = pmSensorRead();
-            DEBUG("-->[SLIB] UART data ready\t: ",String(dataReady).c_str());
+            DEBUG("-->[SLIB] UART data ready \t:",dataReady ? "true" : "false");
         }
 
         dhtRead();
@@ -44,7 +44,7 @@ void Sensors::loop() {
 
         if(i2conly && dev_uart_type == SSPS30) sps30Read();
 
-        if(!dataReady)DEBUG("-->[SLIB] Any data from sensors? check your wirings!");
+        if(!dataReady)DEBUG("-->[SLIB] Any data from sensors?\t: check your wirings!");
 
         if (dataReady && (_onDataCb != nullptr)) {
             _onDataCb();  // if any sensor reached any data, dataReady is true.
