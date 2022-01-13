@@ -25,6 +25,7 @@ void Sensors::loop() {
     if ((millis() - pmLoopTimeStamp > sample_time * (uint32_t)1000)) {  // sample time for each capture
         pmLoopTimeStamp = millis();
         dataReady = false;
+        resetAllVariables();
         resetUnitsRegister();
         if(!i2conly ) {
             dataReady = pmSensorRead();
@@ -53,7 +54,6 @@ void Sensors::loop() {
 
         printUnitsRegistered();
         printValues();
-        if (units_registered_count == 0) resetAllVariables();
     }
 
     dhtRead();  // DHT2x sensors need check fastest
@@ -345,7 +345,7 @@ bool Sensors::pmPanasonicRead() {
     int lenght_buffer = 32;
     String txtMsg = hwSerialRead(lenght_buffer);
     if (txtMsg[0] == 02) {
-        DEBUG("-->[SLIB] PANASONIC read \t\t: done!");
+        DEBUG("-->[SLIB] PANASONIC read \t: done!");
         pm1 = txtMsg[2] * 256 + (char)(txtMsg[1]);
         pm25 = txtMsg[6] * 256 + (char)(txtMsg[5]);
         pm10 = txtMsg[10] * 256 + (char)(txtMsg[9]);
@@ -664,6 +664,7 @@ void Sensors::CO2scd4xRead() {
 }
 
 void Sensors::PMGCJA5Read() {
+    if (dev_uart_type == Panasonic) return;
     if (!pmGCJA5.isConnected()) return;
     pm1 = pmGCJA5.getPM1_0();
     pm25 = pmGCJA5.getPM2_5();
@@ -1114,11 +1115,11 @@ void Sensors::CO2scd30Init() {
 
     device_selected = "SCD30";  // TODO: sync this constants with app
 
-    DEBUG("-->[SLIB] SCD30 current temp offset\t: ",String(scd30.getTemperatureOffset()).c_str());
-    DEBUG("-->[SLIB] SCD30 current altitude offset\t: ", String(scd30.getAltitudeCompensation()).c_str());
+    DEBUG("-->[SLIB] SCD30 Temp offset\t:",String(scd30.getTemperatureOffset()).c_str());
+    DEBUG("-->[SLIB] SCD30 Altitude offset\t:", String(scd30.getAltitudeCompensation()).c_str());
 
     if(scd30.getAltitudeCompensation() != uint16_t(altoffset)){
-        DEBUG("-->[SLIB] SCD30 updated altitude offset to\t: ", String(altoffset).c_str());
+        DEBUG("-->[SLIB] SCD30 altitude offset to\t:", String(altoffset).c_str());
         setSCD30AltitudeOffset(altoffset);
         delay(10);
     }
@@ -1135,7 +1136,7 @@ void Sensors::CO2scd30Init() {
 /// set SCD30 temperature compensation
 void Sensors::setSCD30TempOffset(float offset) {
     if (getMainDeviceSelected().equals("SCD30")) {
-        Serial.println("-->[SLIB] SCD30 new temperature offset\t: " + String(offset));
+        Serial.println("-->[SLIB] SCD30 new temp offset\t: " + String(offset));
         scd30.setTemperatureOffset(offset);
     }
 }
@@ -1223,7 +1224,6 @@ void Sensors::PMGCJA5Init() {
     if (!pmGCJA5.begin()) return;
     Serial.println("-->[SLIB] I2C sensor detected :D\t: SN-GCJA5");
     device_selected = "PANASONIC_I2C";
-    dev_uart_type = Auto;  // TODO: it isn't a uart, but it's a uart-like device
     uint8_t status = pmGCJA5.getStatusFan();
     DEBUG("-->[SLIB] GCJA5 FAN status \t:", String(status).c_str());
 }
