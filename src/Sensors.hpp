@@ -258,7 +258,9 @@ class Sensors {
 
     String getUnitSymbol(UNIT unit);
 
-    int getNextUnit();
+    UNIT getNextUnit();
+    
+    void resetNextUnit();
 
     float getUnitValue(UNIT unit);
 
@@ -277,7 +279,10 @@ class Sensors {
     bool dataReady;
 
     uint8_t units_registered_count;
+    
     uint8_t current_unit = 0;
+
+    uint8_t previous_unit = 0;
     
     uint16_t pm1;   // PM1
     uint16_t pm25;  // PM2.5

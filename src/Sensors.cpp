@@ -25,13 +25,13 @@ void Sensors::loop() {
     if ((millis() - pmLoopTimeStamp > sample_time * (uint32_t)1000)) {  // sample time for each capture
         pmLoopTimeStamp = millis();
         dataReady = false;
-        resetAllVariables();
-        resetUnitsRegister();
+        // resetUnitsRegister();
+
         if(!i2conly ) {
             dataReady = pmSensorRead();
             DEBUG("-->[SLIB] UART data ready \t:",dataReady ? "true" : "false");
         }
-
+        
         dhtRead();
         bme280Read();
         bmp280Read();
@@ -54,6 +54,8 @@ void Sensors::loop() {
 
         printUnitsRegistered();
         printValues();
+        if (units_registered_count == 0) resetAllVariables();
+
     }
 
     dhtRead();  // DHT2x sensors need check fastest
@@ -470,7 +472,7 @@ bool Sensors::CO2Mhz19Read() {
     if (CO2Val > 0) {
         if(altoffset != 0) CO2correctionAlt();
         dataReady = true;
-        DEBUG("-->[SLIB] MHZ14-9 read \t\t: done!");
+        DEBUG("-->[SLIB] MHZ14-9 read  \t: done!");
         unitRegister(UNIT::CO2);
         unitRegister(UNIT::CO2TEMP);
         return true;
@@ -483,7 +485,7 @@ bool Sensors::CO2CM1106Read() {
     if (CO2Val > 0) {
         dataReady = true;
         if(altoffset != 0) CO2correctionAlt();
-        DEBUG("-->[SLIB] CM1106 read \t\t: done!");
+        DEBUG("-->[SLIB] CM1106 read   \t: done!");
         unitRegister(UNIT::CO2);
         return true;
     }
@@ -495,7 +497,7 @@ bool Sensors::senseAirS8Read() {
     if (CO2Val > 0) {
         if(altoffset != 0) CO2correctionAlt();
         dataReady = true;
-        DEBUG("-->[SLIB] SENSEAIRS8 read \t\t: done!");
+        DEBUG("-->[SLIB] SENSEAIRS8 read   \t: done!");
         unitRegister(UNIT::CO2);
         return true;
     }
@@ -555,7 +557,7 @@ void Sensors::am2320Read() {
     if (!isnan(temp1)) {
         temp = temp1-toffset;
         dataReady = true;
-        DEBUG("-->[SLIB] AM2320 read \t\t: done!");
+        DEBUG("-->[SLIB] AM2320 read\t\t: done!");
         unitRegister(UNIT::TEMP);
         unitRegister(UNIT::HUM);
     }
@@ -570,7 +572,7 @@ void Sensors::bme280Read() {
     pres = bme280.readPressure();
     alt = bme280.readAltitude(SEALEVELPRESSURE_HPA);
     dataReady = true;
-    DEBUG("-->[SLIB] BME280 read \t\t: done!");
+    DEBUG("-->[SLIB] BME280 read\t\t: done!");
     unitRegister(UNIT::TEMP);
     unitRegister(UNIT::HUM);
 }
@@ -584,7 +586,7 @@ void Sensors::bmp280Read() {
     pres = press1;
     alt = alt1;
     dataReady = true;
-    DEBUG("-->[SLIB] BMP280 read \t\t: done!");
+    DEBUG("-->[SLIB] BMP280 read\t\t: done!");
     unitRegister(UNIT::TEMP);
     unitRegister(UNIT::PRESS);
     unitRegister(UNIT::ALT);
@@ -601,7 +603,7 @@ void Sensors::bme680Read() {
     gas = bme680.gas_resistance / 1000.0;
     alt = bme680.readAltitude(SEALEVELPRESSURE_HPA);
     dataReady = true;
-    DEBUG("-->[SLIB] BME680 read \t\t: done!");
+    DEBUG("-->[SLIB] BME680 read\t\t: done!");
     unitRegister(UNIT::TEMP);
     unitRegister(UNIT::HUM);
     unitRegister(UNIT::PRESS);
@@ -615,7 +617,7 @@ void Sensors::aht10Read() {
     if (temp1 != 255) {
         temp = temp1-toffset;
         dataReady = true;
-        DEBUG("-->[SLIB] AHT10 read \t\t: done!");
+        DEBUG("-->[SLIB] AHT10 read\t\t: done!");
         unitRegister(UNIT::TEMP);
         unitRegister(UNIT::HUM);
     }
@@ -628,7 +630,7 @@ void Sensors::sht31Read() {
     if (!isnan(temp1)) { 
         temp = temp1-toffset;
         dataReady = true;
-        DEBUG("-->[SLIB] SHT31 read \t\t: done!");
+        DEBUG("-->[SLIB] SHT31 read\t\t: done!");
         unitRegister(UNIT::TEMP);
         unitRegister(UNIT::HUM);
     }
@@ -641,7 +643,7 @@ void Sensors::CO2scd30Read() {
         CO2humi = scd30.getHumidity();
         CO2temp = scd30.getTemperature();
         dataReady = true;
-        DEBUG("-->[SLIB] SCD30 read \t\t: done!");
+        DEBUG("-->[SLIB] SCD30 read\t\t: done!");
         unitRegister(UNIT::CO2);
         unitRegister(UNIT::CO2TEMP);
         unitRegister(UNIT::CO2HUM);
@@ -657,7 +659,7 @@ void Sensors::CO2scd4xRead() {
     CO2humi = tCO2humi;
     CO2temp = tCO2temp;
     dataReady = true;
-    DEBUG("-->[SLIB] SCD4x read \t\t: done!");
+    DEBUG("-->[SLIB] SCD4x read\t\t: done!");
     unitRegister(UNIT::CO2);
     unitRegister(UNIT::CO2TEMP);
     unitRegister(UNIT::CO2HUM);
@@ -670,7 +672,7 @@ void Sensors::PMGCJA5Read() {
     pm25 = pmGCJA5.getPM2_5();
     pm10 = pmGCJA5.getPM10();
     dataReady = true;
-    DEBUG("-->[SLIB] GCJA5 read \t\t: done!");
+    DEBUG("-->[SLIB] GCJA5 read\t\t: done!");
     unitRegister(UNIT::PM1);
     unitRegister(UNIT::PM25);
     unitRegister(UNIT::PM10);
@@ -699,7 +701,7 @@ void Sensors::dhtRead() {
     temp = dhttemp - toffset;
     humi = dhthumi;
     dataReady = true;
-    DEBUG("-->[SLIB] DHTXX read \t\t: done!");
+    DEBUG("-->[SLIB] DHTXX read\t\t: done!");
     unitRegister(UNIT::TEMP);
     unitRegister(UNIT::HUM);
 }
@@ -765,7 +767,7 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
 
     // get device selected..
     if (dev_uart_type >= 0) {
-        DEBUG("-->[SLIB] UART sensor detected :D\t: ", device_selected.c_str());
+        DEBUG("-->[SLIB] UART sensor detected \t: ", device_selected.c_str());
         return true;
     }
 
@@ -838,14 +840,14 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
 }
 
 bool Sensors::CO2Mhz19Init() {
-    DEBUG("-->[SLIB] try to enable sensor \t: MH-Z14/Z19..");
+    DEBUG("-->[SLIB] try to enable sensor\t: MH-Z14/Z19..");
     mhz19.begin(*_serial);
     mhz19.autoCalibration(false); 
     return true;
 }
 
 bool Sensors::CO2CM1106Init() {
-    DEBUG("-->[SLIB] try to enable sensor \t: CM1106..");
+    DEBUG("-->[SLIB] try to enable sensor\t: CM1106..");
     cm1106 = new CM1106_UART(*_serial);
 
     // Check if CM1106 is available
@@ -902,7 +904,7 @@ bool Sensors::senseAirS8Init() {
     }
     // Show S8 sensor info
 
-    Serial.println("-->[SLIB] UART sensor detected :D\t: SenseAir S8");
+    Serial.println("-->[SLIB] UART sensor detected \t: SenseAir S8");
     if (devmode) {
         Serial.printf("-->[SLIB] S8 Software version\t: %s\n", s8sensor.firm_version);
         Serial.printf("-->[SLIB] S8 Sensor type\t: 0x%08x\n", s8->get_sensor_type_ID());
@@ -945,7 +947,7 @@ bool Sensors::sps30UARTInit() {
     // start measurement
     if (sps30.start() == true) {
         DEBUG("-->[SLIB] SPS30 Measurement OK");
-        Serial.println("-->[SLIB] UART sensor detected :D\t: SPS30");
+        Serial.println("-->[SLIB] UART sensor detected \t: SPS30");
         return true;
     } else
         sps30Errorloop((char *)"[E][SLIB] UART SPS30 Could NOT start measurement", 0);
@@ -1098,7 +1100,7 @@ void Sensors::bme680Init() {
     bme680.setPressureOversampling(BME680_OS_4X);
     bme680.setIIRFilterSize(BME680_FILTER_SIZE_3);
     bme680.setGasHeater(320, 150);  // 320*C for 150 ms
-    DEBUG("-->[SLIB] BME680 set sea level pressure\t: ", String(SEALEVELPRESSURE_HPA).c_str());
+    DEBUG("-->[SLIB] BME680 sea level Press\t:", String(SEALEVELPRESSURE_HPA).c_str());
 }
 
 void Sensors::aht10Init() {
@@ -1219,11 +1221,11 @@ void Sensors::setSCD4xAltitudeOffset(float offset) {
 }
 
 void Sensors::PMGCJA5Init() {
-    if (dev_uart_type == Panasonic) return;
     DEBUG("-->[SLIB] try to enable sensor \t: PANASONIC GCJA5..");
     if (!pmGCJA5.begin()) return;
     Serial.println("-->[SLIB] I2C sensor detected :D\t: SN-GCJA5");
     device_selected = "PANASONIC_I2C";
+    dev_uart_type = Auto; 
     uint8_t status = pmGCJA5.getStatusFan();
     DEBUG("-->[SLIB] GCJA5 FAN status \t:", String(status).c_str());
 }
@@ -1234,16 +1236,16 @@ void Sensors::dhtInit() {
 // Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
 
 void Sensors::CO2correctionAlt() {
-    DEBUG("-->[SLIB] CO2 altitud original\t: ", String(CO2Val).c_str());
+    DEBUG("-->[SLIB] CO2 altitud original\t:", String(CO2Val).c_str());
     float CO2cor = (0.016 * ((1013.25 - hpa) /10 ) * (CO2Val - 400)) + CO2Val;       // Increment of 1.6% for every hpa of difference at sea level
     CO2Val = round (CO2cor);
-    DEBUG("-->[SLIB] CO2 compensated\t: ", String(CO2Val).c_str());
+    DEBUG("-->[SLIB] CO2 compensated\t:", String(CO2Val).c_str());
 }
 
 float Sensors::hpaCalculation(float altitude) {
-    DEBUG("-->[SLIB] Altitude Compensation for CO2 lectures ON\t :", String(altitude).c_str());
+    DEBUG("-->[SLIB] Altitude Compensation for CO2 lectures ON\t:", String(altitude).c_str());
     float hpa = 1012 - 0.118 * altitude + 0.00000473 * altitude * altitude;            // Cuadratic regresion formula obtained PA (hpa) from high above the sea
-    DEBUG("-->[SLIB] Atmospheric pressure calculated in hPa\t: ", String(hpa).c_str());
+    DEBUG("-->[SLIB] Atmospheric pressure calculated in hPa\t:", String(hpa).c_str());
     return hpa;
 }
 
@@ -1282,15 +1284,24 @@ String Sensors::getUnitSymbol(UNIT unit) {
     return String(unit_symbol[unit]);
 }
 
-int Sensors::getNextUnit() {
+UNIT Sensors::getNextUnit() {
+    if (previous_unit != 0) {
+        current_unit = previous_unit;
+        previous_unit = 0;
+    }
     for (int i = current_unit; i < MAX_UNITS_SUPPORTED; i++) {
         if (units_registered[i] != 0) {
             current_unit = i + 1;
-            return units_registered[i];
+            return (UNIT) units_registered[i];
         }
     }
     current_unit = 0;
-    return 0;
+    return (UNIT) 0;
+}
+
+void Sensors::resetNextUnit() {
+    previous_unit = current_unit;
+    current_unit = 0;
 }
 
 float Sensors::getUnitValue(UNIT unit) {
