@@ -292,7 +292,7 @@ int Sensors::getUARTDeviceTypeSelected() {
 
 int Sensors::getMainSensorTypeSelected() {
     if (device_selected.isEmpty()) return SENSOR_NONE;
-    else if (dev_uart_type >= 0 && dev_uart_type <= SDS011) return SENSOR_PM; // TODO: we need dev_i2c_type ??
+    else if (0 >= dev_uart_type && dev_uart_type <= SDS011) return SENSOR_PM; // TODO: we need dev_i2c_type ??
     return SENSOR_CO2;
 }
 
@@ -1059,26 +1059,37 @@ void Sensors::am2320Init() {
 void Sensors::sht31Init() {
     DEBUG("-->[SLIB] try to enable sensor \t: SHT31..");
     sht31 = Adafruit_SHT31();
+    #ifdef ESP32
     if (!sht31.begin()) {
         sht31 = Adafruit_SHT31(&Wire1);
         if (!sht31.begin()) return; 
     }
+    #else
+    if (!sht31.begin()) return;
+    #endif
     Serial.println("-->[SLIB] I2C sensor detected :D\t: SHT31");
 }
 
 void Sensors::bme280Init() {
     DEBUG("-->[SLIB] try to enable sensor \t: BME280..");
+    #ifdef ESP32
     if (!bme280.begin() && !bme280.begin(BME280_ADDRESS,&Wire1)) return; 
+    #else
+    if (!bme280.begin()) return;
+    #endif
     Serial.println("-->[SLIB] I2C sensor detected :D\t: BME280");
 }
 
 void Sensors::bmp280Init() {
     DEBUG("-->[SLIB] try to enable sensor \t: BMP280..");
-    // if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return;
+    #ifdef ESP32
     if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) {
         this->bmp280 = Adafruit_BMP280(&Wire1);
         if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return;
     }
+    #else
+    if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return;
+    #endif
     Serial.println("-->[SLIB] I2C sensor detected :D\t: BMP280");
     bmp280.setSampling(Adafruit_BMP280::MODE_NORMAL,      // Operating Mode.
                        Adafruit_BMP280::SAMPLING_X2,      // Temp. oversampling
@@ -1111,7 +1122,11 @@ void Sensors::aht10Init() {
 
 void Sensors::CO2scd30Init() {
     DEBUG("-->[SLIB] try to enable sensor \t: SCD30..");
+    #ifdef ESP32
     if (!scd30.begin() && !scd30.begin(Wire1,false,true)) return;
+    #else
+    if (!scd30.begin()) return;
+    #endif
     Serial.println("-->[SLIB] I2C sensor detected :D\t: SCD30");
     delay(10);
 
@@ -1338,6 +1353,7 @@ float Sensors::getUnitValue(UNIT unit) {
 void Sensors::printUnitsRegistered() { 
     if (!devmode) return;
     Serial.printf("-->[SLIB] Main sensor selected\t: %s\n", getMainDeviceSelected().c_str());
+    Serial.printf("-->[SLIB] Main sensor type \t: %d\n", getMainSensorTypeSelected());
     Serial.printf("-->[SLIB] Sensors units count\t: %i (", units_registered_count);
     int i = 0;
     while (units_registered[i++] != 0) {
