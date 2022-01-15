@@ -90,8 +90,8 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     }
 
 #ifdef M5STICKCPLUS
+    // Wire.begin(0,26);   // M5CoreInk hat pines (header on top)
     Wire.begin(32,33); // M5CoreInk Ext port (default for all sensors)
-    Wire1.begin(0,26);   // M5CoreInk hat pines (header on top)
 #else
     Wire.begin();
 #endif
