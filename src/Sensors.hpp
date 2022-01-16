@@ -95,14 +95,26 @@
 typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
 #undef X
 
+#define MAIN_SENSOR_TYPES         \
+    X(Auto, "Auto", 1)    \
+    X(Panasonic, "GCJA5", 1)    \
+    X(SSPS30, "SPS30", 1)   \
+    X(SDS011, "SDS011", 1)   \
+    X(Mhz19, "MHZ19", 2)    \
+    X(CM1106, "CM1106", 2)     \
+    X(SENSEAIRS8, "SAIRS8", 2)        \
+    X(SSCD30, "SCD30", 2)      \
+    X(SSCD4x, "SCD4X", 2)  
+
+#define X(utype, uname, umaintype) utype, 
+typedef enum UART_SENSOR_TYPE : size_t { MAIN_SENSOR_TYPES } UART_SENSOR_TYPE;  // backgroun compaitibility
+#undef X
+
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
 
 class Sensors {
    public:
-
-    // UART sensors supported
-    enum UART_SENSOR_TYPE { Auto, Panasonic, SSPS30, SDS011, Mhz19, CM1106, SENSEAIRS8, SSCD30, SSCD4x };
 
     // MAIN SENSOR TYPE
     enum MAIN_SENSOR_TYPE { SENSOR_NONE, SENSOR_PM, SENSOR_CO2 };
@@ -275,8 +287,14 @@ class Sensors {
     voidCbFn _onDataCb = nullptr;
 
     String device_selected;
+
     int dev_uart_type = -1;
+
     bool dataReady;
+
+    int main_device_type = -1;
+
+    int minor_device_type = -1;
 
     uint8_t units_registered_count;
     

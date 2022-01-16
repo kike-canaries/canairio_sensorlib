@@ -12,6 +12,14 @@ char const *unit_name[] = { SENSOR_UNITS };
 
 uint8_t units_registered [MAX_UNITS_SUPPORTED];
 
+#define X(utype, uname, umaintype) uname, 
+char const *main_device_names[] = { MAIN_SENSOR_TYPES }; 
+#undef X
+
+#define X(utype, uname, umaintype) umaintype,
+int main_device_types[] = { MAIN_SENSOR_TYPES };
+#undef X
+
 /***********************************************************************************
  *  P U B L I C   M E T H O D S
  * *********************************************************************************/
@@ -290,9 +298,12 @@ int Sensors::getUARTDeviceTypeSelected() {
 }
 
 int Sensors::getMainSensorTypeSelected() {
-    if (device_selected.isEmpty()) return SENSOR_NONE;
-    else if (0 >= dev_uart_type && dev_uart_type <= SDS011) return SENSOR_PM; // TODO: we need dev_i2c_type ??
-    return SENSOR_CO2;
+    // Serial.printf("-->[SLIB] UART device type \t: %d\n",dev_uart_type);
+    // Serial.printf("-->[SLIB] Main sensor type name\t: %s type: %d\n",main_device_names[Auto], main_device_types[Auto]);
+    // for (int i = 0; i < 9; i++) {
+        // Serial.printf("-->[SLIB] UART sensor type name\t: %s type: %d\n",main_sensor_name[i], main_sensor_type[i]);
+    // }
+    return main_device_types[main_device_type];
 }
 
 void Sensors::detectI2COnly(bool enable) {
@@ -767,6 +778,7 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
     // get device selected..
     if (dev_uart_type >= 0) {
         DEBUG("-->[SLIB] UART sensor detected \t:", device_selected.c_str());
+        if (main_device_type == -1)  main_device_type = dev_uart_type;
         return true;
     }
 
@@ -975,7 +987,7 @@ bool Sensors::sps30I2CInit() {
         DEBUG("-->[SLIB] SPS30 Measurement OK");
         Serial.println("-->[SLIB] I2C sensor detected :D\t: SPS30");
         device_selected = "SENSIRION";
-        dev_uart_type = SSPS30; // TODO: it isn't a uart, but it's a uart-like device
+        if (main_device_type == -1) main_device_type = SSPS30;
         if (sps30.I2C_expect() == 4)
             DEBUG("[W][SLIB] SPS30 setup message\t: I2C buffersize only PM values  \n");
         return true;
@@ -1130,6 +1142,7 @@ void Sensors::CO2scd30Init() {
     delay(10);
 
     device_selected = "SCD30";  // TODO: sync this constants with app
+    if (main_device_type == -1) main_device_type = SSCD30;
 
     DEBUG("-->[SLIB] SCD30 Temp offset\t:",String(scd30.getTemperatureOffset()).c_str());
     DEBUG("-->[SLIB] SCD30 Altitude offset\t:", String(scd30.getAltitudeCompensation()).c_str());
@@ -1184,6 +1197,7 @@ void Sensors::CO2scd4xInit() {
     }
 
     device_selected = "SCD4x";  // TODO: sync this constants with app
+    if (main_device_type == -1) main_device_type = SSCD4x;
 
     scd4x.getTemperatureOffset(tTemperatureOffset);
     scd4x.getSensorAltitude(tSensorAltitude);
@@ -1239,7 +1253,7 @@ void Sensors::PMGCJA5Init() {
     if (!pmGCJA5.begin()) return;
     Serial.println("-->[SLIB] I2C sensor detected :D\t: SN-GCJA5");
     device_selected = "PANASONIC_I2C";
-    dev_uart_type = Auto; 
+    if (main_device_type == -1) main_device_type = Panasonic;
     uint8_t status = pmGCJA5.getStatusFan();
     DEBUG("-->[SLIB] GCJA5 FAN status \t:", String(status).c_str());
 }
