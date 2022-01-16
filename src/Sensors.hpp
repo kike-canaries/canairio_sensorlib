@@ -18,7 +18,7 @@
 #include <SensirionI2CScd4x.h>
 
 #define CSL_VERSION "0.4.4"
-#define CSL_REVISION  343
+#define CSL_REVISION  344
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -95,19 +95,19 @@
 typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
 #undef X
 
-#define MAIN_SENSOR_TYPES         \
-    X(Auto, "Auto", 1)    \
-    X(Panasonic, "GCJA5", 1)    \
-    X(SSPS30, "SPS30", 1)   \
-    X(SDS011, "SDS011", 1)   \
-    X(Mhz19, "MHZ19", 2)    \
+#define MAIN_SENSOR_TYPES      \
+    X(Auto, "GENERIC", 1)         \
+    X(Panasonic, "GCJA5", 1)   \
+    X(SSPS30, "SPS30", 1)      \
+    X(SDS011, "SDS011", 1)     \
+    X(Mhz19, "MHZ19", 2)       \
     X(CM1106, "CM1106", 2)     \
-    X(SENSEAIRS8, "SAIRS8", 2)        \
+    X(SENSEAIRS8, "SENSEAIRS8", 2) \
     X(SSCD30, "SCD30", 2)      \
-    X(SSCD4x, "SCD4X", 2)  
+    X(SSCD4x, "SCD4X", 2)
 
 #define X(utype, uname, umaintype) utype, 
-typedef enum UART_SENSOR_TYPE : size_t { MAIN_SENSOR_TYPES } UART_SENSOR_TYPE;  // backgroun compaitibility
+typedef enum MAIN_SENSORS : size_t { MAIN_SENSOR_TYPES } MAIN_SENSORS;  // backgroun compaitibility
 #undef X
 
 typedef void (*errorCbFn)(const char *msg);
@@ -204,6 +204,8 @@ class Sensors {
 
     int getMainSensorTypeSelected();
 
+    String getDeviceName(int device_type);
+
     uint16_t getPM1();
 
     uint16_t getPM25();
@@ -285,8 +287,6 @@ class Sensors {
     errorCbFn _onErrorCb = nullptr;
     /// Callback when sensor data is ready.
     voidCbFn _onDataCb = nullptr;
-
-    String device_selected;
 
     int dev_uart_type = -1;
 

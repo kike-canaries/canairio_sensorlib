@@ -51,7 +51,7 @@ void Sensors::loop() {
         CO2scd4xRead();
         PMGCJA5Read();
 
-        if(i2conly && dev_uart_type == SSPS30) sps30Read();
+        if(i2conly && main_device_type == SSPS30) sps30Read();
 
         if(!dataReady)DEBUG("-->[SLIB] Any data from sensors?\t: check your wirings!");
 
@@ -105,6 +105,8 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     
     sps30I2CInit();
     PMGCJA5Init();
+    CO2scd30Init();
+    CO2scd4xInit();
     am2320Init();
     sht31Init();
     bme280Init();
@@ -112,15 +114,13 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     bme680Init();
     aht10Init();
     dhtInit();
-    CO2scd30Init();
-    CO2scd4xInit();
 }
 
 /// set loop time interval for each sensor sample
 void Sensors::setSampleTime(int seconds) {
     sample_time = seconds;
     Serial.println("-->[SLIB] new sample time\t: " + String(seconds));
-    if(getMainDeviceSelected().equals("SCD30")){
+    if(getMainDeviceSelected().equals(getDeviceName(MAIN_SENSORS::SSCD30))){
         scd30.setMeasurementInterval(seconds);
         if (devmode) Serial.println("-->[SLIB] SCD30 interval time\t: " + String(seconds));
     }
@@ -289,15 +289,22 @@ bool Sensors::isUARTSensorConfigured() {
     return dev_uart_type >= 0;
 }
 
-String Sensors::getMainDeviceSelected() {
-    return device_selected;
-}
-
 int Sensors::getUARTDeviceTypeSelected() {
     return dev_uart_type;
 }
 
+String Sensors::getDeviceName(int device_type) {
+    if(device_type == -1) return "";
+    return String(main_device_names[device_type]);
+}
+
+String Sensors::getMainDeviceSelected() {
+    if(main_device_type == -1) return "";
+    return String(main_device_names[main_device_type]);
+}
+
 int Sensors::getMainSensorTypeSelected() {
+    if(main_device_type == -1) return MAIN_SENSOR_TYPE::SENSOR_NONE;
     return main_device_types[main_device_type];
 }
 
@@ -772,7 +779,7 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
 
     // get device selected..
     if (dev_uart_type >= 0) {
-        DEBUG("-->[SLIB] UART sensor detected \t:", device_selected.c_str());
+        DEBUG("-->[SLIB] UART sensor detected \t:", getDeviceName(dev_uart_type).c_str());
         if (main_device_type == -1)  main_device_type = dev_uart_type;
         return true;
     }
@@ -790,7 +797,6 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
 
     if (pms_type == SSPS30) {
         if (sps30UARTInit()) {
-            device_selected = "SENSIRION";
             dev_uart_type = SSPS30;
             return true;
         }
@@ -798,7 +804,6 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
 
     if (pms_type == SDS011) {
         if (pmSDS011Read()) {
-            device_selected = "SDS011";
             dev_uart_type = SDS011;
             return true;
         }
@@ -806,7 +811,6 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
 
     if (pms_type == Mhz19) {
         if (CO2Mhz19Init()) {
-            device_selected = "MHZ19";
             dev_uart_type = Mhz19;
             return true;
         }
@@ -814,7 +818,6 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
 
     if (pms_type == CM1106) {
         if (CO2CM1106Init()) {
-            device_selected = "CM1106";
             dev_uart_type = CM1106;
             return true;
         }
@@ -822,7 +825,6 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
 
     if (pms_type == SENSEAIRS8) {
         if (senseAirS8Init()) {
-            device_selected = "SENSEAIRS8";
             dev_uart_type = SENSEAIRS8;
             return true;
         }
@@ -830,13 +832,11 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
 
     if (pms_type <= Panasonic) {
         if (pmGenericRead()) {
-            device_selected = "GENERIC";
             dev_uart_type = Auto;
             return true;
         }
         delay(1000);  // sync serial
         if (pmPanasonicRead()) {
-            device_selected = "PANASONIC";
             dev_uart_type = Panasonic;
             return true;
         }
@@ -981,7 +981,6 @@ bool Sensors::sps30I2CInit() {
     if (sps30.start()) {
         DEBUG("-->[SLIB] SPS30 Measurement OK");
         Serial.println("-->[SLIB] I2C sensor detected :D\t: SPS30");
-        device_selected = "SENSIRION";
         if (main_device_type == -1) main_device_type = SSPS30;
         if (sps30.I2C_expect() == 4)
             DEBUG("[W][SLIB] SPS30 setup message\t: I2C buffersize only PM values  \n");
@@ -1136,7 +1135,6 @@ void Sensors::CO2scd30Init() {
     Serial.println("-->[SLIB] I2C sensor detected :D\t: SCD30");
     delay(10);
 
-    device_selected = "SCD30";  // TODO: sync this constants with app
     if (main_device_type == -1) main_device_type = SSCD30;
 
     DEBUG("-->[SLIB] SCD30 Temp offset\t:",String(scd30.getTemperatureOffset()).c_str());
@@ -1191,7 +1189,6 @@ void Sensors::CO2scd4xInit() {
         delay(10);
     }
 
-    device_selected = "SCD4x";  // TODO: sync this constants with app
     if (main_device_type == -1) main_device_type = SSCD4x;
 
     scd4x.getTemperatureOffset(tTemperatureOffset);
@@ -1247,7 +1244,6 @@ void Sensors::PMGCJA5Init() {
     DEBUG("-->[SLIB] try to enable sensor \t: PANASONIC GCJA5..");
     if (!pmGCJA5.begin()) return;
     Serial.println("-->[SLIB] I2C sensor detected :D\t: SN-GCJA5");
-    device_selected = "PANASONIC_I2C";
     if (main_device_type == -1) main_device_type = Panasonic;
     uint8_t status = pmGCJA5.getStatusFan();
     DEBUG("-->[SLIB] GCJA5 FAN status \t:", String(status).c_str());
