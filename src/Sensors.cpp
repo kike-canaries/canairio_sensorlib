@@ -76,17 +76,16 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     if (CORE_DEBUG_LEVEL >= 3) devmode = true;
 #endif
     if (devmode) {
-        Serial.println("-->[SLIB] Sensorlib version\t: " + getLibraryVersion());
-        Serial.println("-->[SLIB] Sensorlib revision\t: " + String(getLibraryRevision()));
-        Serial.println("-->[SLIB] Sensorlib debug mode\t: enable");
+        Serial.printf("-->[SLIB] CanAirIO SensorsLib\t: v%sr%d\n", CSL_VERSION, CSL_REVISION);
+        Serial.printf("-->[SLIB] sensorslib devmod\t: %s\n", devmode ? "true" : "false");
     }
  
     Serial.println("-->[SLIB] temperature offset\t: " + String(toffset));
     Serial.println("-->[SLIB] altitude offset   \t: " + String(altoffset));
-    Serial.println("-->[SLIB] only i2c sensors  \t: " + String(i2conly));
+    Serial.printf("-->[SLIB] only i2c sensors  \t: %s\n", i2conly ? "true" : "false");
 
     if (!i2conly && !sensorSerialInit(pms_type, pms_rx, pms_tx)) {
-        DEBUG("-->[SLIB] not found any PM sensor via UART");
+        DEBUG("-->[SLIB] UART sensors detected\t:", "0");
     }
 
 #ifdef M5STICKCPLUS
@@ -329,11 +328,11 @@ bool Sensors::pmGenericRead() {
             unitRegister(UNIT::PM10);
 
             if (pm25 > 1000 && pm10 > 1000) {
-                onSensorError("[E][SLIB] UART PMGENERIC out of range pm25 > 1000");
+                onSensorError("[E][SLIB] UART PMGENERIC error\t: out of range pm25 > 1000");
             } else
                 return true;
         } else {
-            onSensorError("[E][SLIB] UART PMGENERIC invalid sensor header!");
+            onSensorError("[E][SLIB] UART PMGENERIC error\t: invalid header");
         }
     }
     return false;
@@ -357,11 +356,11 @@ bool Sensors::pmPanasonicRead() {
         unitRegister(UNIT::PM10);
 
         if (pm25 > 2000 && pm10 > 2000) {
-            onSensorError("[E][SLIB] PANASONIC out of range pm25 > 2000");
+            onSensorError("[W][SLIB] PANASONIC UART msg\t: out of range pm25 > 2000");
         } else
             return true;
     } else {
-        onSensorError("[E][SLIB] PANASONIC invalid sensor header!");
+        onSensorError("[W][SLIB] PANASONIC UART msg\t: invalid header");
     }
     return false;
 }
@@ -383,11 +382,11 @@ bool Sensors::pmSDS011Read() {
             unitRegister(UNIT::PM10);
 
             if (pm25 > 1000 && pm10 > 1000) {
-                onSensorError("[E][SLIB] SDS011 out of range pm25 > 1000");
+                onSensorError("[W][SLIB] SDS011 UART msg\t: out of range pm25 > 1000");
             } else
                 return true;
         } else {
-            onSensorError("[E][SLIB] SDS011 invalid sensor header!");
+            onSensorError("[W][SLIB] SDS011 UART msg\t: invalid header");
         }
     }
     return false;
@@ -409,7 +408,7 @@ String Sensors::hwSerialRead(unsigned int lenght_buffer) {
         }
     }
     if (try_sensor_read > SENSOR_RETRY) {
-        DEBUG("-->[SLIB] no data on UART port");
+        DEBUG("-->[SLIB] UART detection msg\t: no data");
     }
     return txtMsg;
 }
@@ -432,12 +431,12 @@ bool Sensors::sps30Read() {
         ret = sps30.GetValues(&val);
         if (ret == ERR_DATALENGTH) {
             if (error_cnt++ > 3) {
-                DEBUG("[E][SLIB] SPS30 Error during reading values\t: ", String(ret).c_str());
+                DEBUG("[W][SLIB] SPS30 setup message \t: error on values\t: ", String(ret).c_str());
                 return false;
             }
             delay(500);
         } else if (ret != ERR_OK) {
-            sps30ErrToMess((char *)"[W][SLIB] SPS30 Error during reading values\t: ", ret);
+            sps30ErrToMess((char *)"[W][SLIB] SPS30 setup message \t: error on values\t: ", ret);
             return false;
         }
     } while (ret != ERR_OK);
@@ -457,7 +456,7 @@ bool Sensors::sps30Read() {
     if(i2conly && sample_time > 30) sps30.stop();  // power saving validation
 
     if (pm25 > 1000 && pm10 > 1000) {
-        onSensorError("[E][SLIB] SPS30 Sensirion out of range pm25 > 1000");
+        onSensorError("[W][SLIB] SPS30 setup message \t: out of range pm25 > 1000");
         return false;
     }
 
@@ -714,7 +713,7 @@ void Sensors::onSensorError(const char *msg) {
 void Sensors::sps30ErrToMess(char *mess, uint8_t r) {
     char buf[80];
     sps30.GetErrDescription(r, buf, 80);
-    DEBUG("[E][SLIB] SPS30", buf);
+    DEBUG("[E][SLIB] SPS30 error msg\t:", buf);
 }
 
 void Sensors::sps30Errorloop(char *mess, uint8_t r) {
@@ -767,7 +766,7 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
 
     // get device selected..
     if (dev_uart_type >= 0) {
-        DEBUG("-->[SLIB] UART sensor detected \t: ", device_selected.c_str());
+        DEBUG("-->[SLIB] UART sensor detected \t:", device_selected.c_str());
         return true;
     }
 
@@ -868,8 +867,8 @@ bool Sensors::CO2CM1106Init() {
 
     // Show sensor info
     cm1106->get_serial_number(cm1106sensor.sn);
-    DEBUG("-->[SLIB] CM1106 Serial number\t: ", cm1106sensor.sn);
-    DEBUG("-->[SLIB] CM1106 Software version\t: ", cm1106sensor.softver);
+    DEBUG("-->[SLIB] CM1106 Serial number\t:", cm1106sensor.sn);
+    DEBUG("-->[SLIB] CM1106 Software version\t:", cm1106sensor.softver);
 
     // Setup ABC parameters
     DEBUG("-->[SLIB] CM1106 Setting ABC parameters...");
@@ -886,8 +885,8 @@ bool Sensors::CO2CM1106Init() {
         } else if (abc.open_close == CM1106_ABC_CLOSE) {
             DEBUG("-->[SLIB] CM1106 Auto calibration is disabled");
         }
-        DEBUG("-->[SLIB] CM1106 Calibration cycle\t: ", String(abc.cycle).c_str());
-        DEBUG("-->[SLIB] CM1106 Calibration baseline\t: ", String(abc.base).c_str());
+        DEBUG("-->[SLIB] CM1106 Calibration cycle\t:", String(abc.cycle).c_str());
+        DEBUG("-->[SLIB] CM1106 Calibration baseline\t:", String(abc.base).c_str());
     }
 
     return true;
@@ -978,11 +977,11 @@ bool Sensors::sps30I2CInit() {
         device_selected = "SENSIRION";
         dev_uart_type = SSPS30; // TODO: it isn't a uart, but it's a uart-like device
         if (sps30.I2C_expect() == 4)
-            DEBUG("[E][SLIB] SPS30 due to I2C buffersize only PM values  \n");
+            DEBUG("[W][SLIB] SPS30 setup message\t: I2C buffersize only PM values  \n");
         return true;
     }
     else
-        sps30Errorloop((char *)"[E][SLIB] I2C SPS30 Could NOT start measurement.", 0);
+        sps30Errorloop((char *)"[W][SLIB] I2C SPS30 message \t: Could NOT start measurement.", 0);
 
     return false;
 }
@@ -990,14 +989,14 @@ bool Sensors::sps30I2CInit() {
 bool Sensors::sps30tests() {
     // check for SPS30 connection
     if (!sps30.probe()) {
-        sps30Errorloop((char *)"[E][SLIB] SPS30 could not probe.", 0);
+        sps30Errorloop((char *)"[W][SLIB] SPS30 setup message \t: could not probe.", 0);
         return false;
     } else {
         sps30DeviceInfo();
     }
     // reset SPS30 connection
     if (!sps30.reset()) {
-        sps30Errorloop((char *)"[E][SLIB] SPS30 could not reset.", 0);
+        sps30Errorloop((char *)"[W][SLIB] SPS30 setup message \t: could not reset.", 0);
         return false;
     }
     return true;
@@ -1042,12 +1041,12 @@ void Sensors::sps30DeviceInfo() {
 
     if (SENSOR_COMMS != I2C_COMMS) {
         sprintf(buf, "%d.%d", v.SHDLC_major, v.SHDLC_minor);
-        DEBUG("-->[SLIB] SPS30 Hardware level\t: ", String(v.HW_version).c_str());
-        DEBUG("-->[SLIB] SPS30 SHDLC protocol\t: ", buf);
+        DEBUG("-->[SLIB] SPS30 Hardware level\t:", String(v.HW_version).c_str());
+        DEBUG("-->[SLIB] SPS30 SHDLC protocol\t:", buf);
     }
 
     sprintf(buf, "%d.%d", v.DRV_major, v.DRV_minor);
-    DEBUG("-->[SLIB] SPS30 Library level\t: ", buf);
+    DEBUG("-->[SLIB] SPS30 Library level\t:", buf);
 }
 
 void Sensors::am2320Init() {
@@ -1175,9 +1174,9 @@ void Sensors::CO2scd4xInit() {
     scd4x.begin(Wire);
     error = scd4x.stopPeriodicMeasurement();
     if (error) {
-        DEBUG("[E][SLIB] SCD4x stopping error \t:", String(error).c_str());
+        DEBUG("[W][SLIB] SCD4x stopping error \t:", String(error).c_str());
         errorToString(error, errorMessage, 256);
-        DEBUG("[E][SLIB] SCD4x error msg\t:", errorMessage);
+        DEBUG("[W][SLIB] SCD4x error msg\t:", errorMessage);
         return;
     } else {
         Serial.println("-->[SLIB] I2C sensor detected :D\t: SCD4x");
@@ -1205,7 +1204,7 @@ void Sensors::CO2scd4xInit() {
 
     error = scd4x.startPeriodicMeasurement();
     if (error) {
-        DEBUG("[E][SLIB] SCD4x Error starting Periodic Measurement\t: ", String(error).c_str());
+        DEBUG("[E][SLIB] SCD4x Error starting Periodic Measurement\t:", String(error).c_str());
         errorToString(error, errorMessage, 256);
         DEBUG("[E][SLIB] SCD4x error msg\t:", errorMessage);
         return;
@@ -1468,7 +1467,7 @@ bool Sensors::serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int
 
             else {
 #if defined(INCLUDE_SOFTWARE_SERIAL)
-                DEBUG("-->[SLIB] swSerial init on pin\t: ", String(pms_rx).c_str());
+                DEBUG("-->[SLIB] swSerial init on pin\t:", String(pms_rx).c_str());
                 static SoftwareSerial swSerial(pms_rx, pms_tx);
                 if (pms_type == SSPS30)
                     swSerial.begin(speed_baud);
