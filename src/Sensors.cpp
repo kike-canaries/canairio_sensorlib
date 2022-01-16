@@ -298,11 +298,6 @@ int Sensors::getUARTDeviceTypeSelected() {
 }
 
 int Sensors::getMainSensorTypeSelected() {
-    // Serial.printf("-->[SLIB] UART device type \t: %d\n",dev_uart_type);
-    // Serial.printf("-->[SLIB] Main sensor type name\t: %s type: %d\n",main_device_names[Auto], main_device_types[Auto]);
-    // for (int i = 0; i < 9; i++) {
-        // Serial.printf("-->[SLIB] UART sensor type name\t: %s type: %d\n",main_sensor_name[i], main_sensor_type[i]);
-    // }
     return main_device_types[main_device_type];
 }
 
