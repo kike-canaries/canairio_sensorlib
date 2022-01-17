@@ -130,23 +130,23 @@ void Sensors::setSampleTime(int seconds) {
 
 /// set CO2 recalibration PPM value (400 to 2000)
 void Sensors::setCO2RecalibrationFactor(int ppmValue) {
-    if (isSensorRegistered(SSCD30)) {
+    if (isSensorRegistered(SENSORS::SSCD30)) {
         Serial.println("-->[SLIB] SCD30 calibration to\t: " + String(ppmValue));
         scd30.setForcedRecalibrationFactor(ppmValue);
     }
-    if (isSensorRegistered(SCM1106)) {
+    if (isSensorRegistered(SENSORS::SCM1106)) {
         Serial.println("-->[SLIB] CM1106 calibration to\t: " + String(ppmValue));
         cm1106->start_calibration(ppmValue);
     }   
-    if (isSensorRegistered(SMHZ19)) {
+    if (isSensorRegistered(SENSORS::SMHZ19)) {
         Serial.println("-->[SLIB] MH-Z19 calibration to\t: " + String(ppmValue));
         mhz19.calibrate();
     }
-    if (isSensorRegistered(SAIRS8)) {
+    if (isSensorRegistered(SENSORS::SAIRS8)) {
         Serial.println("-->[SLIB] SAIRS8 calibration to\t: " + String(ppmValue));
         if (s8->manual_calibration()) Serial.println("-->[SLIB] S8 calibration ready.");
     }
-    if (isSensorRegistered(SSCD4X)) {
+    if (isSensorRegistered(SENSORS::SSCD4X)) {
         Serial.println("-->[SLIB] SCD4x calibration to\t: " + String(ppmValue));
         uint16_t frcCorrection = 0;
         uint16_t error = 0;
@@ -163,10 +163,10 @@ void Sensors::setCO2AltitudeOffset(float altitude){
     this->altoffset = altitude;
     this->hpa = hpaCalculation(altitude);       //hPa hectopascal calculation based on altitude
 
-    if (isSensorRegistered(SSCD30)) {
+    if (isSensorRegistered(SENSORS::SSCD30)) {
         setSCD30AltitudeOffset(altoffset);
     }
-    if (isSensorRegistered(SSCD4X)) {
+    if (isSensorRegistered(SENSORS::SSCD4X)) {
         scd4x.stopPeriodicMeasurement();
         delay(510);
         scd4x.setSensorAltitude(altoffset);
@@ -659,7 +659,7 @@ void Sensors::CO2scd4xRead() {
 }
 
 void Sensors::GCJA5Read() {
-    if (dev_uart_type == SGCJA5) return;
+    if (dev_uart_type == SENSORS::SGCJA5) return;
     if (!pmGCJA5.isConnected()) return;
     pm1 = pmGCJA5.getPM1_0();
     pm25 = pmGCJA5.getPM2_5();
@@ -774,49 +774,49 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
 bool Sensors::pmSensorAutoDetect(int pms_type) {
     delay(1000);  // sync serial
 
-    if (pms_type == SSPS30) {
+    if (pms_type == SENSORS::SSPS30) {
         if (sps30UARTInit()) {
             dev_uart_type = SSPS30;
             return true;
         }
     }
 
-    if (pms_type == SDS011) {
+    if (pms_type == SENSORS::SDS011) {
         if (pmSDS011Read()) {
             dev_uart_type = SDS011;
             return true;
         }
     }
 
-    if (pms_type == SMHZ19) {
+    if (pms_type == SENSORS::SMHZ19) {
         if (CO2Mhz19Init()) {
             dev_uart_type = SMHZ19;
             return true;
         }
     }
 
-    if (pms_type == SCM1106) {
+    if (pms_type == SENSORS::SCM1106) {
         if (CO2CM1106Init()) {
             dev_uart_type = SCM1106;
             return true;
         }
     }
 
-    if (pms_type == SAIRS8) {
+    if (pms_type == SENSORS::SAIRS8) {
         if (senseAirS8Init()) {
             dev_uart_type = SAIRS8;
             return true;
         }
     }
 
-    if (pms_type <= SGCJA5) {
+    if (pms_type <= SENSORS::SGCJA5) {
         if (pmGenericRead()) {
             dev_uart_type = Auto;
             return true;
         }
         delay(1000);  // sync serial
         if (pmGCJA5Read()) {
-            dev_uart_type = SGCJA5;
+            dev_uart_type = SENSORS::SGCJA5;
             return true;
         }
     }
@@ -942,7 +942,7 @@ bool Sensors::sps30UARTInit() {
 }
 
 bool Sensors::sps30I2CInit() {
-    if (dev_uart_type == SSPS30) return false;
+    if (dev_uart_type == SENSORS::SSPS30) return false;
     sensorAnnounce(SENSORS::SSPS30); 
     // set driver debug level
     if (CORE_DEBUG_LEVEL > 0) sps30.EnableDebugging(true);
@@ -1130,7 +1130,7 @@ void Sensors::CO2scd30Init() {
 
 /// set SCD30 temperature compensation
 void Sensors::setSCD30TempOffset(float offset) {
-    if (isSensorRegistered(SSCD30)) {
+    if (isSensorRegistered(SENSORS::SSCD30)) {
         Serial.println("-->[SLIB] SCD30 new temp offset\t: " + String(offset));
         scd30.setTemperatureOffset(offset);
     }
@@ -1138,7 +1138,7 @@ void Sensors::setSCD30TempOffset(float offset) {
 
 /// set SCD30 altitude compensation
 void Sensors::setSCD30AltitudeOffset(float offset) {
-    if (isSensorRegistered(SSCD30)) {
+    if (isSensorRegistered(SENSORS::SSCD30)) {
         Serial.println("-->[SLIB] SCD30 new altitude offset\t: " + String(offset));
         scd30.setAltitudeCompensation(uint16_t(offset));
     }
@@ -1174,7 +1174,7 @@ void Sensors::CO2scd4xInit() {
 
 /// set SCD4x temperature compensation
 void Sensors::setSCD4xTempOffset(float offset) {
-    if (isSensorRegistered(SSCD4X)) {
+    if (isSensorRegistered(SENSORS::SSCD4X)) {
         Serial.println("-->[SLIB] SCD4x new temperature offset\t: " + String(offset));
         scd4x.stopPeriodicMeasurement();
         delay(510);    
@@ -1185,7 +1185,7 @@ void Sensors::setSCD4xTempOffset(float offset) {
 
 /// set SCD4x altitude compensation
 void Sensors::setSCD4xAltitudeOffset(float offset) {
-    if (isSensorRegistered(SSCD4X)) {
+    if (isSensorRegistered(SENSORS::SSCD4X)) {
         Serial.println("-->[SLIB] SCD4x new altitude offset\t: " + String(offset));
         scd4x.stopPeriodicMeasurement();
         delay(510);    
@@ -1479,7 +1479,7 @@ bool Sensors::serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int
             break;
 
         case SERIALPORT2:
-            if (pms_type == SSPS30)
+            if (pms_type == SENSORS::SSPS30)
                 Serial2.begin(speed_baud);
             else
                 Serial2.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx, false);
@@ -1503,9 +1503,9 @@ bool Sensors::serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int
 #if defined(INCLUDE_SOFTWARE_SERIAL)
                 DEBUG("-->[SLIB] swSerial init on pin\t:", String(pms_rx).c_str());
                 static SoftwareSerial swSerial(pms_rx, pms_tx);
-                if (pms_type == SSPS30)
+                if (pms_type == SENSORS::SSPS30)
                     swSerial.begin(speed_baud);
-                else if (pms_type == GCJA5)
+                else if (pms_type == SENSORS::SGCJA5)
                     swSerial.begin(speed_baud, SWSERIAL_8E1, pms_rx, pms_tx, false);
                 else
                     swSerial.begin(speed_baud, SWSERIAL_8N1, pms_rx, pms_tx, false);
