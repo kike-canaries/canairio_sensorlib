@@ -95,19 +95,27 @@
 typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
 #undef X
 
-#define MAIN_SENSOR_TYPES          \
-    X(Auto, "GENERIC", 1)          \
-    X(Panasonic, "GCJA5", 1)       \
-    X(SSPS30, "SPS30", 1)          \
-    X(SDS011, "SDS011", 1)         \
-    X(Mhz19, "MHZ19", 2)           \
-    X(CM1106, "CM1106", 2)         \
-    X(SENSEAIRS8, "SENSEAIRS8", 2) \
-    X(SSCD30, "SCD30", 2)          \
-    X(SSCD4x, "SCD4X", 2)
+#define SENSORS_TYPES   \
+    X(Auto, "GENERIC", 1)   \
+    X(SGCJA5, "GCJA5", 1)   \
+    X(SSPS30, "SPS30", 1)   \
+    X(SDS011, "SDS011", 1)  \
+    X(SMHZ19, "MHZ19", 2)   \
+    X(SCM1106, "CM1106", 2) \
+    X(SAIRS8, "SAIRS8", 2)  \
+    X(SSCD30, "SCD30", 2)   \
+    X(SSCD4X, "SCD4X", 2)   \
+    X(SSHT31, "SHT31", 3)   \
+    X(SBME280, "BME280", 3) \
+    X(SBMP280, "BMP280", 3) \
+    X(SBME680, "BME680", 3) \
+    X(SAHT10, "AHT10", 3)   \
+    X(SAM232X, "AM232X", 3) \
+    X(SDHTX, "DHTX", 3)     \
+    X(SCOUNT, "SCOUNT", 3)
 
 #define X(utype, uname, umaintype) utype, 
-typedef enum MAIN_SENSORS : size_t { MAIN_SENSOR_TYPES } MAIN_SENSORS;  // backgroun compaitibility
+typedef enum SENSORS : size_t { SENSORS_TYPES } SENSORS;  // backgroun compaitibility
 #undef X
 
 typedef void (*errorCbFn)(const char *msg);
@@ -117,7 +125,7 @@ class Sensors {
    public:
 
     // MAIN SENSOR TYPE
-    enum MAIN_SENSOR_TYPE { SENSOR_NONE, SENSOR_PM, SENSOR_CO2 };
+    enum MAIN_SENSOR_TYPE { SENSOR_NONE, SENSOR_PM, SENSOR_CO2, SENSOR_ENV };
 
     // SPS30 values. Only for Sensirion SPS30 sensor.
     struct sps_values val;
@@ -204,8 +212,6 @@ class Sensors {
 
     int getMainSensorTypeSelected();
 
-    String getDeviceName(int device_type);
-
     uint16_t getPM1();
 
     uint16_t getPM25();
@@ -264,6 +270,14 @@ class Sensors {
     
     int16_t getLibraryRevision();
 
+    bool isSensorRegistered(SENSORS sensor);
+
+    uint8_t *getSensorsRegistered();
+
+    uint8_t getSensorsRegisteredCount();
+
+    String getSensorName(SENSORS sensor);
+
     uint8_t getUnitsRegisteredCount();
 
     bool isUnitRegistered(UNIT unit);
@@ -295,6 +309,8 @@ class Sensors {
     int main_device_type = -1;
 
     int minor_device_type = -1;
+
+    uint8_t sensors_registered_count;
 
     uint8_t units_registered_count;
     
@@ -347,8 +363,8 @@ class Sensors {
     void setSCD4xTempOffset(float offset);
     void setSCD4xAltitudeOffset(float offset);
 
-    void PMGCJA5Init();
-    void PMGCJA5Read();
+    void GCJA5Init();
+    void GCJA5Read();
 
     void dhtInit();
     void dhtRead();
@@ -360,12 +376,11 @@ class Sensors {
     bool pmSensorAutoDetect(int pms_type);
     bool pmSensorRead();
     bool pmGenericRead();
-    bool pmPanasonicRead();
-    
+    bool pmGCJA5Read();
     bool pmSDS011Read();
     bool CO2Mhz19Read();
     bool CO2CM1106Read();
-    int CO2CM1106val();
+    int  CO2CM1106val();
     bool CO2Mhz19Init();
     bool CO2CM1106Init();
     bool senseAirS8Init();
@@ -387,6 +402,10 @@ class Sensors {
     void DEBUG(const char *text, const char *textb = "");
 
     void printValues();
+
+    void sensorRegister(SENSORS sensor);
+
+    void sensorAnnounce(SENSORS sensor);
 
     void unitRegister(UNIT unit);
 
