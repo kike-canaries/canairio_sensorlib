@@ -10,7 +10,7 @@ const char *unit_symbol[] = { SENSOR_UNITS };
 char const *unit_name[] = { SENSOR_UNITS }; 
 #undef X
 
-uint8_t units_registered [MAX_UNITS_SUPPORTED];
+uint8_t units_registered [UCOUNT];
 
 #define X(utype, uname, umaintype) uname, 
 char const *main_device_names[] = { MAIN_SENSOR_TYPES }; 
@@ -1269,7 +1269,7 @@ float Sensors::hpaCalculation(float altitude) {
 }
 
 bool Sensors::isUnitRegistered(UNIT unit) {
-    for (int i = 0; i < MAX_UNITS_SUPPORTED; i++) {
+    for (int i = 0; i < UCOUNT; i++) {
         if (units_registered[i] == unit) return true;
     }
     return false;
@@ -1282,7 +1282,7 @@ void Sensors::unitRegister(UNIT unit) {
 
 void Sensors::resetUnitsRegister() {
     units_registered_count = 0;
-    for (int i = 0; i < MAX_UNITS_SUPPORTED; i++) {
+    for (int i = 0; i < UCOUNT; i++) {
         units_registered[i] = 0;
     }
 }
@@ -1308,7 +1308,7 @@ UNIT Sensors::getNextUnit() {
         current_unit = previous_unit;
         previous_unit = 0;
     }
-    for (int i = current_unit; i < MAX_UNITS_SUPPORTED; i++) {
+    for (int i = current_unit; i < UCOUNT; i++) {
         if (units_registered[i] != 0) {
             current_unit = i + 1;
             return (UNIT) units_registered[i];
@@ -1371,7 +1371,7 @@ void Sensors::printUnitsRegistered() {
 void Sensors::printValues() {
     if (!devmode) return;
     Serial.print("-->[SLIB] Current sensors values\t: ");
-    for (int i = 0; i < MAX_UNITS_SUPPORTED; i++) {
+    for (int i = 0; i < UCOUNT; i++) {
         if (units_registered[i] != 0) {
             Serial.print(getUnitName((UNIT)units_registered[i]));
             Serial.print(": ");

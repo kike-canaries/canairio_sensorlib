@@ -87,23 +87,23 @@
     X(CO2HUM, "%", "CO2H")    \
     X(PRESS, "hPa", "Press")   \
     X(ALT, "m", "Alt")       \
-    X(GAS, "Ohm", "Gas") 
+    X(GAS, "Ohm", "Gas") \
+    X(UCOUNT, "COUNT", "UCOUNT") 
 
-#define MAX_UNITS_SUPPORTED 13   // Max number of units supported (TODO: make dynamic)
 
 #define X(unit, symbol, name) unit, 
 typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
 #undef X
 
-#define MAIN_SENSOR_TYPES      \
-    X(Auto, "GENERIC", 1)         \
-    X(Panasonic, "GCJA5", 1)   \
-    X(SSPS30, "SPS30", 1)      \
-    X(SDS011, "SDS011", 1)     \
-    X(Mhz19, "MHZ19", 2)       \
-    X(CM1106, "CM1106", 2)     \
+#define MAIN_SENSOR_TYPES          \
+    X(Auto, "GENERIC", 1)          \
+    X(Panasonic, "GCJA5", 1)       \
+    X(SSPS30, "SPS30", 1)          \
+    X(SDS011, "SDS011", 1)         \
+    X(Mhz19, "MHZ19", 2)           \
+    X(CM1106, "CM1106", 2)         \
     X(SENSEAIRS8, "SENSEAIRS8", 2) \
-    X(SSCD30, "SCD30", 2)      \
+    X(SSCD30, "SCD30", 2)          \
     X(SSCD4x, "SCD4X", 2)
 
 #define X(utype, uname, umaintype) utype, 
