@@ -18,7 +18,7 @@
 #include <SensirionI2CScd4x.h>
 
 #define CSL_VERSION "0.4.4"
-#define CSL_REVISION  344
+#define CSL_REVISION  345
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
