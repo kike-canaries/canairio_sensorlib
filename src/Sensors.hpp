@@ -411,7 +411,9 @@ class Sensors {
 
     void resetUnitsRegister();
 
-    void printUnitsRegistered();
+    void printUnitsRegistered(bool debug = false);
+
+    void printSensorsRegistered(bool debug = false);
 
     void resetAllVariables();
 
