@@ -133,35 +133,29 @@ void Sensors::setSampleTime(int seconds) {
 /// set CO2 recalibration PPM value (400 to 2000)
 void Sensors::setCO2RecalibrationFactor(int ppmValue) {
     if (isSensorRegistered(SSCD30)) {
-        Serial.println("-->[SLIB] SCD30 setting calibration to\t: " + String(ppmValue));
+        Serial.println("-->[SLIB] SCD30 calibration to\t: " + String(ppmValue));
         scd30.setForcedRecalibrationFactor(ppmValue);
     }
     if (isSensorRegistered(SCM1106)) {
-        Serial.println("-->[SLIB] CM1106 setting calibration to\t: " + String(ppmValue));
+        Serial.println("-->[SLIB] CM1106 calibration to\t: " + String(ppmValue));
         cm1106->start_calibration(ppmValue);
     }   
     if (isSensorRegistered(SMHZ19)) {
-        Serial.println("-->[SLIB] MH-Z19 setting calibration to\t: " + String(ppmValue));
+        Serial.println("-->[SLIB] MH-Z19 calibration to\t: " + String(ppmValue));
         mhz19.calibrate();
     }
     if (isSensorRegistered(SAIRS8)) {
-        Serial.println("-->[SLIB] SenseAir S8 setting calibration to\t: " + String(ppmValue));
+        Serial.println("-->[SLIB] SAIRS8 calibration to\t: " + String(ppmValue));
         if (s8->manual_calibration()) Serial.println("-->[SLIB] S8 calibration ready.");
     }
     if (isSensorRegistered(SSCD4X)) {
-        Serial.println("-->[SLIB] SCD4x setting calibration to\t: " + String(ppmValue));
-        uint16_t frcCorrection;
+        Serial.println("-->[SLIB] SCD4x calibration to\t: " + String(ppmValue));
+        uint16_t frcCorrection = 0;
         uint16_t error = 0;
-        char errorMessage[256];
         scd4x.stopPeriodicMeasurement();
         delay(510);
         error = scd4x.performForcedRecalibration(ppmValue, frcCorrection);
-        if (error) {
-            Serial.print("Error trying to execute performForcedRecalibration()\t: ");
-            errorToString(error, errorMessage, 256);
-            Serial.println(errorMessage);
-            return;
-        }
+        if (error) Serial.printf("-->[SLIB] SCD4X recalibration\t: error frc:%d\n",frcCorrection);
         delay(50);
         scd4x.startPeriodicMeasurement();
     }
@@ -1159,44 +1153,29 @@ void Sensors::CO2scd4xInit() {
     float tTemperatureOffset, offsetDifference;
     uint16_t tSensorAltitude;
     uint16_t error;
-    char errorMessage[256];
     scd4x.begin(Wire);
     error = scd4x.stopPeriodicMeasurement();
     if (error) {
         DEBUG("[W][SLIB] SCD4x stopping error \t:", String(error).c_str());
-        errorToString(error, errorMessage, 256);
-        DEBUG("[W][SLIB] SCD4x error msg\t:", errorMessage);
         return;
-    } else {
-        Serial.println("-->[SLIB] I2C sensor detected :D\t: SCD4x");
-        delay(10);
     }
 
     if (main_device_type == -1) main_device_type = SSCD4X;
 
     scd4x.getTemperatureOffset(tTemperatureOffset);
     scd4x.getSensorAltitude(tSensorAltitude);
-    DEBUG("-->[SLIB] SCD4x current temperature offset\t: ", String(tTemperatureOffset).c_str());
-    DEBUG("-->[SLIB] SCD4x current altitude offset\t: ", String(tSensorAltitude).c_str());
+    DEBUG("-->[SLIB] SCD4x Temp offset\t:", String(tTemperatureOffset).c_str());
+    DEBUG("-->[SLIB] SCD4x Alt offset \t:", String(tSensorAltitude).c_str());
 
-    if (tSensorAltitude != uint16_t(altoffset)) {
-        setSCD4xAltitudeOffset(altoffset);
-        delay(1);
-    }
+    if (tSensorAltitude != uint16_t(altoffset)) setSCD4xAltitudeOffset(altoffset);
 
     offsetDifference = abs((toffset*100) - (tTemperatureOffset*100)); 
     if(offsetDifference > 0.5) { // Accounts for SCD4x conversion rounding errors in temperature offset
-        Serial.println("-->[SLIB] SCD4x setting new temp offset\t: " + String(toffset));
+        Serial.println("-->[SLIB] SCD4x new offset\t: Temp offset to" + String(toffset));
         setSCD4xTempOffset(toffset);
-        delay(1);
     }
-
     error = scd4x.startPeriodicMeasurement();
-    if (error) {
-        DEBUG("[W][SLIB] SCD4x periodic measure\t: starting error:", String(error).c_str());
-        errorToString(error, errorMessage, 256);
-        DEBUG("[W][SLIB] SCD4x error msg\t:", errorMessage);
-    } 
+    if (error) DEBUG("[W][SLIB] SCD4x periodic measure\t: starting error:", String(error).c_str());
     sensorRegister(SSCD4X);
 }
 
