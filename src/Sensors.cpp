@@ -664,6 +664,7 @@ void Sensors::GCJA5Read() {
     pm1 = pmGCJA5.getPM1_0();
     pm25 = pmGCJA5.getPM2_5();
     pm10 = pmGCJA5.getPM10();
+    if (pm1 > 1000 || pm25 > 1000 || pm10 > 1000) return;
     dataReady = true;
     DEBUG("-->[SLIB] GCJA5 read\t\t: done!");
     unitRegister(UNIT::PM1);
