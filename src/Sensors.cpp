@@ -45,6 +45,7 @@ void Sensors::loop() {
         }
         
         dhtRead();
+        enableI2C();
         bme280Read();
         bmp280Read();
         bme680Read();
@@ -54,6 +55,7 @@ void Sensors::loop() {
         CO2scd30Read();
         CO2scd4xRead();
         GCJA5Read();
+        disableI2C();
 
         if(i2conly && main_device_type == SSPS30) sps30Read();
 
@@ -100,14 +102,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     if (!i2conly && !sensorSerialInit(pms_type, pms_rx, pms_tx)) {
         DEBUG("-->[SLIB] UART sensors detected\t:", "0");
     }
-
-#ifdef M5STICKCPLUS
-    // Wire.begin(0,26);   // M5CoreInk hat pines (header on top)
-    Wire.begin(32,33); // M5CoreInk Ext port (default for all sensors)
-#else
-    Wire.begin();
-#endif
-    
+    enableI2C();
     sps30I2CInit();
     GCJA5Init();
     CO2scd30Init();
@@ -119,7 +114,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     sht31Init();
     aht10Init();
     dhtInit();
-
+    disableI2C();
     printSensorsRegistered(true);
 }
 
@@ -1201,7 +1196,11 @@ void Sensors::setSCD4xAltitudeOffset(float offset) {
 
 void Sensors::GCJA5Init() {
     sensorAnnounce(SENSORS::SGCJA5);
+    #ifdef ESP32
+    if (!pmGCJA5.begin() && !pmGCJA5.begin(Wire1)) return;
+    #else
     if (!pmGCJA5.begin()) return;
+    #endif
     sensorRegister(SENSORS::SGCJA5);
 }
 
@@ -1241,7 +1240,7 @@ uint8_t * Sensors::getSensorsRegistered() {
 
 void Sensors::sensorRegister(SENSORS sensor) {
     if (isSensorRegistered(sensor)) return;
-    Serial.printf("-->[SLIB] sensor registered\t: %s\t:D\n", getSensorName(sensor).c_str());
+    Serial.printf("-->[SLIB] sensor registered\t: %s  \t:D\n", getSensorName(sensor).c_str());
     sensors_registered[sensors_registered_count++] = sensor;
     if (main_device_type == -1) main_device_type = sensor;
 }
@@ -1417,6 +1416,23 @@ void Sensors::DEBUG(const char *text, const char *textb) {
         }
         _debugPort.println();
     }
+}
+
+//***********************************************************************************//
+
+void Sensors::enableI2C() {
+#ifdef M5STICKCPLUS
+    Wire.begin(0,26);   // M5CoreInk hat pines (header on top)
+    Wire1.begin(32,33); // M5CoreInk Ext port (default for all sensors)
+#else
+    Wire.begin();
+#endif
+}
+
+void Sensors::disableI2C() {
+#ifdef M5STICKCPLUS
+    Wire1.begin(21,22); // M5CoreInk Ext port (default for all sensors)
+#endif
 }
 
 bool Sensors::serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx) {

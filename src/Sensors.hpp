@@ -396,9 +396,16 @@ class Sensors {
 
     void onSensorError(const char *msg);
 
+    void disableI2C();
+
+    void enableI2C();
+
     bool serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx);
+
     String hwSerialRead(unsigned int lenght_buffer);
+
     void restart();  // restart serial (it isn't works sometimes)
+
     void DEBUG(const char *text, const char *textb = "");
 
     void printValues();
