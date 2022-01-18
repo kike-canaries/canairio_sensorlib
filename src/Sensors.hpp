@@ -18,7 +18,7 @@
 #include <SensirionI2CScd4x.h>
 
 #define CSL_VERSION "0.4.4"
-#define CSL_REVISION  346
+#define CSL_REVISION  347
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -80,12 +80,12 @@
     X(PM25, "ug/m3", "PM2.5")   \
     X(PM4, "ug/m3", "PM4")   \
     X(PM10, "ug/m3", "PM10")    \
-    X(TEMP, "C", "Temp")     \
-    X(HUM, "%", "Hum")        \
+    X(TEMP, "C", "T")     \
+    X(HUM, "%", "H")        \
     X(CO2, "ppm", "CO2")      \
     X(CO2TEMP, "C", "CO2T")  \
     X(CO2HUM, "%", "CO2H")    \
-    X(PRESS, "hPa", "Press")   \
+    X(PRESS, "hPa", "P")   \
     X(ALT, "m", "Alt")       \
     X(GAS, "Ohm", "Gas") \
     X(UCOUNT, "COUNT", "UCOUNT") 

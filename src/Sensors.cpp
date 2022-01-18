@@ -45,7 +45,7 @@ void Sensors::loop() {
         }
         
         dhtRead();
-        enableI2C();
+        // enableI2C();
         bme280Read();
         bmp280Read();
         bme680Read();
@@ -55,7 +55,7 @@ void Sensors::loop() {
         CO2scd30Read();
         CO2scd4xRead();
         GCJA5Read();
-        disableI2C();
+        // disableI2C();
 
         if(i2conly && main_device_type == SSPS30) sps30Read();
 
@@ -114,7 +114,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     sht31Init();
     aht10Init();
     dhtInit();
-    disableI2C();
+    // disableI2C();
     printSensorsRegistered(true);
 }
 
@@ -661,10 +661,13 @@ void Sensors::CO2scd4xRead() {
 void Sensors::GCJA5Read() {
     if (dev_uart_type == SENSORS::SGCJA5) return;
     if (!pmGCJA5.isConnected()) return;
-    pm1 = pmGCJA5.getPM1_0();
-    pm25 = pmGCJA5.getPM2_5();
-    pm10 = pmGCJA5.getPM10();
-    if (pm1 > 1000 || pm25 > 1000 || pm10 > 1000) return;
+    uint16_t _pm1 = pmGCJA5.getPM1_0();
+    uint16_t _pm25 = pmGCJA5.getPM2_5();
+    uint16_t _pm10 = pmGCJA5.getPM10();
+    if (_pm1 > 1000 || _pm25 > 1000 || _pm10 > 1000) return;
+    pm1 = _pm1;
+    pm25 = _pm25;
+    pm10 = _pm10;
     dataReady = true;
     DEBUG("-->[SLIB] GCJA5 read\t\t: done!");
     unitRegister(UNIT::PM1);
@@ -1423,8 +1426,8 @@ void Sensors::DEBUG(const char *text, const char *textb) {
 
 void Sensors::enableI2C() {
 #ifdef M5STICKCPLUS
-    Wire.begin(0,26);   // M5CoreInk hat pines (header on top)
-    Wire1.begin(32,33); // M5CoreInk Ext port (default for all sensors)
+    // Wire.begin(0,26);   // M5CoreInk hat pines (header on top)
+    Wire.begin(32,33); // M5CoreInk Ext port (default for all sensors)
 #else
     Wire.begin();
 #endif
