@@ -18,7 +18,7 @@
 #include <SensirionI2CScd4x.h>
 
 #define CSL_VERSION "0.4.4"
-#define CSL_REVISION  347
+#define CSL_REVISION  348
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -189,7 +189,7 @@ class Sensors {
     SensirionI2CScd4x scd4x;
 
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
-    
+
     void loop();
 
     bool isDataReady();
@@ -396,9 +396,11 @@ class Sensors {
 
     void onSensorError(const char *msg);
 
-    void disableI2C();
+    void startI2C();
 
-    void enableI2C();
+    void enableWire1();
+
+    void disableWire1();
 
     bool serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx);
 

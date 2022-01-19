@@ -41,20 +41,21 @@ void Sensors::loop() {
             dataReady = pmSensorRead();
             DEBUG("-->[SLIB] UART data ready \t:",dataReady ? "true" : "false");
         }
-        dhtRead();
+        enableWire1();
+        GCJA5Read();
+        CO2scd30Read();
+        CO2scd4xRead();
+        am2320Read();
+        sht31Read();
+        aht10Read();
         bme280Read();
         bmp280Read();
         bme680Read();
-        aht10Read();
-        sht31Read();
-        am2320Read();
-        CO2scd30Read();
-        CO2scd4xRead();
-        GCJA5Read();
+        dhtRead();
+        sps30Read();
+        disableWire1();
 
-        if(i2conly && main_device_type == SSPS30) sps30Read();
-
-        if(!dataReady)DEBUG("-->[SLIB] Any data from sensors?\t: check your wirings!");
+        if(!dataReady)DEBUG("-->[SLIB] Any data from sensors\t: ? check your wirings!");
 
         if (dataReady && (_onDataCb != nullptr)) {
             _onDataCb();  // if any sensor reached any data, dataReady is true.
@@ -64,8 +65,6 @@ void Sensors::loop() {
         printSensorsRegistered(devmode);
         printUnitsRegistered(devmode);
         printValues();
-        if (units_registered_count == 0) resetAllVariables();
-
     }
 
     dhtRead();  // DHT2x sensors need check fastest
@@ -97,7 +96,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     if (!i2conly && !sensorSerialInit(pms_type, pms_rx, pms_tx)) {
         DEBUG("-->[SLIB] UART sensors detected\t:", "0");
     }
-    enableI2C();
+    startI2C();
     sps30I2CInit();
     GCJA5Init();
     CO2scd30Init();
@@ -406,10 +405,10 @@ String Sensors::hwSerialRead(unsigned int lenght_buffer) {
  *  @return true if reads succes
  */
 bool Sensors::sps30Read() {
+    if (!isSensorRegistered(SENSORS::SSPS30)) return false;
     uint8_t ret, error_cnt = 0;
-
     delay(35);  //Delay for sincronization
-    
+
     if(i2conly && sample_time > 30) {
         if (!sps30.start()) return false;  // power saving validation
         delay(15000);
@@ -1083,10 +1082,12 @@ void Sensors::bmp280Init() {
                        Adafruit_BMP280::SAMPLING_X16,     // Pressure oversampling
                        Adafruit_BMP280::FILTER_X16,       // Filtering.
                        Adafruit_BMP280::STANDBY_MS_500);  // Standby time.
+    #if CORE_DEBUG_LEVEL >= 3
     Adafruit_Sensor *bmp_temp = bmp280.getTemperatureSensor();
     Adafruit_Sensor *bmp_pressure = bmp280.getPressureSensor();
     if (devmode) bmp_temp->printSensorDetails();
     if (devmode) bmp_pressure->printSensorDetails();
+    #endif
     sensorRegister(SENSORS::SBMP280);
 }
 
@@ -1387,12 +1388,12 @@ void Sensors::printSensorsRegistered(bool debug) {
 // Print current variables detected by the sensors
 void Sensors::printValues() {
     if (!devmode) return;
-    Serial.print("-->[SLIB] Current sensors values\t: ");
+    Serial.print("-->[SLIB] Preview sensors values\t: ");
     for (int i = 0; i < UCOUNT; i++) {
         if (units_registered[i] != 0) {
             Serial.print(getUnitName((UNIT)units_registered[i]));
-            Serial.print(": ");
-            Serial.printf("%.1f ", getUnitValue((UNIT)units_registered[i]));
+            Serial.print(":");
+            Serial.printf("%02.1f ", getUnitValue((UNIT)units_registered[i]));
         }
     }
     Serial.println();
@@ -1425,18 +1426,26 @@ void Sensors::DEBUG(const char *text, const char *textb) {
 
 //***********************************************************************************//
 
-void Sensors::enableI2C() {
+void Sensors::startI2C() {
 #ifdef M5STICKCPLUS
-    Wire.begin(0,26);   // M5CoreInk hat pines (header on top)
-    Wire1.begin(32,33); // M5CoreInk Ext port (default for all sensors)
+    Wire.begin(32,33);   // M5CoreInk Ext port (default for all sensors)
+    enableWire1();
 #else
     Wire.begin();
 #endif
 }
 
-void Sensors::disableI2C() {
+void Sensors::enableWire1() {
 #ifdef M5STICKCPLUS
-    // Wire1.begin(21,22); // Restore AXP192 I2C pins (failed after some time)
+    Wire1.flush();
+    Wire1.begin(0,26);   // M5CoreInk hat pines (header on top)
+#endif
+}
+
+void Sensors::disableWire1() {
+#ifdef M5STICKCPLUS
+    Wire1.flush();
+    Wire1.begin(21,22); // Restore AXP192 I2C pins (failed after some time)
 #endif
 }
 
