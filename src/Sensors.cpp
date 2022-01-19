@@ -37,15 +37,11 @@ void Sensors::loop() {
     if ((millis() - pmLoopTimeStamp > sample_time * (uint32_t)1000)) {  // sample time for each capture
         pmLoopTimeStamp = millis();
         dataReady = false;
-        // resetUnitsRegister();
-
         if(!i2conly ) {
             dataReady = pmSensorRead();
             DEBUG("-->[SLIB] UART data ready \t:",dataReady ? "true" : "false");
         }
-        
         dhtRead();
-        // enableI2C();
         bme280Read();
         bmp280Read();
         bme680Read();
@@ -55,7 +51,6 @@ void Sensors::loop() {
         CO2scd30Read();
         CO2scd4xRead();
         GCJA5Read();
-        // disableI2C();
 
         if(i2conly && main_device_type == SSPS30) sps30Read();
 
@@ -114,7 +109,6 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     sht31Init();
     aht10Init();
     dhtInit();
-    // disableI2C();
     printSensorsRegistered(true);
 }
 
@@ -1039,7 +1033,14 @@ void Sensors::sps30DeviceInfo() {
 
 void Sensors::am2320Init() {
     sensorAnnounce(SENSORS::SAM232X);
+    #ifdef ESP32
+    if (!am2320.begin()) {
+        am2320 = AM232X(&Wire1);
+        if (!am2320.begin()) return;
+    }
+    #else
     if (!am2320.begin()) return;
+    #endif
     sensorRegister(SENSORS::SAM232X);
 }
 
@@ -1426,8 +1427,8 @@ void Sensors::DEBUG(const char *text, const char *textb) {
 
 void Sensors::enableI2C() {
 #ifdef M5STICKCPLUS
-    // Wire.begin(0,26);   // M5CoreInk hat pines (header on top)
-    Wire.begin(32,33); // M5CoreInk Ext port (default for all sensors)
+    Wire.begin(0,26);   // M5CoreInk hat pines (header on top)
+    Wire1.begin(32,33); // M5CoreInk Ext port (default for all sensors)
 #else
     Wire.begin();
 #endif
@@ -1435,7 +1436,7 @@ void Sensors::enableI2C() {
 
 void Sensors::disableI2C() {
 #ifdef M5STICKCPLUS
-    Wire1.begin(21,22); // M5CoreInk Ext port (default for all sensors)
+    // Wire1.begin(21,22); // Restore AXP192 I2C pins (failed after some time)
 #endif
 }
 
