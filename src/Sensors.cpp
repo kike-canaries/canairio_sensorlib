@@ -1268,9 +1268,9 @@ String Sensors::getMainDeviceSelected() {
     return String(sensors_device_names[main_device_type]);
 }
 
-int Sensors::getMainSensorTypeSelected() {
+MAIN_SENSOR_TYPE Sensors::getMainSensorTypeSelected() {
     if(main_device_type == -1) return MAIN_SENSOR_TYPE::SENSOR_NONE;
-    return sensors_device_types[main_device_type];
+    return (MAIN_SENSOR_TYPE) sensors_device_types[main_device_type];
 }
 
 // Registering units methods

@@ -118,14 +118,14 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
 typedef enum SENSORS : size_t { SENSORS_TYPES } SENSORS;  // backgroun compaitibility
 #undef X
 
+// MAIN SENSOR TYPE
+enum MAIN_SENSOR_TYPE { SENSOR_NONE, SENSOR_PM, SENSOR_CO2, SENSOR_ENV };
+
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
 
 class Sensors {
    public:
-
-    // MAIN SENSOR TYPE
-    enum MAIN_SENSOR_TYPE { SENSOR_NONE, SENSOR_PM, SENSOR_CO2, SENSOR_ENV };
 
     // SPS30 values. Only for Sensirion SPS30 sensor.
     struct sps_values val;
@@ -210,7 +210,7 @@ class Sensors {
 
     String getMainDeviceSelected();
 
-    int getMainSensorTypeSelected();
+    MAIN_SENSOR_TYPE getMainSensorTypeSelected();
 
     uint16_t getPM1();
 
