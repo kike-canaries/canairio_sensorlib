@@ -37,7 +37,7 @@ void Sensors::loop() {
     if ((millis() - pmLoopTimeStamp > sample_time * (uint32_t)1000)) {  // sample time for each capture
         pmLoopTimeStamp = millis();
         dataReady = false;
-        if(!i2conly ) {
+        if(!i2conly && dev_uart_type >= 0) {
             dataReady = pmSensorRead();
             DEBUG("-->[SLIB] UART data ready \t:",dataReady ? "true" : "false");
         }
@@ -956,9 +956,8 @@ bool Sensors::sps30I2CInit() {
     // start measurement
     if (sps30.start()) {
         DEBUG("-->[SLIB] SPS30 Measurement OK");
+        if (sps30.I2C_expect() == 4) DEBUG("[W][SLIB] SPS30 setup message\t: I2C buffersize only PM values  \n");
         sensorRegister(SENSORS::SSPS30);
-        if (sps30.I2C_expect() == 4)
-            DEBUG("[W][SLIB] SPS30 setup message\t: I2C buffersize only PM values  \n");
         return true;
     }
     else
