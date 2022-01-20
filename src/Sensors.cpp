@@ -43,6 +43,7 @@ void Sensors::loop() {
         }
         enableWire1();
         GCJA5Read();
+        sps30Read();
         CO2scd30Read();
         CO2scd4xRead();
         am2320Read();
@@ -52,7 +53,6 @@ void Sensors::loop() {
         bmp280Read();
         bme680Read();
         dhtRead();
-        sps30Read();
         disableWire1();
 
         if(!dataReady)DEBUG("-->[SLIB] Any data from sensors\t: ? check your wirings!");
@@ -504,9 +504,9 @@ bool Sensors::pmSensorRead() {
             return pmGCJA5Read();
             break;
 
-        case SSPS30:
-            return sps30Read();
-            break;
+        // case SSPS30:  CHECK: we don't need more this read here
+        //     return sps30Read();
+        //     break;
 
         case SDS011:
             return pmSDS011Read();
@@ -773,42 +773,42 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
 
     if (pms_type == SENSORS::SSPS30) {
         if (sps30UARTInit()) {
-            dev_uart_type = SSPS30;
+            dev_uart_type = SENSORS::SSPS30;
             return true;
         }
     }
 
     if (pms_type == SENSORS::SDS011) {
         if (pmSDS011Read()) {
-            dev_uart_type = SDS011;
+            dev_uart_type = SENSORS::SDS011;
             return true;
         }
     }
 
     if (pms_type == SENSORS::SMHZ19) {
         if (CO2Mhz19Init()) {
-            dev_uart_type = SMHZ19;
+            dev_uart_type = SENSORS::SMHZ19;
             return true;
         }
     }
 
     if (pms_type == SENSORS::SCM1106) {
         if (CO2CM1106Init()) {
-            dev_uart_type = SCM1106;
+            dev_uart_type = SENSORS::SCM1106;
             return true;
         }
     }
 
     if (pms_type == SENSORS::SAIRS8) {
         if (senseAirS8Init()) {
-            dev_uart_type = SAIRS8;
+            dev_uart_type = SENSORS::SAIRS8;
             return true;
         }
     }
 
     if (pms_type <= SENSORS::SGCJA5) {
         if (pmGenericRead()) {
-            dev_uart_type = Auto;
+            dev_uart_type = SENSORS::Auto;
             return true;
         }
         delay(1000);  // sync serial
