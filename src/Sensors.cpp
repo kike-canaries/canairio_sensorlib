@@ -112,7 +112,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
 void Sensors::setSampleTime(int seconds) {
     sample_time = seconds;
     Serial.println("-->[SLIB] new sample time\t: " + String(seconds));
-    if(isSensorRegistered(SSPS30)) {
+    if(isSensorRegistered(SENSORS::SSCD30)) {
         scd30.setMeasurementInterval(seconds);
         if (devmode) Serial.println("-->[SLIB] SCD30 interval time\t: " + String(seconds));
     }
@@ -1281,6 +1281,7 @@ bool Sensors::isUnitRegistered(UNIT unit) {
 
 void Sensors::unitRegister(UNIT unit) {
     if (isUnitRegistered(unit)) return;
+    if (unit == UNIT::NUNIT) return;
     units_registered[units_registered_count++] = unit;
 }
 
