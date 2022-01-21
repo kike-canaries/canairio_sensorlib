@@ -72,12 +72,9 @@ void Sensors::loop() {
 
 /**
  * All sensors init.
- * Particle meter sensor (PMS) and AM2320 sensor init.
- * 
- * @param pms_type PMS type, please see DEVICE_TYPE enum.
- * @param pms_rx PMS RX pin.
- * @param pms_tx PMS TX pin.
- * @param debug enable PMS log output.
+ * @param pms_type (optional) UART PMS type, please see DEVICE_TYPE enum.
+ * @param pms_rx (optional) UART PMS RX pin.
+ * @param pms_tx (optional) UART PMS TX pin.
  */
 void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
 // override with debug INFO level (>=3)
@@ -1032,6 +1029,7 @@ void Sensors::sps30DeviceInfo() {
 void Sensors::am2320Init() {
     sensorAnnounce(SENSORS::SAM232X);
     #ifdef ESP32
+    am2320 = AM232X(&Wire);
     if (!am2320.begin()) {
         am2320 = AM232X(&Wire1);
         if (!am2320.begin()) return;
