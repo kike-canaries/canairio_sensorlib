@@ -566,7 +566,7 @@ void Sensors::bmp280Read() {
     float alt1 = bmp280.readAltitude(SEALEVELPRESSURE_HPA);
     if (press1 == 0 || isnan(temp1) || isnan(alt1)) return;
     temp = temp1-toffset;
-    pres = press1;
+    pres = press1/100; // convert to hPa
     alt = alt1;
     dataReady = true;
     DEBUG("-->[SLIB] BMP280 read\t\t: done!");
@@ -1319,7 +1319,6 @@ UNIT Sensors::getNextUnit() {
 }
 
 void Sensors::resetNextUnit() {
-    previous_unit = current_unit;
     current_unit = 0;
 }
 
