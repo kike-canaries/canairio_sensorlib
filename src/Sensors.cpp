@@ -1310,10 +1310,6 @@ String Sensors::getUnitSymbol(UNIT unit) {
 }
 
 UNIT Sensors::getNextUnit() {
-    if (previous_unit != 0) {
-        current_unit = previous_unit;
-        previous_unit = 0;
-    }
     for (int i = current_unit; i < UCOUNT; i++) {
         if (units_registered[i] != 0) {
             current_unit = i + 1;
@@ -1334,23 +1330,23 @@ float Sensors::getUnitValue(UNIT unit) {
         case PM1:
             return pm1;
         case PM25:
-            return pm25;
-        case PM10:
-            return pm10;
+            return pm25; 
         case PM4:
             return pm4;
-        case CO2:
-            return CO2Val;
-        case CO2HUM:
-            return CO2humi;
-        case CO2TEMP:
-            return CO2temp;
-        case HUM:
-            return humi;
+        case PM10:
+            return pm10;
         case TEMP:
             return temp;
+        case HUM:
+            return humi;
+        case CO2:
+            return CO2Val;
+        case CO2TEMP:
+            return CO2temp;
+        case CO2HUM:
+            return CO2humi;
         case PRESS:
-            return hpa;
+            return pres;
         case ALT:
             return alt;
         case GAS:
