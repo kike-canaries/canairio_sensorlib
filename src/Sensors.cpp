@@ -481,11 +481,11 @@ bool Sensors::pmGCJA5Read() {
         unitRegister(UNIT::PM10);
 
         if (pm25 > 2000 && pm10 > 2000) {
-            onSensorError("[W][SLIB] GCJA5 UART msg\t: out of range pm25 > 2000");
+            onSensorError("[W][SLIB] GCJA5 UART msg  \t: out of range pm25 > 2000");
         } else
             return true;
     } else {
-        onSensorError("[W][SLIB] GCJA5 UART msg\t: invalid header");
+        onSensorError("[W][SLIB] GCJA5 UART msg  \t: invalid header");
     }
     return false;
 }
