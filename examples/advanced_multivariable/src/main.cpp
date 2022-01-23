@@ -18,9 +18,8 @@
 #include <Arduino.h>
 #include <Sensors.hpp>
 
-
 void onSensorDataOk() {
-    Serial.println("-->[MAIN] Detected Units:");
+    Serial.println("\n-->[MAIN] Preview sensor values:");
 
     UNIT unit = sensors.getNextUnit();
 
@@ -34,10 +33,6 @@ void onSensorDataOk() {
     Serial.println("");
 }
 
-void onSensorDataError(const char * msg){ 
-    Serial.println(msg);
-}
-
 /******************************************************************************
 *  M A I N
 ******************************************************************************/
@@ -47,16 +42,12 @@ void setup() {
     delay(200);
     Serial.println("\n== Sensor test setup ==\n");
     Serial.println("-->[SETUP] Detecting sensors..");
-    // (optional) enable possible sensors on pin 27
-    pinMode(27, OUTPUT);
-    digitalWrite(27, HIGH);
-    // basic setup
-    sensors.setSampleTime(5);                       // config sensors sample time interval
-    sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
-    sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
-    sensors.setDebugMode(true);                    // [optional] debug mode
-    sensors.detectI2COnly(false);                   // disable force to only i2c sensors
-    sensors.init();                                 // Auto detection to UART and i2c sensors
+    
+    sensors.setSampleTime(5);                        // config sensors sample time interval
+    sensors.setOnDataCallBack(&onSensorDataOk);      // all data read callback
+    sensors.setDebugMode(false);                     // [optional] debug mode
+    sensors.detectI2COnly(false);                    // disable force to only i2c sensors
+    sensors.init();                                  // Auto detection to UART and i2c sensors
     delay(500);
 }
 

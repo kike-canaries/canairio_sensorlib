@@ -18,7 +18,7 @@
 #include <SensirionI2CScd4x.h>
 
 #define CSL_VERSION "0.4.4"
-#define CSL_REVISION  349
+#define CSL_REVISION  350
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -115,11 +115,11 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
     X(SCOUNT, "SCOUNT", 3)
 
 #define X(utype, uname, umaintype) utype, 
-typedef enum SENSORS : size_t { SENSORS_TYPES } SENSORS;  // backgroun compaitibility
+typedef enum SENSORS : size_t { SENSORS_TYPES } SENSORS;  // backward compatibility
 #undef X
 
 // MAIN SENSOR TYPE
-enum MAIN_SENSOR_TYPE { SENSOR_NONE, SENSOR_PM, SENSOR_CO2, SENSOR_ENV };
+enum class SensorGroup { SENSOR_NONE, SENSOR_PM, SENSOR_CO2, SENSOR_ENV };
 
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
@@ -192,6 +192,8 @@ class Sensors {
 
     void loop();
 
+    void readAllSensors();
+
     bool isDataReady();
 
     void setSampleTime(int seconds);
@@ -207,10 +209,6 @@ class Sensors {
     bool isUARTSensorConfigured();
 
     int getUARTDeviceTypeSelected();
-
-    String getMainDeviceSelected();
-
-    MAIN_SENSOR_TYPE getMainSensorTypeSelected();
 
     uint16_t getPM1();
 
@@ -278,6 +276,8 @@ class Sensors {
 
     String getSensorName(SENSORS sensor);
 
+    SensorGroup getSensorGroup(SENSORS sensor);
+
     uint8_t getUnitsRegisteredCount();
 
     bool isUnitRegistered(UNIT unit);
@@ -292,6 +292,10 @@ class Sensors {
 
     float getUnitValue(UNIT unit);
 
+    void printUnitsRegistered(bool debug = false);
+
+    void printSensorsRegistered(bool debug = false);
+
    private:
     /// DHT library
     uint32_t delayMS;
@@ -305,10 +309,6 @@ class Sensors {
     int dev_uart_type = -1;
 
     bool dataReady;
-
-    int main_device_type = -1;
-
-    int minor_device_type = -1;
 
     uint8_t sensors_registered_count;
 
@@ -417,10 +417,6 @@ class Sensors {
     void unitRegister(UNIT unit);
 
     void resetUnitsRegister();
-
-    void printUnitsRegistered(bool debug = false);
-
-    void printSensorsRegistered(bool debug = false);
 
     void resetAllVariables();
 

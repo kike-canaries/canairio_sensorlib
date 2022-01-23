@@ -36,26 +36,9 @@ void Sensors::loop() {
     static uint32_t pmLoopTimeStamp = 0;                 // timestamp for sensor loop check data
     if ((millis() - pmLoopTimeStamp > sample_time * (uint32_t)1000)) {  // sample time for each capture
         pmLoopTimeStamp = millis();
-        dataReady = false;
-        if(!i2conly && dev_uart_type >= 0) {
-            dataReady = pmSensorRead();
-            DEBUG("-->[SLIB] UART data ready \t:",dataReady ? "true" : "false");
-        }
-        enableWire1();
-        GCJA5Read();
-        sps30Read();
-        CO2scd30Read();
-        CO2scd4xRead();
-        am2320Read();
-        sht31Read();
-        aht10Read();
-        bme280Read();
-        bmp280Read();
-        bme680Read();
-        dhtRead();
-        disableWire1();
+        readAllSensors();
 
-        if(!dataReady)DEBUG("-->[SLIB] Any data from sensors\t: ? check your wirings!");
+        if (!dataReady) DEBUG("-->[SLIB] Any data from sensors\t: ? check your wirings!");
 
         if (dataReady && (_onDataCb != nullptr)) {
             _onDataCb();  // if any sensor reached any data, dataReady is true.
@@ -68,6 +51,31 @@ void Sensors::loop() {
     }
 
     dhtRead();  // DHT2x sensors need check fastest
+}
+
+/**
+ * @brief Read all sensors but use only one time or use loop() instead.
+ * All sensors are read here. Use it carefully, better use sensors.loop()
+ */
+void Sensors::readAllSensors() {
+    dataReady = false;
+    if (!i2conly && dev_uart_type >= 0) {
+        dataReady = pmSensorRead();
+        DEBUG("-->[SLIB] UART data ready \t:", dataReady ? "true" : "false");
+    }
+    enableWire1();
+    GCJA5Read();
+    sps30Read();
+    CO2scd30Read();
+    CO2scd4xRead();
+    am2320Read();
+    sht31Read();
+    aht10Read();
+    bme280Read();
+    bmp280Read();
+    bme680Read();
+    dhtRead();
+    disableWire1();
 }
 
 /**
@@ -291,8 +299,141 @@ int16_t Sensors::getLibraryRevision() {
     return CSL_REVISION;
 }
 
+uint8_t Sensors::getSensorsRegisteredCount() {
+    return sensors_registered_count;
+}
+
+// Registering sensors methods
+
+bool Sensors::isSensorRegistered(SENSORS sensor) {
+    for (int i = 0; i < SCOUNT; i++) {
+        if (sensors_registered[i] == sensor) return true;
+    }
+    return false;
+}
+
+String Sensors::getSensorName(SENSORS sensor) {
+    if (sensor < 0 || sensor > SENSORS::SCOUNT) return "";
+    return String(sensors_device_names[sensor]);
+}
+
+SensorGroup Sensors::getSensorGroup(SENSORS sensor) {
+    return (SensorGroup) sensors_device_types[sensor];
+}
+
+uint8_t * Sensors::getSensorsRegistered() {
+    return sensors_registered;
+}
+
+bool Sensors::isUnitRegistered(UNIT unit) {
+    if (unit == UNIT::NUNIT) return false;
+    for (int i = 0; i < UCOUNT; i++) {
+        if (units_registered[i] == unit) return true;
+    }
+    return false;
+}
+
+uint8_t * Sensors::getUnitsRegistered() {
+    return units_registered;
+}
+
+uint8_t Sensors::getUnitsRegisteredCount() {
+    return units_registered_count;
+}
+
+String Sensors::getUnitName(UNIT unit) {
+    if (unit < 0 || unit > UCOUNT) return "";
+    return String(unit_name[unit]);
+}
+
+String Sensors::getUnitSymbol(UNIT unit) {
+    return String(unit_symbol[unit]);
+}
+
+UNIT Sensors::getNextUnit() {
+    for (int i = current_unit; i < UCOUNT; i++) {
+        if (units_registered[i] != 0) {
+            current_unit = i + 1;
+            return (UNIT) units_registered[i];
+        }
+    }
+    current_unit = 0;
+    return (UNIT) 0;
+}
+
+void Sensors::resetNextUnit() {
+    current_unit = 0;
+}
+
+float Sensors::getUnitValue(UNIT unit) {
+    switch (unit) {
+        case PM1:
+            return pm1;
+        case PM25:
+            return pm25; 
+        case PM4:
+            return pm4;
+        case PM10:
+            return pm10;
+        case TEMP:
+            return temp;
+        case HUM:
+            return humi;
+        case CO2:
+            return CO2Val;
+        case CO2TEMP:
+            return CO2temp;
+        case CO2HUM:
+            return CO2humi;
+        case PRESS:
+            return pres;
+        case ALT:
+            return alt;
+        case GAS:
+            return gas;
+        default:
+            return 0.0;
+    }
+}
+
+void Sensors::printUnitsRegistered(bool debug) { 
+    if (!debug) return;
+    Serial.printf("-->[SLIB] Sensors units count\t: %i (", units_registered_count);
+    int i = 0;
+    while (units_registered[i++] != 0) {
+        Serial.print(unit_name[units_registered[i-1]]);
+        Serial.print(",");
+    }
+    Serial.println(")");
+}
+
+void Sensors::printSensorsRegistered(bool debug) { 
+    if (!debug) return;
+    Serial.printf("-->[SLIB] Sensors devices count\t: %i (", sensors_registered_count);
+    int i = 0;
+    while (sensors_registered[i++] != 0) {
+        Serial.print(sensors_device_names[sensors_registered[i-1]]);
+        Serial.print(",");
+    }
+    Serial.println(")");
+}
+
+// Print current variables detected by the sensors
+void Sensors::printValues() {
+    if (!devmode) return;
+    Serial.print("-->[SLIB] Preview sensors values\t: ");
+    for (int i = 0; i < UCOUNT; i++) {
+        if (units_registered[i] != 0) {
+            Serial.print(getUnitName((UNIT)units_registered[i]));
+            Serial.print(":");
+            Serial.printf("%02.1f ", getUnitValue((UNIT)units_registered[i]));
+        }
+    }
+    Serial.println();
+}
+
 /******************************************************************************
-*  U A R T   S E N S O R   P R I V A T E   M E T H O D S
+*  S E N S O R   P R I V A T E   M E T H O D S
 ******************************************************************************/
 
 /**
@@ -330,7 +471,7 @@ bool Sensors::pmGCJA5Read() {
     int lenght_buffer = 32;
     String txtMsg = hwSerialRead(lenght_buffer);
     if (txtMsg[0] == 02) {
-        DEBUG("-->[SLIB] PANASONIC read \t: done!");
+        DEBUG("-->[SLIB] UART GCJA5 read\t: done!");
         pm1 = txtMsg[2] * 256 + (char)(txtMsg[1]);
         pm25 = txtMsg[6] * 256 + (char)(txtMsg[5]);
         pm10 = txtMsg[10] * 256 + (char)(txtMsg[9]);
@@ -340,11 +481,11 @@ bool Sensors::pmGCJA5Read() {
         unitRegister(UNIT::PM10);
 
         if (pm25 > 2000 && pm10 > 2000) {
-            onSensorError("[W][SLIB] PANASONIC UART msg\t: out of range pm25 > 2000");
+            onSensorError("[W][SLIB] GCJA5 UART msg\t: out of range pm25 > 2000");
         } else
             return true;
     } else {
-        onSensorError("[W][SLIB] PANASONIC UART msg\t: invalid header");
+        onSensorError("[W][SLIB] GCJA5 UART msg\t: invalid header");
     }
     return false;
 }
@@ -1228,55 +1369,14 @@ float Sensors::hpaCalculation(float altitude) {
     return hpa;
 }
 
-// Registering sensors methods
-
-bool Sensors::isSensorRegistered(SENSORS sensor) {
-    for (int i = 0; i < SCOUNT; i++) {
-        if (sensors_registered[i] == sensor) return true;
-    }
-    return false;
-}
-
-uint8_t * Sensors::getSensorsRegistered() {
-    return sensors_registered;
+void Sensors::sensorAnnounce(SENSORS sensor) {
+    DEBUG("-->[SLIB] attempt enable sensor\t:",getSensorName(sensor).c_str());
 }
 
 void Sensors::sensorRegister(SENSORS sensor) {
     if (isSensorRegistered(sensor)) return;
     Serial.printf("-->[SLIB] sensor registered\t: %s  \t:D\n", getSensorName(sensor).c_str());
     sensors_registered[sensors_registered_count++] = sensor;
-    if (main_device_type == -1) main_device_type = sensor;
-}
-
-uint8_t Sensors::getSensorsRegisteredCount() {
-    return sensors_registered_count;
-}
-
-String Sensors::getSensorName(SENSORS sensor) {
-    return String(sensors_device_names[sensor]);
-}
-
-void Sensors::sensorAnnounce(SENSORS sensor) {
-    DEBUG("-->[SLIB] attempt enable sensor\t:",getSensorName(sensor).c_str());
-}
-
-String Sensors::getMainDeviceSelected() {
-    if(main_device_type == -1) return "";
-    return String(sensors_device_names[main_device_type]);
-}
-
-MAIN_SENSOR_TYPE Sensors::getMainSensorTypeSelected() {
-    if(main_device_type == -1) return MAIN_SENSOR_TYPE::SENSOR_NONE;
-    return (MAIN_SENSOR_TYPE) sensors_device_types[main_device_type];
-}
-
-// Registering units methods
-
-bool Sensors::isUnitRegistered(UNIT unit) {
-    for (int i = 0; i < UCOUNT; i++) {
-        if (units_registered[i] == unit) return true;
-    }
-    return false;
 }
 
 void Sensors::unitRegister(UNIT unit) {
@@ -1290,106 +1390,6 @@ void Sensors::resetUnitsRegister() {
     for (int i = 0; i < UCOUNT; i++) {
         units_registered[i] = 0;
     }
-}
-
-uint8_t * Sensors::getUnitsRegistered() {
-    return units_registered;
-}
-
-uint8_t Sensors::getUnitsRegisteredCount() {
-    return units_registered_count;
-}
-
-String Sensors::getUnitName(UNIT unit) {
-    return String(unit_name[unit]);
-}
-
-String Sensors::getUnitSymbol(UNIT unit) {
-    return String(unit_symbol[unit]);
-}
-
-UNIT Sensors::getNextUnit() {
-    for (int i = current_unit; i < UCOUNT; i++) {
-        if (units_registered[i] != 0) {
-            current_unit = i + 1;
-            return (UNIT) units_registered[i];
-        }
-    }
-    current_unit = 0;
-    return (UNIT) 0;
-}
-
-void Sensors::resetNextUnit() {
-    current_unit = 0;
-}
-
-float Sensors::getUnitValue(UNIT unit) {
-    switch (unit) {
-        case PM1:
-            return pm1;
-        case PM25:
-            return pm25; 
-        case PM4:
-            return pm4;
-        case PM10:
-            return pm10;
-        case TEMP:
-            return temp;
-        case HUM:
-            return humi;
-        case CO2:
-            return CO2Val;
-        case CO2TEMP:
-            return CO2temp;
-        case CO2HUM:
-            return CO2humi;
-        case PRESS:
-            return pres;
-        case ALT:
-            return alt;
-        case GAS:
-            return gas;
-        default:
-            return 0.0;
-    }
-}
-
-void Sensors::printUnitsRegistered(bool debug) { 
-    if (!debug) return;
-    Serial.printf("-->[SLIB] Sensors units count\t: %i (", units_registered_count);
-    int i = 0;
-    while (units_registered[i++] != 0) {
-        Serial.print(unit_name[units_registered[i-1]]);
-        Serial.print(",");
-    }
-    Serial.println(")");
-}
-
-void Sensors::printSensorsRegistered(bool debug) { 
-    if (!debug) return;
-    Serial.printf("-->[SLIB] Main sensor selected\t: %s\n", getMainDeviceSelected().c_str());
-    Serial.printf("-->[SLIB] Main sensor type \t: %d\n", getMainSensorTypeSelected());
-    Serial.printf("-->[SLIB] Sensors devices count\t: %i (", sensors_registered_count);
-    int i = 0;
-    while (sensors_registered[i++] != 0) {
-        Serial.print(sensors_device_names[sensors_registered[i-1]]);
-        Serial.print(",");
-    }
-    Serial.println(")");
-}
-
-// Print current variables detected by the sensors
-void Sensors::printValues() {
-    if (!devmode) return;
-    Serial.print("-->[SLIB] Preview sensors values\t: ");
-    for (int i = 0; i < UCOUNT; i++) {
-        if (units_registered[i] != 0) {
-            Serial.print(getUnitName((UNIT)units_registered[i]));
-            Serial.print(":");
-            Serial.printf("%02.1f ", getUnitValue((UNIT)units_registered[i]));
-        }
-    }
-    Serial.println();
 }
 
 void Sensors::resetAllVariables() {
