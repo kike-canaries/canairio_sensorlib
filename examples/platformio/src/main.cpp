@@ -18,22 +18,40 @@
 #include <Arduino.h>
 #include <Sensors.hpp>
 
-void onSensorDataOk() {
-    Serial.print ("-->[MAIN] PM1: "+sensors.getStringPM1());
-    Serial.print (" PM2.5: " + sensors.getStringPM25());
-    Serial.print (" PM10: " + sensors.getStringPM10());
-    
-//    Serial.print (" CO2: " + sensors.getStringCO2());
-//    Serial.print (" CO2humi: " + String(sensors.getCO2humi()));
-//    Serial.print (" CO2temp: " + String(sensors.getCO2temp()));
+void printSensorsDetected() {
+    uint16_t sensors_count =  sensors.getSensorsRegisteredCount();
+    uint16_t units_count   =  sensors.getUnitsRegisteredCount();
+    Serial.println("-->[MAIN] Sensors detected count\t: " + String(sensors_count));
+    Serial.println("-->[MAIN] Sensors units count  \t: " + String(units_count));
+    Serial.print(  "-->[MAIN] Sensors devices names\t: ");
+    int i = 0;
+    while (sensors.getSensorsRegistered()[i++] != 0) {
+        Serial.print(sensors.getSensorName((SENSORS)sensors.getSensorsRegistered()[i - 1]));
+        Serial.print(",");
+    }
+    Serial.println();
+}
 
-    Serial.print (" H: "+ String(sensors.getHumidity()));
-    Serial.println (" T: " + String(sensors.getTemperature()));
-    
+void printSensorsValues() {
+    Serial.println("\n-->[MAIN] Preview sensor values:");
+    UNIT unit = sensors.getNextUnit();
+    while(unit != UNIT::NUNIT) {
+        String uName = sensors.getUnitName(unit);
+        float uValue = sensors.getUnitValue(unit);
+        String uSymb = sensors.getUnitSymbol(unit);
+        Serial.print("-->[MAIN] " + uName + ": " + String(uValue) + " " + uSymb);
+        unit = sensors.getNextUnit();
+    }
+}
+
+void onSensorDataOk() {
+    Serial.println("======= E X A M P L E   T E S T =========");
+    printSensorsDetected();
+    printSensorsValues(); 
+    Serial.println("=========================================");
 }
 
 void onSensorDataError(const char * msg){ 
-    Serial.println(msg);
 }
 
 /******************************************************************************
@@ -65,9 +83,7 @@ void setup() {
     // sensors.init(sensors.SENSEAIRS8);            // Force UART detection to SenseAirS8 CO2 sensor
     // sensors.init(sensors.Auto,PMS_RX,PMS_TX);    // Auto detection on custom RX,TX
   
-    Serial.println("-->[SETUP] Sensor configured: " + sensors.getMainDeviceSelected());
 
-    delay(500);
 }
 
 void loop() {

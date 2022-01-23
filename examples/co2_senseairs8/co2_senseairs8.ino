@@ -50,8 +50,6 @@ void setup() {
 
     sensors.init(sensors.SENSEAIRS8);                // forced UAQ sensor. Empty for auto detection
     
-    Serial.println("-->[SETUP] Sensor configured: " + sensors.getMainDeviceSelected());
-
     delay(500);
 }
 

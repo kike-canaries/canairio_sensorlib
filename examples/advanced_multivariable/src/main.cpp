@@ -18,11 +18,23 @@
 #include <Arduino.h>
 #include <Sensors.hpp>
 
-void onSensorDataOk() {
+void printSensorsDetected() {
+    uint16_t sensors_count =  sensors.getSensorsRegisteredCount();
+    uint16_t units_count   =  sensors.getUnitsRegisteredCount();
+    Serial.println("-->[MAIN] Sensors detected count\t: " + String(sensors_count));
+    Serial.println("-->[MAIN] Sensors units count  \t: " + String(units_count));
+    Serial.print(  "-->[MAIN] Sensors devices names\t: ");
+    int i = 0;
+    while (sensors.getSensorsRegistered()[i++] != 0) {
+        Serial.print(sensors.getSensorName((SENSORS)sensors.getSensorsRegistered()[i - 1]));
+        Serial.print(",");
+    }
+    Serial.println();
+}
+
+void printSensorsValues() {
     Serial.println("\n-->[MAIN] Preview sensor values:");
-
     UNIT unit = sensors.getNextUnit();
-
     while(unit != UNIT::NUNIT) {
         String uName = sensors.getUnitName(unit);
         float uValue = sensors.getUnitValue(unit);
@@ -30,9 +42,17 @@ void onSensorDataOk() {
         Serial.printf("-->[MAIN] %s:\t%02.1f\t%s\n", uName.c_str(), uValue, uSymb.c_str());
         unit = sensors.getNextUnit();
     }
-    Serial.println("");
 }
 
+void onSensorDataOk() {
+    Serial.println("======= E X A M P L E   T E S T =========");
+    printSensorsDetected();
+    printSensorsValues(); 
+    Serial.println("=========================================");
+}
+
+void onSensorDataError(const char * msg){ 
+}
 /******************************************************************************
 *  M A I N
 ******************************************************************************/

@@ -48,8 +48,6 @@ void setup() {
     sensors.init(sensors.Sensirion);                // Forced Sensirion via UART, default is I2C
                                                     // For Sensirion with i2c only leave empty this parameter
 
-    Serial.println("-->[SETUP] Sensor configured: " + sensors.getMainDeviceSelected());
-
     delay(500);
 }
 
