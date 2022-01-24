@@ -5,6 +5,8 @@
 
 Generic sensor manager, abstractions and bindings of multiple sensors libraries: Honeywell, Plantower, Panasonic, Sensirion, etc. and CO2 sensors. Also it's handling others environment sensors. This library is for general purpose, but also is the sensors library base of [CanAirIO project](https://canair.io/docs).
 
+For developers also you can check the complete library documentation [here](http://hpsaturn.com/canairio_sensorlib_doc/html/index.html)
+
 # Supported sensors
 
 ### PM sensors
