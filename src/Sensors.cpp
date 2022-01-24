@@ -29,7 +29,7 @@ uint8_t sensors_registered [SCOUNT];
  * *********************************************************************************/
 
 /**
- * Main sensors loop.
+ * @brief Main sensors loop.
  * All sensors are read here, please call it on main loop.
  */
 void Sensors::loop() {
@@ -79,7 +79,7 @@ void Sensors::readAllSensors() {
 }
 
 /**
- * All sensors init.
+ * @brief All sensors init.
  * @param pms_type (optional) UART PMS type, please see DEVICE_TYPE enum.
  * @param pms_rx (optional) UART PMS RX pin.
  * @param pms_tx (optional) UART PMS TX pin.
@@ -157,6 +157,7 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue) {
     }
 }
 
+/// set CO2 Altitude offset, recommended on high altitude
 void Sensors::setCO2AltitudeOffset(float altitude){
     this->altoffset = altitude;
     this->hpa = hpaCalculation(altitude);       //hPa hectopascal calculation based on altitude
@@ -173,120 +174,169 @@ void Sensors::setCO2AltitudeOffset(float altitude){
     }
 }
 
+/// restart and re-init all sensors (not recommended)
 void Sensors::restart() {
     _serial->flush();
     init();
     delay(100);
 }
 
+/**
+ * @brief Get sensor data.
+ * @param cb (mandatory) callback function to be called when data is ready.
+ */
 void Sensors::setOnDataCallBack(voidCbFn cb) {
     _onDataCb = cb;
 }
 
+/**
+ * @brief Optional callback for get the sensors errors
+ * @param cb callback function to be called when any warnning or error happens.
+ */
 void Sensors::setOnErrorCallBack(errorCbFn cb) {
     _onErrorCb = cb;
 }
 
+/**
+ * @brief Optional for increase the debug level
+ * @param enable true to enable debug mode, false to disable debug mode.
+ */
 void Sensors::setDebugMode(bool enable) {
     devmode = enable;
 }
 
+/// get the sensor status 
 bool Sensors::isDataReady() {
     return dataReady;
 }
 
+/// get PM1.0 ug/m3 value
 uint16_t Sensors::getPM1() {
     return pm1;
 }
 
+/// @deprecated get PM1.0 ug/m3 formated value
 String Sensors::getStringPM1() {
     char output[5];
     sprintf(output, "%03d", getPM1());
     return String(output);
 }
 
+/// get PM2.5 ug/m3 value
 uint16_t Sensors::getPM25() {
     return pm25;
 }
 
+/// @deprecated get PM2.5 ug/m3 formated value
 String Sensors::getStringPM25() {
     char output[5];
     sprintf(output, "%03d", getPM25());
     return String(output);
 }
 
+/// get PM4 ug/m3 value
 uint16_t Sensors::getPM4() {
     return pm4;
 }
 
+/// @deprecated get PM4 ug/m3 formated value
 String Sensors::getStringPM4() {
     char output[5];
     sprintf(output, "%03d", getPM4());
     return String(output);
 }
 
+/// get PM10 ug/m3 value
 uint16_t Sensors::getPM10() {
     return pm10;
 }
 
+/// @deprecated get PM10 ug/m3 formated value
 String Sensors::getStringPM10() {
     char output[5];
     sprintf(output, "%03d", getPM10());
     return String(output);
 }
 
+/// get CO2 ppm value
 uint16_t Sensors::getCO2() {
     return CO2Val;
 }
 
+/// @deprecated get CO2 ppm formated value
 String Sensors::getStringCO2() {
     char output[5];
     sprintf(output, "%04d", getCO2());
     return String(output);
 }
 
+/// get humidity % value of CO2 sensor device
 float Sensors::getCO2humi() {
     return CO2humi;
 }
 
+/// get temperature °C value of CO2 sensor device
 float Sensors::getCO2temp() {
     return CO2temp;
 }
 
+/// get humidity % value of environment sensor 
 float Sensors::getHumidity() {
     return humi;
 }
 
+/// get temperature °C value of environment sensor
 float Sensors::getTemperature() {
     return temp;
 }
 
+/**
+ * @brief Set temperature offset for all temperature sensors
+ * @param offset temperature offset in °C (default 0). 
+ * 
+ * Positive value for offset to be subtracetd to the temperature.
+ */
 void Sensors::setTempOffset(float offset){
     toffset = offset;
     setSCD30TempOffset(toffset);
     setSCD4xTempOffset(toffset);
 }
 
+/// get Gas resistance value of BMP680 sensor
 float Sensors::getGas() {
     return gas;
 }
 
+/// get Altitude value in meters
 float Sensors::getAltitude() {
     return alt;
 }
 
+/// get Pressure value in hPa
 float Sensors::getPressure() {
     return pres;
 }
 
+/**
+ * @brief UART only: check if the UART sensor is registered
+ * @return bool true if the UART sensor is registered, false otherwise.
+ */
 bool Sensors::isUARTSensorConfigured() {
     return dev_uart_type >= 0;
 }
 
+/**
+ * @brief UART only: get the UART sensor type. See SENSORS enum. Also getDeviceName()
+ * @return SENSORS enum value.
+ */
 int Sensors::getUARTDeviceTypeSelected() {
     return dev_uart_type;
 }
 
+/**
+ * @brief Forced to enable I2C sensors only
+ * Recommended to use only if you are using a I2C sensor and improve the performance.
+ */
 void Sensors::detectI2COnly(bool enable) {
     i2conly = enable;
 }
@@ -299,12 +349,16 @@ int16_t Sensors::getLibraryRevision() {
     return CSL_REVISION;
 }
 
+/// get device sensors detected count
 uint8_t Sensors::getSensorsRegisteredCount() {
     return sensors_registered_count;
 }
 
-// Registering sensors methods
-
+/**
+ * @brief Read and check the sensors status on initialization
+ * @param sensor (mandatory) SENSORS enum value.
+ * @return True if the sensor is registered, false otherwise.
+ */
 bool Sensors::isSensorRegistered(SENSORS sensor) {
     for (int i = 0; i < SCOUNT; i++) {
         if (sensors_registered[i] == sensor) return true;
@@ -312,19 +366,46 @@ bool Sensors::isSensorRegistered(SENSORS sensor) {
     return false;
 }
 
+/**
+ * @brief get the sensor name
+ * @param sensor (mandatory) SENSORS enum value.
+ * @return String with the sensor name.
+ */
 String Sensors::getSensorName(SENSORS sensor) {
     if (sensor < 0 || sensor > SENSORS::SCOUNT) return "";
     return String(sensors_device_names[sensor]);
 }
 
+/**
+ * @brief get the sensor group type
+ * @param sensor (mandatory) SENSORS enum value.
+ * @return Sensor group int with the sensor type.
+ * 
+ * if the sensor is not in a group, return 0.
+ * if the sensor is in a group, return 1 (PM), 2 (CO2), 3 (ENV).
+ */
 SensorGroup Sensors::getSensorGroup(SENSORS sensor) {
     return (SensorGroup) sensors_device_types[sensor];
 }
 
+/**
+ * @brief get the sensor registry for retrieve the sensor names
+ * @return pointer to the sensor registry
+ * @link https://bit.ly/3qVQYYy
+ * 
+ * See the multivariable example: https://bit.ly/2XzZ9yw
+ */
 uint8_t * Sensors::getSensorsRegistered() {
     return sensors_registered;
 }
 
+/**
+ * @brief get the sensor unit status on the registry
+ * @return True if the sensor unit is available, false otherwise.
+ * @link https://bit.ly/3qVQYYy
+ * 
+ * See the multivariable example: https://bit.ly/2XzZ9yw
+ */
 bool Sensors::isUnitRegistered(UNIT unit) {
     if (unit == UNIT::NUNIT) return false;
     for (int i = 0; i < UCOUNT; i++) {
@@ -333,23 +414,45 @@ bool Sensors::isUnitRegistered(UNIT unit) {
     return false;
 }
 
+/**
+ * @brief get the sensor units registry for retrieve the unit name, unit type and symbol. See getNextUnit()
+ * @return pointer to the sensor units registry
+ * @link https://bit.ly/3qVQYYy
+ * 
+ * See the multivariable example: https://bit.ly/2XzZ9yw
+ */
 uint8_t * Sensors::getUnitsRegistered() {
     return units_registered;
 }
 
+/// get device sensors units detected count
 uint8_t Sensors::getUnitsRegisteredCount() {
     return units_registered_count;
 }
 
+/**
+ * @brief get the sensor unit name
+ * @param unit (mandatory) UNIT enum value.
+ * @return String with the unit name.
+ */
 String Sensors::getUnitName(UNIT unit) {
     if (unit < 0 || unit > UCOUNT) return "";
     return String(unit_name[unit]);
 }
 
+/**
+ * @brief get the sensor unit symbol
+ * @param unit (mandatory) UNIT enum value.
+ * @return String with the unit symbol.
+ */
 String Sensors::getUnitSymbol(UNIT unit) {
     return String(unit_symbol[unit]);
 }
 
+/**
+ * @brief get the next sensor unit available
+ * @return UNIT enum value.
+ */
 UNIT Sensors::getNextUnit() {
     for (int i = current_unit; i < UCOUNT; i++) {
         if (units_registered[i] != 0) {
@@ -361,10 +464,18 @@ UNIT Sensors::getNextUnit() {
     return (UNIT) 0;
 }
 
+/**
+ * @brief reset the next sensor unit counter
+ */
 void Sensors::resetNextUnit() {
     current_unit = 0;
 }
 
+/**
+ * @brief get the sensor unit value (float)
+ * @param unit (mandatory) UNIT enum value.
+ * @return float value of the each unit (RAW)
+ */
 float Sensors::getUnitValue(UNIT unit) {
     switch (unit) {
         case PM1:
@@ -396,6 +507,10 @@ float Sensors::getUnitValue(UNIT unit) {
     }
 }
 
+/**
+ * @brief print the sensor units names available
+ * @param debug optional boolean to set the debug mode flag
+ */
 void Sensors::printUnitsRegistered(bool debug) { 
     if (!debug) return;
     Serial.printf("-->[SLIB] Sensors units count\t: %i (", units_registered_count);
@@ -407,6 +522,10 @@ void Sensors::printUnitsRegistered(bool debug) {
     Serial.println(")");
 }
 
+/**
+ * @brief print the sensor names detected
+ * @param debug optional boolean to set the debug mode flag
+ */
 void Sensors::printSensorsRegistered(bool debug) { 
     if (!debug) return;
     Serial.printf("-->[SLIB] Sensors devices count\t: %i (", sensors_registered_count);
@@ -418,7 +537,7 @@ void Sensors::printSensorsRegistered(bool debug) {
     Serial.println(")");
 }
 
-// Print current variables detected by the sensors
+/// Print preview of the current variables detected by the sensors
 void Sensors::printValues() {
     if (!devmode) return;
     Serial.print("-->[SLIB] Preview sensors values\t: ");
