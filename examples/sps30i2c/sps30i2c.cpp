@@ -52,8 +52,6 @@ void setup() {
 
     sensors.init();  
 
-    Serial.println("-->[SETUP] Sensor configured: " + sensors.getMainDeviceSelected());
-
     delay(500);
 }
 

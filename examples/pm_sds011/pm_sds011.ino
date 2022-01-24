@@ -53,7 +53,6 @@ void setup() {
 
     sensors.init(sensors.SDS011);                    // forced for SDS011 via UART, empty for auto detection
 
-    Serial.println("-->[SETUP] Sensor configured: " + sensors.getMainDeviceSelected());
 
     delay(500);
 }

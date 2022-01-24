@@ -17,8 +17,8 @@
 #include <s8_uart.h>
 #include <SensirionI2CScd4x.h>
 
-#define CSL_VERSION "0.4.3"
-#define CSL_REVISION  342
+#define CSL_VERSION "0.5.0"
+#define CSL_REVISION  351
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -53,8 +53,8 @@
 #define PMS_TX TX
 #define DHT_SENSOR_PIN 12
 #elif M5STICKCPLUS          // **DEFAULT** for pre-defined ESP32 board in PlatformIO environment
-#define PMS_RX 32
-#define PMS_TX 33
+#define PMS_RX 17
+#define PMS_TX 16
 #define DHT_SENSOR_PIN 34
 #else                       // **DEFAULT** for legacy CanAirIO devices:
 #define PMS_RX 17           // D1MIN1 / TTGOT7 / ESP32DEVKIT Default for main ESP32 dev boards
@@ -72,7 +72,7 @@
 #define SENSOR_COMMS SERIALPORT2  // UART OR I2C
 
 //H&T definitions
-#define SEALEVELPRESSURE_HPA (1013.25)
+#define SEALEVELPRESSURE_HPA 1036.25
 
 #define SENSOR_UNITS         \
     X(NUNIT, "NUNIT", "NUNIT")    \
@@ -80,32 +80,52 @@
     X(PM25, "ug/m3", "PM2.5")   \
     X(PM4, "ug/m3", "PM4")   \
     X(PM10, "ug/m3", "PM10")    \
-    X(TEMP, "C", "Temp")     \
-    X(HUM, "%", "Hum")        \
+    X(TEMP, "C", "T")     \
+    X(HUM, "%", "H")        \
     X(CO2, "ppm", "CO2")      \
     X(CO2TEMP, "C", "CO2T")  \
     X(CO2HUM, "%", "CO2H")    \
-    X(PRESS, "hPa", "Press")   \
+    X(PRESS, "hPa", "P")   \
     X(ALT, "m", "Alt")       \
-    X(GAS, "Ohm", "Gas") 
+    X(GAS, "Ohm", "Gas") \
+    X(UCOUNT, "COUNT", "UCOUNT") 
 
-#define MAX_UNITS_SUPPORTED 13   // Max number of units supported (TODO: make dynamic)
 
 #define X(unit, symbol, name) unit, 
 typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
 #undef X
+
+#define SENSORS_TYPES   \
+    X(Auto, "GENERIC", 1)   \
+    X(SGCJA5, "GCJA5", 1)   \
+    X(SSPS30, "SPS30", 1)   \
+    X(SDS011, "SDS011", 1)  \
+    X(SMHZ19, "MHZ19", 2)   \
+    X(SCM1106, "CM1106", 2) \
+    X(SAIRS8, "SAIRS8", 2)  \
+    X(SSCD30, "SCD30", 2)   \
+    X(SSCD4X, "SCD4X", 2)   \
+    X(SSHT31, "SHT31", 3)   \
+    X(SBME280, "BME280", 3) \
+    X(SBMP280, "BMP280", 3) \
+    X(SBME680, "BME680", 3) \
+    X(SAHT10, "AHT10", 3)   \
+    X(SAM232X, "AM232X", 3) \
+    X(SDHTX, "DHTX", 3)     \
+    X(SCOUNT, "SCOUNT", 3)
+
+#define X(utype, uname, umaintype) utype, 
+typedef enum SENSORS : size_t { SENSORS_TYPES } SENSORS;  // backward compatibility
+#undef X
+
+// MAIN SENSOR TYPE
+enum class SensorGroup { SENSOR_NONE, SENSOR_PM, SENSOR_CO2, SENSOR_ENV };
 
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
 
 class Sensors {
    public:
-
-    // UART sensors supported
-    enum UART_SENSOR_TYPE { Auto, Panasonic, SSPS30, SDS011, Mhz19, CM1106, SENSEAIRS8, SSCD30, SSCD4x };
-
-    // MAIN SENSOR TYPE
-    enum MAIN_SENSOR_TYPE { SENSOR_NONE, SENSOR_PM, SENSOR_CO2 };
 
     // SPS30 values. Only for Sensirion SPS30 sensor.
     struct sps_values val;
@@ -169,8 +189,10 @@ class Sensors {
     SensirionI2CScd4x scd4x;
 
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
-    
+
     void loop();
+
+    void readAllSensors();
 
     bool isDataReady();
 
@@ -187,10 +209,6 @@ class Sensors {
     bool isUARTSensorConfigured();
 
     int getUARTDeviceTypeSelected();
-
-    String getMainDeviceSelected();
-
-    int getMainSensorTypeSelected();
 
     uint16_t getPM1();
 
@@ -250,6 +268,16 @@ class Sensors {
     
     int16_t getLibraryRevision();
 
+    bool isSensorRegistered(SENSORS sensor);
+
+    uint8_t *getSensorsRegistered();
+
+    uint8_t getSensorsRegisteredCount();
+
+    String getSensorName(SENSORS sensor);
+
+    SensorGroup getSensorGroup(SENSORS sensor);
+
     uint8_t getUnitsRegisteredCount();
 
     bool isUnitRegistered(UNIT unit);
@@ -258,9 +286,15 @@ class Sensors {
 
     String getUnitSymbol(UNIT unit);
 
-    int getNextUnit();
+    UNIT getNextUnit();
+    
+    void resetNextUnit();
 
-    uint32_t getUnitValue(UNIT unit);
+    float getUnitValue(UNIT unit);
+
+    void printUnitsRegistered(bool debug = false);
+
+    void printSensorsRegistered(bool debug = false);
 
    private:
     /// DHT library
@@ -272,11 +306,14 @@ class Sensors {
     /// Callback when sensor data is ready.
     voidCbFn _onDataCb = nullptr;
 
-    String device_selected;
     int dev_uart_type = -1;
+
     bool dataReady;
 
+    uint8_t sensors_registered_count;
+
     uint8_t units_registered_count;
+    
     uint8_t current_unit = 0;
     
     uint16_t pm1;   // PM1
@@ -324,8 +361,8 @@ class Sensors {
     void setSCD4xTempOffset(float offset);
     void setSCD4xAltitudeOffset(float offset);
 
-    void PMGCJA5Init();
-    void PMGCJA5Read();
+    void GCJA5Init();
+    void GCJA5Read();
 
     void dhtInit();
     void dhtRead();
@@ -337,12 +374,11 @@ class Sensors {
     bool pmSensorAutoDetect(int pms_type);
     bool pmSensorRead();
     bool pmGenericRead();
-    bool pmPanasonicRead();
-    
+    bool pmGCJA5Read();
     bool pmSDS011Read();
     bool CO2Mhz19Read();
     bool CO2CM1106Read();
-    int CO2CM1106val();
+    int  CO2CM1106val();
     bool CO2Mhz19Init();
     bool CO2CM1106Init();
     bool senseAirS8Init();
@@ -358,18 +394,29 @@ class Sensors {
 
     void onSensorError(const char *msg);
 
+    void startI2C();
+
+    void enableWire1();
+
+    void disableWire1();
+
     bool serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx);
+
     String hwSerialRead(unsigned int lenght_buffer);
+
     void restart();  // restart serial (it isn't works sometimes)
+
     void DEBUG(const char *text, const char *textb = "");
 
     void printValues();
 
+    void sensorRegister(SENSORS sensor);
+
+    void sensorAnnounce(SENSORS sensor);
+
     void unitRegister(UNIT unit);
 
     void resetUnitsRegister();
-
-    void printUnitsRegistered();
 
     void resetAllVariables();
 

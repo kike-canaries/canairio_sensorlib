@@ -52,8 +52,6 @@ void setup() {
     // sensors.setCO2RecalibrationFactor(400);       // calibration method (in outdoors)
     
     sensors.init();
-        
-    Serial.println("-->[SETUP] Sensor configured: " + sensors.getMainDeviceSelected());
 
     delay(500);
 }

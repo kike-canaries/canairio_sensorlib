@@ -1,6 +1,6 @@
 {
   "name": "CanAirIO Air Quality Sensors Library",
-  "version": "0.4.3", 
+  "version": "0.5.0",
   "homepage":"https://canair.io",
   "keywords": 
   [ 
@@ -75,7 +75,7 @@
   [
     {"name":"Adafruit Unified Sensor", "owner":"adafruit", "version":"1.1.4"},
     {"name":"Adafruit BME280 Library", "owner":"adafruit","version":"2.2.1"},
-    {"name":"Adafruit BMP280 Library", "owner":"adafruit","version":"2.4.3"},
+    {"name":"Adafruit BMP280 Library", "owner":"adafruit","version":"2.6.1"},
     {"name":"Adafruit BME680 Library","owner":"adafruit","version":"2.0.1"},
     {"name":"Adafruit BusIO", "owner":"adafruit","version":"1.9.8"},
     {"name":"Adafruit SHT31 Library", "owner":"adafruit","version":"2.0.0"},
