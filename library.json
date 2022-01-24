@@ -53,6 +53,7 @@
         ".travis.yml",
         ".gitignore",
         "releases",
+        "docs",
         "examples/platformio/.vscode",
         "examples/platformio/platformio.ini.default",
         "examples/platformio/platformio.ini.devel"

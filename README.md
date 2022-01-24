@@ -147,7 +147,7 @@ On your serial monitor you should have something like that:
 
 ## Multivariable demo
 
-In this demo with two devices and multiple sensors, you can choose the possible sub sensors units:
+In this [demo](https://www.youtube.com/watch?v=-5Va47Bap48) with two devices and multiple sensors, you can choose the possible sub sensors units:
 
 [![CanAirIO multivariable demo](https://img.youtube.com/vi/-5Va47Bap48/0.jpg)](https://www.youtube.com/watch?v=-5Va47Bap48)
 
