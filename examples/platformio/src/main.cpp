@@ -33,13 +33,13 @@ void printSensorsDetected() {
 }
 
 void printSensorsValues() {
-    Serial.println("\n-->[MAIN] Preview sensor values:");
+    Serial.println("-->[MAIN] Preview sensor values:");
     UNIT unit = sensors.getNextUnit();
     while(unit != UNIT::NUNIT) {
         String uName = sensors.getUnitName(unit);
         float uValue = sensors.getUnitValue(unit);
         String uSymb = sensors.getUnitSymbol(unit);
-        Serial.print("-->[MAIN] " + uName + ": " + String(uValue) + " " + uSymb);
+        Serial.println("-->[MAIN] " + uName + " \t: " + String(uValue) + " " + uSymb);
         unit = sensors.getNextUnit();
     }
 }

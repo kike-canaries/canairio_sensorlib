@@ -33,7 +33,7 @@ void printSensorsDetected() {
 }
 
 void printSensorsValues() {
-    Serial.println("\n-->[MAIN] Preview sensor values:");
+    Serial.println("-->[MAIN] Preview sensor values:");
     UNIT unit = sensors.getNextUnit();
     while(unit != UNIT::NUNIT) {
         String uName = sensors.getUnitName(unit);
@@ -48,7 +48,6 @@ void onSensorDataOk() {
     Serial.println("======= E X A M P L E   T E S T =========");
     printSensorsDetected();
     printSensorsValues(); 
-    Serial.println("=========================================");
 }
 
 void onSensorDataError(const char * msg){ 
