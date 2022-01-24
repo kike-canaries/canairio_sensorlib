@@ -46,10 +46,12 @@ NOTE: DHT22 is supported but is not recommended
 
 # Features
 
-- Unified variables for all sensors 
+- Unified variables and getters for all sensors 
 - Auto UART port selection (Hw, Sw, UART1, UART2, etc)
 - Multiple i2c reads and one UART sensor read support
+- Two I2C channel supported (Wire and Wire1)
 - Real time registry of sensors unit registered (see multivariable)
+- Get vendor names of all devices detected
 - Preselected main stream UART pins from popular boards
 - Auto config UART port for Plantower, Honeywell and Panasonic sensors
 - Unified calibration trigger for all CO2 sensors
@@ -57,13 +59,11 @@ NOTE: DHT22 is supported but is not recommended
 - Unified temperature offset for CO2 and environment sensors
 - Public access to main objects of each library (full methods access)
 - Get unit symbol and name and each sub-sensor
-- Get the main sensor detected. Two main groups: CO2 and PM
+- Get the main group type: NONE, PM, CO2 and ENV.
 - Basic debug mode support toggle in execution
 - Basic power saving management with sample time > 30s on SPS30  
 
-
 Full list of all sub libraries supported [here](https://github.com/kike-canaries/canairio_sensorlib/blob/master/library.json#L72-L89)
-
 
 # Quick implementation
 
@@ -79,15 +79,17 @@ You can review a full implementation on [CanAirIO project firmware](https://gith
 ```Java
 /// sensors data callback
 void onSensorDataOk() {
-    Serial.print  (" PM1.0: " + sensors.getStringPM1());  // some fields sample
-    Serial.print  (" PM2.5: " + sensors.getStringPM25());
-    Serial.println(" PM10: "  + sensors.getStringPM10());
-    Serial.println(" CO2:  "  + sensors.getStringCO2());
+    Serial.print("PM2.5: " + String(sensors.getPM25()));
+    Serial.print(" CO2: "  + String(sensors.getCO2()));
+    Serial.print(" CO2H: " + String(sensors.getCO2humi()));
+    Serial.print(" CO2T: " + String(sensors.getCO2temp()));
+    Serial.print(" H: "    + String(sensors.getHumidity()));
+    Serial.println(" T: "  + String(sensors.getTemperature()));
 }
 
 /// sensors error callback
 void onSensorDataError(const char * msg){
-    Serial.println(msg);
+    Serial.println("Sensor read error: "+String(msg));
 }
 
 void setup() {
@@ -97,7 +99,7 @@ void setup() {
     sensors.setSampleTime(15);                      // [optional] sensors sample time (default 5s)
     sensors.setTempOffset(cfg.toffset);             // [optional] temperature compensation
     sensors.setCO2AltitudeOffset(cfg.altoffset);    // [optional] CO2 altitude compensation
-    sensors.setDebugMode(false);                    // [optional] debug mode enable/disable
+    sensors.setDebugMode(false);                    // [optional] debug mode to get detailed msgs
     sensors.detectI2COnly(true);                    // [optional] force to only i2c sensors
     sensors.init();                                 // Auto detection to UART and i2c sensors
 
@@ -123,8 +125,6 @@ void setup() {
     // sensors.s8.set_ABC_period(period)
     // ...
 
-    Serial.println("-->[SETUP] Sensor configured: " + sensors.getMainDeviceSelected());
-
     delay(500);
 }
 
@@ -145,73 +145,76 @@ On your serial monitor you should have something like that:
 -->[MAIN] PM1.0: 002 PM2.5: 002 PM10: 002
 ```
 
-# Multivariable demo
+## Multivariable demo
 
 In this demo with two devices and multiple sensors, you can choose the possible sub sensors units:
 
 [![CanAirIO multivariable demo](https://img.youtube.com/vi/-5Va47Bap48/0.jpg)](https://www.youtube.com/watch?v=-5Va47Bap48)
 
-# Multivariable implementation
+## Multivariable alternative implementation
 
-The last version added new getters to have the current status of each unit of each sensor connected to the device in real time.  
+The last version added new getters to have the current status of each unit of each sensor connected to the device in real time. Also you can retrieve the list of device names and other stuff:  
 
 For example:
 
 ```cpp
-/**
- * Example or alternative of the selection of the main sensor unit
- */
+#include <Arduino.h>
+#include <Sensors.hpp>
 
-void getMainValue() {
-    // If the main sensor (CO2 or PM2.5) was not detected but the temperature is registered
-    if (sensors.getMainDeviceSelected().isEmpty() && sensors.isUnitRegistered(UNIT::TEMP)) {  
-        mainValue = (uint32_t) sensors.getTemperature();
-        uName = sensors.getUnitName(UNIT::TEMP);
-        uSymbol = sensors.getUnitSymbol(UNIT::TEMP);
-    // The main sensor is a particle meter device
-    } else if (sensors.getMainSensorTypeSelected() == Sensors::SENSOR_PM) {
-        mainValue = sensors.getPM25();
-        uName = sensors.getUnitName(UNIT::PM25);
-        uSymbol = sensors.getUnitSymbol(UNIT::PM25);
-    // The main sensor is a CO2 device
-    } else if (sensors.getMainSensorTypeSelected() == Sensors::SENSOR_CO2) {
-        mainValue = sensors.getCO2();
-        uName = sensors.getUnitName(UNIT::CO2);
-        uSymbol = sensors.getUnitSymbol(UNIT::CO2);
+void printSensorsDetected() {
+    uint16_t sensors_count =  sensors.getSensorsRegisteredCount();
+    uint16_t units_count   =  sensors.getUnitsRegisteredCount();
+    Serial.println("-->[MAIN] Sensors detected count\t: " + String(sensors_count));
+    Serial.println("-->[MAIN] Sensors units count  \t: "  + String(units_count));
+    Serial.print(  "-->[MAIN] Sensors devices names\t: ");
+    int i = 0;
+    while (sensors.getSensorsRegistered()[i++] != 0) {
+        Serial.print(sensors.getSensorName((SENSORS)sensors.getSensorsRegistered()[i - 1]));
+        Serial.print(",");
+    }
+    Serial.println();
+}
+
+void printSensorsValues() {
+    Serial.println("\n-->[MAIN] Preview sensor values:");
+    UNIT unit = sensors.getNextUnit();
+    while(unit != UNIT::NUNIT) {
+        String uName = sensors.getUnitName(unit);
+        float uValue = sensors.getUnitValue(unit);
+        String uSymb = sensors.getUnitSymbol(unit);
+        Serial.print("-->[MAIN] " + uName + ": " + String(uValue) + " " + uSymb);
+        unit = sensors.getNextUnit();
     }
 }
 
-/**
- * Example or alternative of the selection of the minor sensor unit
- */
-
-void getMinorValue(UNIT mainUnit) {
-    minorValue = (uint32_t)sensors.getUnitValue(mainUnit);
-    uName = sensors.getUnitName(mainUnit);
-    uSymbol = sensors.getUnitSymbol(mainUnit);
+void onSensorDataOk() {
+    Serial.println("======= E X A M P L E   T E S T =========");
+    printSensorsDetected();
+    printSensorsValues(); 
+    Serial.println("=========================================");
 }
 
+/******************************************************************************
+*  M A I N
+******************************************************************************/
 
-void onSensorDataOk() {
-    
-    Serial.println("");
+void setup() {
+    Serial.begin(115200);
+    delay(100);
+    sensors.setSampleTime(5);                       // config sensors sample time interval
+    sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
+    sensors.setDebugMode(true);                     // [optional] debug mode
+    sensors.detectI2COnly(false);                   // disable force to only i2c sensors
+    sensors.init();                                 // Auto detection to UART and i2c sensors
+}
 
-    getMainValue(); // choose the main sensor possible
-    Serial.println ("-->[MAIN] Main sensor unit     \t: "+uName+": "+String(mainValue)+" "+uSymbol);
-
-    getMinorValue(nextUnit); // Load values ot the minor sensor. (see the loop)
-    Serial.println ("-->[MAIN] Secondary sensor unit\t: "+uName+": "+String(minorValue)+" "+uSymbol);
-
-    Serial.println("");
-
-    // example for choose and change the next unit able: 
-    nextUnit = (UNIT)sensors.getNextUnit(); // Change the minor sensor
-
+void loop() {
+    sensors.loop();  // read sensor data and showed it
 }
 ``` 
 
 
-# UART detection demo 
+## UART detection demo 
 
 [![CanAirIO auto configuration demo](https://img.youtube.com/vi/hmukAmG5Eec/0.jpg)](https://www.youtube.com/watch?v=hmukAmG5Eec)
 
@@ -346,8 +349,9 @@ Also you can make a donation, be a patreon or buy a device:
 - [x] Temperature and Altitude compensation
 - [x] SenseAir S8 via UART support
 - [x] Multivariable selection (getNextUnit(),getUnitName(),etc)
-- [ ] Improve to sensor dynamic registry 
-- [ ] IAQ indicator from BME680 Bosch library
+- [x] Two I2C channel supported for M5Stack Devices (M5StickC tested)
+- [ ] Sea level setting for Pressure sensors and others
+- [ ] Support to second UART port
 
 # Projects using this Library
 
@@ -357,6 +361,5 @@ Also you can make a donation, be a patreon or buy a device:
 # Credits
 
 Thanks to all collaborators and [CanAirIO](https://canair.io) community for testing and reports.
-
 
 ---
