@@ -1,11 +1,32 @@
+/***********************************************************************************
+ * CanAirIO M5CoreInk
+ * @author @hpsaturn
+ * 
+ * This project usin CanAirIO Sensors Library. You can find the library here:
+ * https://github.com/kike-canaries/canairio_sensorlib
+ * 
+ * The source code and the last version of this project here:
+ * https://github.com/hpsaturn/co2_m5coreink
+ * 
+ * Tested with:
+ * 
+ * - One SCD30 (C02 sensor)
+ * - One GCJA5 (Particulate Matter sensor)
+ * - ENVII M5 Hat
+ * 
+ * But you can use it with any other i2c sensors, for example SPS30 or SCD41
+ * UART sensors right nos is untested. 
+ * 
+ ***********************************************************************************/
+
 #include <Arduino.h>
 #include <M5CoreInk.h>
 #include <Sensors.hpp>
 #include <StreamString.h>
 
 #define DEEP_SLEEP_MODE       1     // eInk and esp32 hibernate
-#define DEEP_SLEEP_TIME      30     // seconds (600s = 10min)
-#define SAMPLES_COUNT         5     // samples before suspend
+#define DEEP_SLEEP_TIME     300     // Please change it to 600s (10m) or more 
+#define SAMPLES_COUNT        10     // samples before suspend (for PM2.5 ~10, 20sec, or more)
 #define LOOP_DELAY            2     // seconds
 #define BEEP_ENABLE           1     // eneble high level alarm
 #define ALARM_BEEP_VALUE   2500     // ppm level to trigger alarm
