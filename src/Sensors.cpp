@@ -793,6 +793,7 @@ bool Sensors::pmSensorRead() {
 ******************************************************************************/
 
 void Sensors::am2320Read() {
+    if (!am2320.isConnected())return; 
     int status = am2320.read();
     if (status != AM232X_OK) return;
     float humi1 = am2320.getHumidity();
@@ -1298,6 +1299,7 @@ void Sensors::am2320Init() {
     #else
     if (!am2320.begin()) return;
     #endif
+    am2320.wakeUp();
     sensorRegister(SENSORS::SAM232X);
 }
 
@@ -1545,7 +1547,6 @@ void Sensors::startI2C() {
     enableWire1();
 #endif
 #ifdef M5ATOM
-    Wire1.begin(26,32);   // M5CoreInk Ext port (default for all sensors)
     enableWire1();
 #endif
 #if not defined(M5STICKCPLUS) && not defined(M5COREINK) && not defined(M5ATOM)
@@ -1561,6 +1562,10 @@ void Sensors::enableWire1() {
 #ifdef M5COREINK
     Wire1.flush();
     Wire1.begin(25,26);   // M5CoreInk hat pines (header on top)
+#endif
+#ifdef M5ATOM
+    Wire1.flush();
+    Wire1.begin(26,32,100000);   // M5CoreInk Ext port (default for all sensors)
 #endif
 }
 
