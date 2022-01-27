@@ -48,16 +48,24 @@
 #define PMS_RX 19
 #define PMS_TX 18
 #define DHT_SENSOR_PIN 12
-#elif ESP32GENERIC          // **DEFAULT** for pre-defined ESP32 board in PlatformIO environment
+#elif ESP32GENERIC        
 #define PMS_RX RX
 #define PMS_TX TX
 #define DHT_SENSOR_PIN 12
-#elif M5STICKCPLUS          // **DEFAULT** for pre-defined ESP32 board in PlatformIO environment
+#elif M5STICKCPLUS        
 #define PMS_RX 17
 #define PMS_TX 16
 #define DHT_SENSOR_PIN 34
+#elif M5COREINK         
+#define PMS_RX 13
+#define PMS_TX 14
+#define DHT_SENSOR_PIN 34
+#elif M5ATOM
+#define PMS_RX 23
+#define PMS_TX 33
+#define DHT_SENSOR_PIN 19
 #else                       // **DEFAULT** for legacy CanAirIO devices:
-#define PMS_RX 17           // D1MIN1 / TTGOT7 / ESP32DEVKIT Default for main ESP32 dev boards
+#define PMS_RX 17           // D1MIN1 / TTGOT7 / ESP32DEVKIT, also for main ESP32 dev boards use it
 #define PMS_TX 16
 #define DHT_SENSOR_PIN 23   // default DHT sensor pin 
 #endif
@@ -192,7 +200,7 @@ class Sensors {
 
     void loop();
 
-    void readAllSensors();
+    bool readAllSensors();
 
     bool isDataReady();
 

@@ -47,7 +47,6 @@ void Sensors::loop() {
 
         printSensorsRegistered(devmode);
         printUnitsRegistered(devmode);
-        printValues();
     }
 
     dhtRead();  // DHT2x sensors need check fastest
@@ -57,7 +56,7 @@ void Sensors::loop() {
  * @brief Read all sensors but use only one time or use loop() instead.
  * All sensors are read here. Use it carefully, better use sensors.loop()
  */
-void Sensors::readAllSensors() {
+bool Sensors::readAllSensors() {
     dataReady = false;
     if (!i2conly && dev_uart_type >= 0) {
         dataReady = pmSensorRead();
@@ -76,6 +75,8 @@ void Sensors::readAllSensors() {
     bme680Read();
     dhtRead();
     disableWire1();
+    printValues();
+    return dataReady;
 }
 
 /**
@@ -1328,7 +1329,7 @@ void Sensors::bmp280Init() {
     sensorAnnounce(SENSORS::SBMP280);
     #ifdef ESP32
     if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) {
-        this->bmp280 = Adafruit_BMP280(&Wire1);
+        bmp280 = Adafruit_BMP280(&Wire1);
         if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return;
     }
     #else
@@ -1539,10 +1540,15 @@ void Sensors::DEBUG(const char *text, const char *textb) {
 //***********************************************************************************//
 
 void Sensors::startI2C() {
-#ifdef M5STICKCPLUS
+#if defined(M5STICKCPLUS) || defined(M5COREINK) 
     Wire.begin(32,33);   // M5CoreInk Ext port (default for all sensors)
     enableWire1();
-#else
+#endif
+#ifdef M5ATOM
+    Wire1.begin(26,32);   // M5CoreInk Ext port (default for all sensors)
+    enableWire1();
+#endif
+#if not defined(M5STICKCPLUS) && not defined(M5COREINK) && not defined(M5ATOM)
     Wire.begin();
 #endif
 }
@@ -1551,6 +1557,10 @@ void Sensors::enableWire1() {
 #ifdef M5STICKCPLUS
     Wire1.flush();
     Wire1.begin(0,26);   // M5CoreInk hat pines (header on top)
+#endif
+#ifdef M5COREINK
+    Wire1.flush();
+    Wire1.begin(25,26);   // M5CoreInk hat pines (header on top)
 #endif
 }
 
