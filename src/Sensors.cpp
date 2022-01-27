@@ -1569,6 +1569,10 @@ void Sensors::disableWire1() {
     Wire1.flush();
     Wire1.begin(21,22); // Restore AXP192 I2C pins (failed after some time)
 #endif
+#ifdef M5COREINK
+    Wire1.flush();
+    Wire1.begin(21,22);   // M5CoreInk hat pines (header on top)
+#endif
 }
 
 bool Sensors::serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx) {
