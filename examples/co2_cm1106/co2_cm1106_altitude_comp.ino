@@ -53,8 +53,6 @@ void setup() {
     
     sensors.init(sensors.CM1106);                    // forced UART sensor. (empty for auto detection)
 
-    Serial.println("-->[SETUP] Sensor configured: " + sensors.getMainDeviceSelected());
-
     delay(500);
 }
 
