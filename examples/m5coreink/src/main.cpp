@@ -2,10 +2,10 @@
  * CanAirIO M5CoreInk
  * @author @hpsaturn
  * 
- * This project usin CanAirIO Sensors Library. You can find the library here:
+ * This project using CanAirIO Sensors Library. You can find the library here:
  * https://github.com/kike-canaries/canairio_sensorlib
  * 
- * The source code and the last version of this project here:
+ * The source code, documentation and the last version of this project here:
  * https://github.com/hpsaturn/co2_m5coreink
  * 
  * Tested with:
@@ -19,17 +19,20 @@
  * 
  ***********************************************************************************/
 
+
 #include <Arduino.h>
 #include <M5CoreInk.h>
 #include <Sensors.hpp>
 #include <StreamString.h>
+#include <rom/rtc.h>
 
 #define DEEP_SLEEP_MODE       1     // eInk and esp32 hibernate
-#define DEEP_SLEEP_TIME     300     // Please change it to 600s (10m) or more 
-#define SAMPLES_COUNT        10     // samples before suspend (for PM2.5 ~10, 20sec, or more)
+#define DEEP_SLEEP_TIME      20     // Please change it to 600s (10m) or more 
+#define SAMPLES_COUNT         8     // samples before suspend (for PM2.5 ~9, 18sec, or more)
 #define LOOP_DELAY            2     // seconds
 #define BEEP_ENABLE           1     // eneble high level alarm
-#define ALARM_BEEP_VALUE   2500     // ppm level to trigger alarm
+#define PM25_ALARM_BEEP      50     // PM2.5 level to trigger alarm
+#define CO2_ALARM_BEEP     2000     // CO2 ppm level to trigger alarm
 #define DISABLE_LED                 // improve battery
 
 #define ENABLE_GxEPD2_GFX 0
@@ -46,9 +49,12 @@
 GxEPD2_154_M09 medp = GxEPD2_154_M09(/*CS=D8*/ 9, /*DC=D3*/ 15, /*RST=D4*/ 0, /*BUSY=D2*/ 4);
 GxEPD2_BW<GxEPD2_154_M09, GxEPD2_154_M09::HEIGHT> display(medp);  // GDEH0154D67
 
-uint16_t co2value = 0;
-uint16_t pm25value = 0;
-float co2temp, co2humi, pressure;
+UNIT mainUnit = UNIT::NUNIT;
+UNIT minorUnit = UNIT::NUNIT;
+UNIT tempUnit = UNIT::NUNIT;
+UNIT humiUnit = UNIT::NUNIT;
+UNIT otherUnit = UNIT::NUNIT; 
+
 uint16_t count;
 bool drawReady;
 bool isCharging;
@@ -77,14 +83,16 @@ void displayCO2ValuesCallback(const void*) {
     display.setTextSize(2);
     display.setCursor(x, y);
     display.setFont(&FreeMonoBold18pt7b);
-    display.printf("%04i",co2value);
+    display.printf("%04i", (uint16_t)sensors.getUnitValue(mainUnit));
 
     display.setFont(&FreeMonoBold9pt7b);
-    x = display.width() / 2 - 14;
+    String mainUnitSymbol = sensors.getUnitName(mainUnit)+" / "+sensors.getUnitSymbol(mainUnit);
+    uint16_t lenght = mainUnitSymbol.length();
+    x = (display.width() / 2) - ((lenght*11)/2);
     y = display.height() / 2 - 8;
     display.setTextSize(0);
     display.setCursor(x, y);
-    display.print("PPM");
+    display.print(mainUnitSymbol);
 
     display.setFont(&FreeMonoBold12pt7b);
     display.setTextSize(1);
@@ -93,26 +101,26 @@ void displayCO2ValuesCallback(const void*) {
 
     y = display.height() / 2 + 25;
     display.setCursor(x, y);
-    display.printf("Pm25: %04d",pm25value);
+    String minorName = sensors.getUnitName(minorUnit);
+    display.printf("%5s: %04d", minorName.c_str(), (uint16_t)sensors.getUnitValue(minorUnit));
 
     y = display.height() / 2 + 45;
     display.setCursor(x, y);
-    display.printf("Co2T: %.2fC",co2temp);
+    display.printf(" Temp: %0.1fC",sensors.getUnitValue(tempUnit));
 
     y = display.height() / 2 + 65;
     display.setCursor(x, y);
-    display.printf("Co2H: %.2f%%",co2humi);
+    display.printf(" Humi: %0.1f%%",sensors.getUnitValue(humiUnit));
 
     y = display.height() / 2 + 85;
     display.setCursor(x, y);
-    display.printf("Pres: %04.1f", pressure);
-
+    String oUnit = sensors.getUnitName(otherUnit);
+    display.printf("%5s: %04.1f", oUnit.c_str(),sensors.getUnitValue(otherUnit));
 
     delay(100);
 
     drawReady = true;
     Serial.println("done");
-
 }
 
 /**
@@ -121,8 +129,8 @@ void displayCO2ValuesCallback(const void*) {
  * it is a partial refresh mode can be used to full screen,
  * effective if display panel hasFastPartialUpdate
  */
-void displayCO2ValuesPartialMode() {
-    Serial.println("-->[eINK] displayCO2ValuesPartialMode");
+void displayValuesPartialMode() {
+    Serial.println("-->[eINK] displayValuesPartialMode");
     Serial.print("-->[eINK] drawing..");
     drawReady = false;
     display.setPartialWindow(0, 0, display.width(), display.height());
@@ -133,13 +141,53 @@ void displayCO2ValuesPartialMode() {
     display.drawPaged(displayCO2ValuesCallback, 0);
 }
 
+void resetVariables() {  
+    mainUnit = UNIT::NUNIT;
+    minorUnit = UNIT::NUNIT;
+    tempUnit = UNIT::NUNIT;
+    humiUnit = UNIT::NUNIT;
+    otherUnit = UNIT::NUNIT;
+    sensors.resetUnitsRegister();
+    sensors.resetSensorsRegister();
+    sensors.resetAllVariables();
+}
+
+void getSensorsUnits() {
+    Serial.println("-->[MAIN] Preview sensor values:");
+    UNIT unit = sensors.getNextUnit();
+    while(unit != UNIT::NUNIT) {
+        if ((unit == UNIT::CO2 || unit == UNIT::PM25) && mainUnit == UNIT::NUNIT) {
+            mainUnit = unit;
+        } else if (unit == UNIT::CO2 && mainUnit == UNIT::PM25) {
+            minorUnit = mainUnit;  // CO2 in indoors has more priority
+            mainUnit = unit;       // and is shown in main unit field
+        } else if (unit == UNIT::PM10 && minorUnit == UNIT::NUNIT) {
+            minorUnit = unit;
+        }
+        if (unit == UNIT::TEMP || unit == UNIT::CO2TEMP) {
+            tempUnit = unit;
+            if (mainUnit == UNIT::NUNIT) mainUnit = unit;
+        }
+        if (unit == UNIT::HUM || unit == UNIT::CO2HUM) {
+            humiUnit = unit;
+        } 
+        if (unit == UNIT::PRESS || mainUnit == UNIT::GAS || mainUnit == UNIT::ALT) {
+            otherUnit = unit;
+        }
+        if (minorUnit == UNIT::NUNIT && unit == UNIT::ALT) minorUnit = unit;
+        if (otherUnit == UNIT::NUNIT && unit == UNIT::CO2TEMP) otherUnit = unit;
+
+        String uName = sensors.getUnitName(unit);
+        float uValue = sensors.getUnitValue(unit);
+        String uSymb = sensors.getUnitSymbol(unit);
+        Serial.println("-->[MAIN] " + uName + " \t: " + String(uValue) + " " + uSymb);
+        unit = sensors.getNextUnit();
+    }
+}
+
 bool sensorsLoop() {
     if (sensors.readAllSensors()) {
-        co2value = sensors.getCO2();
-        co2temp = sensors.getCO2temp();
-        co2humi = sensors.getCO2humi();
-        pm25value = sensors.getPM25();
-        pressure = sensors.getPressure();
+        getSensorsUnits();
         return true;
     }
     return false;
@@ -150,8 +198,8 @@ void sensorsInit() {
     Wire.begin(32, 33);           // I2C external port (bottom connector)
     Wire1.begin(25, 26);          // I2C via Hat (top connector)
     sensors.setSampleTime(1);     // config sensors sample time interval
-    sensors.setDebugMode(true);   // [optional] debug mode
-    sensors.detectI2COnly(true);  // disable force to only i2c sensors
+    sensors.setDebugMode(false);  // [optional] debug mode
+    sensors.detectI2COnly(true);  // force to only i2c sensors
     sensors.init();               // Auto detection to UART and i2c sensors
 }
 
@@ -159,6 +207,11 @@ void beep() {
     M5.Speaker.tone(2000, 50);
     delay(30);
     M5.Speaker.mute();
+}
+
+void simulateDeepSleep() {
+    Serial.println("-->[MAIN] Simulate deep sleep");
+    sensors.init();
 }
 
 void setup() {
@@ -174,13 +227,15 @@ void setup() {
     M5.begin(false, false, true);
     sensorsInit();
     display.init(115200,false);
-
+    int reset_reason = rtc_get_reset_reason(0);
+    // Serial.println("-->[MAIN] Reset reason  \t: " + String(reset_reason));
     M5.update();
+    // if (M5.BtnMID.isPressed() || reset_reason == 1) {
     if (M5.BtnMID.isPressed()) {
-        // sensorsConfig();
         displayHome();
-        while(!sensorsLoop());
-        displayCO2ValuesPartialMode();
+        sensorsLoop();
+        displayValuesPartialMode();
+        beep();
     }
 
     delay(100);
@@ -191,13 +246,21 @@ void loop() {
     if (sensorsLoop()) {
         count++;
         if (count >= SAMPLES_COUNT) {
-            displayCO2ValuesPartialMode();
-            if(BEEP_ENABLE == 1 && co2value > ALARM_BEEP_VALUE ) beep();
+            displayValuesPartialMode();
+            uint16_t alarmValue = 0;
+            uint16_t mainValue = sensors.getUnitValue(mainUnit);
+            if (mainUnit == UNIT::PM25) alarmValue = PM25_ALARM_BEEP;
+            else alarmValue = CO2_ALARM_BEEP;
+            if(BEEP_ENABLE == 1 && mainValue > alarmValue ) beep();
             count = 0;
         }
+    }else{
+        resetVariables();
+        displayValuesPartialMode();
     }
 
     if (drawReady) {
+        resetVariables(); // only for demostration connection and reconnection sensors
         if (DEEP_SLEEP_MODE == 1) {
             Serial.println("-->[LOOP] Deep sleep..");
             display.display(isCharging);
@@ -205,6 +268,7 @@ void loop() {
             M5.shutdown(DEEP_SLEEP_TIME);
             Serial.println("-->[LOOP] USB is connected..");
             isCharging = true;              // it only is reached when the USB is connected
+            simulateDeepSleep();
             Serial.println("-->[LOOP] Deep sleep done.");
         }
         drawReady = false;
