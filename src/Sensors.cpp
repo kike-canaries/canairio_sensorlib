@@ -43,10 +43,7 @@ void Sensors::loop() {
         if (dataReady && (_onDataCb != nullptr)) {
             _onDataCb();  // if any sensor reached any data, dataReady is true.
         } else if (!dataReady && (_onErrorCb != nullptr))
-            _onErrorCb("[W][SLIB] No data from any sensor!");
-
-        printSensorsRegistered(devmode);
-        printUnitsRegistered(devmode);
+            _onErrorCb("[W][SLIB] No data from any sensor!"); 
     }
 
     dhtRead();  // DHT2x sensors need check fastest
@@ -57,7 +54,7 @@ void Sensors::loop() {
  * All sensors are read here. Use it carefully, better use sensors.loop()
  */
 bool Sensors::readAllSensors() {
-    dataReady = false;
+    readAllComplete = false;
     if (!i2conly && dev_uart_type >= 0) {
         dataReady = pmSensorRead();
         DEBUG("-->[SLIB] UART data ready \t:", dataReady ? "true" : "false");
@@ -75,7 +72,12 @@ bool Sensors::readAllSensors() {
     bme680Read();
     dhtRead();
     disableWire1();
+
     printValues();
+    printSensorsRegistered(devmode);
+    printUnitsRegistered(devmode);
+
+    readAllComplete = dataReady;
     return dataReady;
 }
 
@@ -208,7 +210,7 @@ void Sensors::setDebugMode(bool enable) {
 
 /// get the sensor status 
 bool Sensors::isDataReady() {
-    return dataReady;
+    return readAllComplete;
 }
 
 /// get PM1.0 ug/m3 value
@@ -466,7 +468,36 @@ UNIT Sensors::getNextUnit() {
 }
 
 /**
+ * @brief reset the sensor units registry
+ * 
+ * This function is useful to reset the units registry after a sensor unit is removed.
+ * but it is **Not necessary** to call this function.
+ */
+void Sensors::resetUnitsRegister() {
+    units_registered_count = 0;
+    for (int i = 0; i < UCOUNT; i++) {
+        units_registered[i] = 0;
+    }
+}
+/**
+ * @brief reset the sensor registry
+ * 
+ * This function is useful to reset the sensors registry after a sensor is removed.
+ * It should be called before the initialization of the sensors but
+ * it is **Not necessary** to call this function.
+ */
+void Sensors::resetSensorsRegister() {
+    sensors_registered_count = 0;
+    for (int i = 0; i < SCOUNT; i++) {
+        sensors_registered[i] = 0;
+    }
+}
+
+/**
  * @brief reset the next sensor unit counter
+ * 
+ * This function is useful to reset the counter to review the sensor units again.
+ * but it is not necessary to call this function.
  */
 void Sensors::resetNextUnit() {
     current_unit = 0;
@@ -476,6 +507,9 @@ void Sensors::resetNextUnit() {
  * @brief get the sensor unit value (float)
  * @param unit (mandatory) UNIT enum value.
  * @return float value of the each unit (RAW)
+ * 
+ * Also you can use the specific primitive like getTemperature(), 
+ * getHumidity(), getGas(), getAltitude(), getPressure()
  */
 float Sensors::getUnitValue(UNIT unit) {
     switch (unit) {
@@ -1505,13 +1539,6 @@ void Sensors::unitRegister(UNIT unit) {
     if (isUnitRegistered(unit)) return;
     if (unit == UNIT::NUNIT) return;
     units_registered[units_registered_count++] = unit;
-}
-
-void Sensors::resetUnitsRegister() {
-    units_registered_count = 0;
-    for (int i = 0; i < UCOUNT; i++) {
-        units_registered[i] = 0;
-    }
 }
 
 void Sensors::resetAllVariables() {
