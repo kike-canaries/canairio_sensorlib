@@ -47,8 +47,6 @@ void setup() {
     delay(200);
     Serial.println("\n== Sensor test setup ==\n");
     M5.begin(true,true,true); //Init M5Atom(Initialization of external I2C is also included).  M5Atom(初始化外部I2C也包含在内)
-    //Wire.begin(21, 22); //Detect internal I2C, if this sentence is not added, it will detect external I2C.  检测内部I2C,若不加此句为检测外部I2C
-    Wire.begin(26,32);
 
     Serial.println("-->[SETUP] Detecting sensors..");
 
@@ -56,7 +54,7 @@ void setup() {
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
     sensors.setDebugMode(true);                     // [optional] debug mode
-    sensors.detectI2COnly(true);                    // disable force to only i2c sensors
+    sensors.detectI2COnly(true);                    // force to only i2c sensors (disable for UART sensors)
     sensors.init();                                 // Auto detection to UART and i2c sensors
 
     // Alternatives only for UART sensors (TX/RX):

@@ -43,11 +43,7 @@ void Sensors::loop() {
         if (dataReady && (_onDataCb != nullptr)) {
             _onDataCb();  // if any sensor reached any data, dataReady is true.
         } else if (!dataReady && (_onErrorCb != nullptr))
-            _onErrorCb("[W][SLIB] No data from any sensor!");
-
-        printSensorsRegistered(devmode);
-        printUnitsRegistered(devmode);
-        printValues();
+            _onErrorCb("[W][SLIB] No data from any sensor!"); 
     }
 
     dhtRead();  // DHT2x sensors need check fastest
@@ -57,8 +53,8 @@ void Sensors::loop() {
  * @brief Read all sensors but use only one time or use loop() instead.
  * All sensors are read here. Use it carefully, better use sensors.loop()
  */
-void Sensors::readAllSensors() {
-    dataReady = false;
+bool Sensors::readAllSensors() {
+    readAllComplete = false;
     if (!i2conly && dev_uart_type >= 0) {
         dataReady = pmSensorRead();
         DEBUG("-->[SLIB] UART data ready \t:", dataReady ? "true" : "false");
@@ -76,6 +72,13 @@ void Sensors::readAllSensors() {
     bme680Read();
     dhtRead();
     disableWire1();
+
+    printValues();
+    printSensorsRegistered(devmode);
+    printUnitsRegistered(devmode);
+
+    readAllComplete = dataReady;
+    return dataReady;
 }
 
 /**
@@ -207,7 +210,7 @@ void Sensors::setDebugMode(bool enable) {
 
 /// get the sensor status 
 bool Sensors::isDataReady() {
-    return dataReady;
+    return readAllComplete;
 }
 
 /// get PM1.0 ug/m3 value
@@ -465,7 +468,36 @@ UNIT Sensors::getNextUnit() {
 }
 
 /**
+ * @brief reset the sensor units registry
+ * 
+ * This function is useful to reset the units registry after a sensor unit is removed.
+ * but it is **Not necessary** to call this function.
+ */
+void Sensors::resetUnitsRegister() {
+    units_registered_count = 0;
+    for (int i = 0; i < UCOUNT; i++) {
+        units_registered[i] = 0;
+    }
+}
+/**
+ * @brief reset the sensor registry
+ * 
+ * This function is useful to reset the sensors registry after a sensor is removed.
+ * It should be called before the initialization of the sensors but
+ * it is **Not necessary** to call this function.
+ */
+void Sensors::resetSensorsRegister() {
+    sensors_registered_count = 0;
+    for (int i = 0; i < SCOUNT; i++) {
+        sensors_registered[i] = 0;
+    }
+}
+
+/**
  * @brief reset the next sensor unit counter
+ * 
+ * This function is useful to reset the counter to review the sensor units again.
+ * but it is not necessary to call this function.
  */
 void Sensors::resetNextUnit() {
     current_unit = 0;
@@ -475,6 +507,9 @@ void Sensors::resetNextUnit() {
  * @brief get the sensor unit value (float)
  * @param unit (mandatory) UNIT enum value.
  * @return float value of the each unit (RAW)
+ * 
+ * Also you can use the specific primitive like getTemperature(), 
+ * getHumidity(), getGas(), getAltitude(), getPressure()
  */
 float Sensors::getUnitValue(UNIT unit) {
     switch (unit) {
@@ -792,6 +827,7 @@ bool Sensors::pmSensorRead() {
 ******************************************************************************/
 
 void Sensors::am2320Read() {
+    if (!am2320.isConnected())return; 
     int status = am2320.read();
     if (status != AM232X_OK) return;
     float humi1 = am2320.getHumidity();
@@ -1297,6 +1333,7 @@ void Sensors::am2320Init() {
     #else
     if (!am2320.begin()) return;
     #endif
+    am2320.wakeUp();
     sensorRegister(SENSORS::SAM232X);
 }
 
@@ -1328,7 +1365,7 @@ void Sensors::bmp280Init() {
     sensorAnnounce(SENSORS::SBMP280);
     #ifdef ESP32
     if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) {
-        this->bmp280 = Adafruit_BMP280(&Wire1);
+        bmp280 = Adafruit_BMP280(&Wire1);
         if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return;
     }
     #else
@@ -1504,13 +1541,6 @@ void Sensors::unitRegister(UNIT unit) {
     units_registered[units_registered_count++] = unit;
 }
 
-void Sensors::resetUnitsRegister() {
-    units_registered_count = 0;
-    for (int i = 0; i < UCOUNT; i++) {
-        units_registered[i] = 0;
-    }
-}
-
 void Sensors::resetAllVariables() {
     pm1 = 0;
     pm25 = 0;
@@ -1539,10 +1569,14 @@ void Sensors::DEBUG(const char *text, const char *textb) {
 //***********************************************************************************//
 
 void Sensors::startI2C() {
-#ifdef M5STICKCPLUS
+#if defined(M5STICKCPLUS) || defined(M5COREINK) 
     Wire.begin(32,33);   // M5CoreInk Ext port (default for all sensors)
     enableWire1();
-#else
+#endif
+#ifdef M5ATOM
+    enableWire1();
+#endif
+#if not defined(M5STICKCPLUS) && not defined(M5COREINK) && not defined(M5ATOM)
     Wire.begin();
 #endif
 }
@@ -1552,12 +1586,24 @@ void Sensors::enableWire1() {
     Wire1.flush();
     Wire1.begin(0,26);   // M5CoreInk hat pines (header on top)
 #endif
+#ifdef M5COREINK
+    Wire1.flush();
+    Wire1.begin(25,26);   // M5CoreInk hat pines (header on top)
+#endif
+#ifdef M5ATOM
+    Wire1.flush();
+    Wire1.begin(26,32,100000);   // M5CoreInk Ext port (default for all sensors)
+#endif
 }
 
 void Sensors::disableWire1() {
 #ifdef M5STICKCPLUS
     Wire1.flush();
     Wire1.begin(21,22); // Restore AXP192 I2C pins (failed after some time)
+#endif
+#ifdef M5COREINK
+    Wire1.flush();
+    Wire1.begin(21,22);   // M5CoreInk hat pines (header on top)
 #endif
 }
 
