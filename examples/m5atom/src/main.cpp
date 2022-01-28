@@ -54,7 +54,7 @@ void setup() {
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
     sensors.setDebugMode(true);                     // [optional] debug mode
-    sensors.detectI2COnly(false);                    // disable force to only i2c sensors
+    sensors.detectI2COnly(true);                    // force to only i2c sensors (disable for UART sensors)
     sensors.init();                                 // Auto detection to UART and i2c sensors
 
     // Alternatives only for UART sensors (TX/RX):
