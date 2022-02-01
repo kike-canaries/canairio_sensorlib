@@ -149,9 +149,16 @@ On your serial monitor you should have something like that:
 
 ## Multivariable demo
 
-In this [demo](https://www.youtube.com/watch?v=-5Va47Bap48) with two devices and multiple sensors, you can choose the possible sub sensors units:
+
+In this [demo](https://www.youtube.com/watch?v=-5Va47Bap48) on two different devices with multiple sensors, you can choose the possible sub sensors units or variables:
 
 [![CanAirIO multivariable demo](https://img.youtube.com/vi/-5Va47Bap48/0.jpg)](https://www.youtube.com/watch?v=-5Va47Bap48)
+
+In this [demo](https://www.youtube.com/watch?v=uxlmP905-FE) on a simple sketch you could have a dinamyc list of variables of multiple sensors brands:
+
+[![CanAirIO Sensors Lib DEMO with M5CoreInk](https://img.youtube.com/vi/i15iEF47CbY/0.jpg)](https://youtu.be/i15iEF47CbY)
+
+
 
 ## Multivariable alternative implementation
 
