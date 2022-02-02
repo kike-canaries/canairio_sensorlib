@@ -43,7 +43,7 @@ void Sensors::loop() {
         if (dataReady && (_onDataCb != nullptr)) {
             _onDataCb();  // if any sensor reached any data, dataReady is true.
         } else if (!dataReady && (_onErrorCb != nullptr))
-            _onErrorCb("[W][SLIB] No data from any sensor!"); 
+            _onErrorCb("[W][SLIB] Sensorslib error msg\t: No data from any sensor!"); 
     }
 
     dhtRead();  // DHT2x sensors need check fastest
@@ -60,9 +60,9 @@ bool Sensors::readAllSensors() {
         DEBUG("-->[SLIB] UART data ready \t:", dataReady ? "true" : "false");
     }
     enableWire1();
+    CO2scd30Read();
     GCJA5Read();
     sps30Read();
-    CO2scd30Read();
     CO2scd4xRead();
     am2320Read();
     sht31Read();
@@ -105,9 +105,9 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
         DEBUG("-->[SLIB] UART sensors detected\t:", "0");
     }
     startI2C();
+    CO2scd30Init();
     sps30I2CInit();
     GCJA5Init();
-    CO2scd30Init();
     CO2scd4xInit();
     bme680Init();
     bmp280Init();
@@ -916,6 +916,7 @@ void Sensors::sht31Read() {
 }
 
 void Sensors::CO2scd30Read() {
+    if (!scd30.isConnected()) return;
     uint16_t tCO2 = scd30.getCO2();  // we need temp var, without it override CO2
     if (tCO2 > 0) {
         CO2Val = tCO2;
