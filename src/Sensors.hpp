@@ -18,7 +18,7 @@
 #include <sps30.h>
 
 #define CSL_VERSION "0.5.2"
-#define CSL_REVISION 353
+#define CSL_REVISION 354
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
