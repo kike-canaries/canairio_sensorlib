@@ -149,7 +149,7 @@ class Sensors {
     float altoffset = 0.0;
 
     // Sea level pressure (hPa)
-    float sealevel = 1036.25;
+    float sealevel = 1013.25;
 
     // Altitud hpa calculation
     float hpa = 0.0;

@@ -876,6 +876,7 @@ void Sensors::bme280Read() {
     DEBUG("-->[SLIB] BME280 read\t\t: done!");
     unitRegister(UNIT::TEMP);
     unitRegister(UNIT::HUM);
+    unitRegister(UNIT::ALT);
 }
 
 void Sensors::bmp280Read() {
@@ -909,6 +910,7 @@ void Sensors::bme680Read() {
     unitRegister(UNIT::HUM);
     unitRegister(UNIT::PRESS);
     unitRegister(UNIT::GAS);
+    unitRegister(UNIT::ALT);
 }
 
 void Sensors::aht10Read() {
