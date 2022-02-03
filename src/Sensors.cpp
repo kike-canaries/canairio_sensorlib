@@ -129,7 +129,13 @@ void Sensors::setSampleTime(int seconds) {
     }
 }
 
-/// set CO2 recalibration PPM value (400 to 2000)
+/**
+ * @brief set CO2 recalibration PPM value (400 to 2000)
+ * @param ppmValue the ppm value to set, normally 400.
+ * 
+ * This method is used to set the CO2 recalibration value, please use it only on outdoor conditions.
+ * Please see the documentation of each sensor for more information. 
+ */
 void Sensors::setCO2RecalibrationFactor(int ppmValue) {
     if (isSensorRegistered(SENSORS::SSCD30)) {
         Serial.println("-->[SLIB] SCD30 calibration to\t: " + String(ppmValue));
@@ -160,7 +166,12 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue) {
     }
 }
 
-/// set CO2 Altitude offset, recommended on high altitude
+/**
+ * @brief set CO2 altitude offset (m)
+ * @param altitude (m)
+ * 
+ * This method is used to compensate the CO2 value with the altitude. Recommended on high altitude.
+ */
 void Sensors::setCO2AltitudeOffset(float altitude){
     this->altoffset = altitude;
     this->hpa = hpaCalculation(altitude);       //hPa hectopascal calculation based on altitude
@@ -175,6 +186,16 @@ void Sensors::setCO2AltitudeOffset(float altitude){
         delay(100);
         scd4x.startPeriodicMeasurement();
     }
+}
+
+/**
+ * @brief set the sea level pressure (hPa)
+ * @param hpa (hPa)
+ * 
+ * This method is used to set the sea level pressure for some sensors that need it.
+ */
+void Sensors::setSeaLevelPressure(float hpa) {
+    sea_level_pressure = hpa;
 }
 
 /// restart and re-init all sensors (not recommended)
@@ -759,7 +780,7 @@ bool Sensors::CO2Mhz19Read() {
 }
 
 bool Sensors::CO2CM1106Read() {
-    CO2Val = cm1106->get_co2();;
+    CO2Val = cm1106->get_co2();
     if (CO2Val > 0) {
         dataReady = true;
         if(altoffset != 0) CO2correctionAlt();
@@ -849,7 +870,7 @@ void Sensors::bme280Read() {
     humi = humi1;
     temp = temp1-toffset;
     pres = bme280.readPressure();
-    alt = bme280.readAltitude(SEALEVELPRESSURE_HPA);
+    alt = bme280.readAltitude(sea_level_pressure);
     dataReady = true;
     DEBUG("-->[SLIB] BME280 read\t\t: done!");
     unitRegister(UNIT::TEMP);
@@ -859,7 +880,7 @@ void Sensors::bme280Read() {
 void Sensors::bmp280Read() {
     float temp1 = bmp280.readTemperature();
     float press1 = bmp280.readPressure();
-    float alt1 = bmp280.readAltitude(SEALEVELPRESSURE_HPA);
+    float alt1 = bmp280.readAltitude(sea_level_pressure);
     if (press1 == 0 || isnan(temp1) || isnan(alt1)) return;
     temp = temp1-toffset;
     pres = press1/100; // convert to hPa
@@ -880,7 +901,7 @@ void Sensors::bme680Read() {
     humi = bme680.humidity;
     pres = bme680.pressure / 100.0;
     gas = bme680.gas_resistance / 1000.0;
-    alt = bme680.readAltitude(SEALEVELPRESSURE_HPA);
+    alt = bme680.readAltitude(sea_level_pressure);
     dataReady = true;
     DEBUG("-->[SLIB] BME680 read\t\t: done!");
     unitRegister(UNIT::TEMP);
