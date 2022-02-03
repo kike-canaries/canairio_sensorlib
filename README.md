@@ -101,6 +101,7 @@ void setup() {
     sensors.setSampleTime(15);                      // [optional] sensors sample time (default 5s)
     sensors.setTempOffset(cfg.toffset);             // [optional] temperature compensation
     sensors.setCO2AltitudeOffset(cfg.altoffset);    // [optional] CO2 altitude compensation
+    sensors.setSeaLevelPressure(1036.25);           // [optional] Set sea level pressure in hpa
     sensors.setDebugMode(false);                    // [optional] debug mode to get detailed msgs
     sensors.detectI2COnly(true);                    // [optional] force to only i2c sensors
     sensors.init();                                 // Auto detection to UART and i2c sensors

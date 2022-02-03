@@ -77,10 +77,7 @@
 #define SENSOR_RETRY 1000  // Max Serial characters
 
 // Sensirion SPS30 sensor
-#define SENSOR_COMMS SERIALPORT2  // UART OR I2C
-
-//H&T definitions
-#define SEALEVELPRESSURE_HPA 1036.25
+#define SENSOR_COMMS SERIALPORT2  // UART OR I2C 
 
 #define SENSOR_UNITS           \
     X(NUNIT, "NUNIT", "NUNIT") \
@@ -247,6 +244,8 @@ class Sensors {
 
     void setCO2AltitudeOffset(float altitude);
 
+    void setSeaLevelPressure(float hpa);
+
     String getFormatTemp();
 
     String getFormatPress();
@@ -347,6 +346,8 @@ class Sensors {
     uint16_t CO2Val;      // CO2 in ppm
     float CO2humi = 0.0;  // humidity of CO2 sensor
     float CO2temp = 0.0;  // temperature of CO2 sensor
+
+    float sea_level_pressure = 1036.25;
 
     void am2320Init();
     void am2320Read();
