@@ -99,6 +99,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
  
     Serial.println("-->[SLIB] temperature offset\t: " + String(toffset));
     Serial.println("-->[SLIB] altitude offset   \t: " + String(altoffset));
+    Serial.println("-->[SLIB] sea level pressure\t: " + String(sealevel) + " hPa");
     Serial.printf("-->[SLIB] only i2c sensors  \t: %s\n", i2conly ? "true" : "false");
 
     if (!i2conly && !sensorSerialInit(pms_type, pms_rx, pms_tx)) {
@@ -195,7 +196,7 @@ void Sensors::setCO2AltitudeOffset(float altitude){
  * This method is used to set the sea level pressure for some sensors that need it.
  */
 void Sensors::setSeaLevelPressure(float hpa) {
-    sea_level_pressure = hpa;
+    sealevel = hpa;
 }
 
 /// restart and re-init all sensors (not recommended)
@@ -870,7 +871,7 @@ void Sensors::bme280Read() {
     humi = humi1;
     temp = temp1-toffset;
     pres = bme280.readPressure();
-    alt = bme280.readAltitude(sea_level_pressure);
+    alt = bme280.readAltitude(sealevel);
     dataReady = true;
     DEBUG("-->[SLIB] BME280 read\t\t: done!");
     unitRegister(UNIT::TEMP);
@@ -880,7 +881,7 @@ void Sensors::bme280Read() {
 void Sensors::bmp280Read() {
     float temp1 = bmp280.readTemperature();
     float press1 = bmp280.readPressure();
-    float alt1 = bmp280.readAltitude(sea_level_pressure);
+    float alt1 = bmp280.readAltitude(sealevel);
     if (press1 == 0 || isnan(temp1) || isnan(alt1)) return;
     temp = temp1-toffset;
     pres = press1/100; // convert to hPa
@@ -901,7 +902,7 @@ void Sensors::bme680Read() {
     humi = bme680.humidity;
     pres = bme680.pressure / 100.0;
     gas = bme680.gas_resistance / 1000.0;
-    alt = bme680.readAltitude(sea_level_pressure);
+    alt = bme680.readAltitude(sealevel);
     dataReady = true;
     DEBUG("-->[SLIB] BME680 read\t\t: done!");
     unitRegister(UNIT::TEMP);

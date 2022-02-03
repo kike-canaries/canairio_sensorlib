@@ -148,6 +148,9 @@ class Sensors {
     // Altitud compensation variable
     float altoffset = 0.0;
 
+    // Sea level pressure (hPa)
+    float sealevel = 1036.25;
+
     // Altitud hpa calculation
     float hpa = 0.0;
 
@@ -346,8 +349,6 @@ class Sensors {
     uint16_t CO2Val;      // CO2 in ppm
     float CO2humi = 0.0;  // humidity of CO2 sensor
     float CO2temp = 0.0;  // temperature of CO2 sensor
-
-    float sea_level_pressure = 1036.25;
 
     void am2320Init();
     void am2320Read();
