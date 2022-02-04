@@ -43,7 +43,7 @@ void Sensors::loop() {
         if (dataReady && (_onDataCb != nullptr)) {
             _onDataCb();  // if any sensor reached any data, dataReady is true.
         } else if (!dataReady && (_onErrorCb != nullptr))
-            _onErrorCb("[W][SLIB] No data from any sensor!"); 
+            _onErrorCb("[W][SLIB] Sensorslib error msg\t: No data from any sensor!"); 
     }
 
     dhtRead();  // DHT2x sensors need check fastest
@@ -60,9 +60,9 @@ bool Sensors::readAllSensors() {
         DEBUG("-->[SLIB] UART data ready \t:", dataReady ? "true" : "false");
     }
     enableWire1();
+    CO2scd30Read();
     GCJA5Read();
     sps30Read();
-    CO2scd30Read();
     CO2scd4xRead();
     am2320Read();
     sht31Read();
@@ -99,15 +99,16 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
  
     Serial.println("-->[SLIB] temperature offset\t: " + String(toffset));
     Serial.println("-->[SLIB] altitude offset   \t: " + String(altoffset));
+    Serial.println("-->[SLIB] sea level pressure\t: " + String(sealevel) + " hPa");
     Serial.printf("-->[SLIB] only i2c sensors  \t: %s\n", i2conly ? "true" : "false");
 
     if (!i2conly && !sensorSerialInit(pms_type, pms_rx, pms_tx)) {
         DEBUG("-->[SLIB] UART sensors detected\t:", "0");
     }
     startI2C();
+    CO2scd30Init();
     sps30I2CInit();
     GCJA5Init();
-    CO2scd30Init();
     CO2scd4xInit();
     bme680Init();
     bmp280Init();
@@ -129,7 +130,13 @@ void Sensors::setSampleTime(int seconds) {
     }
 }
 
-/// set CO2 recalibration PPM value (400 to 2000)
+/**
+ * @brief set CO2 recalibration PPM value (400 to 2000)
+ * @param ppmValue the ppm value to set, normally 400.
+ * 
+ * This method is used to set the CO2 recalibration value, please use it only on outdoor conditions.
+ * Please see the documentation of each sensor for more information. 
+ */
 void Sensors::setCO2RecalibrationFactor(int ppmValue) {
     if (isSensorRegistered(SENSORS::SSCD30)) {
         Serial.println("-->[SLIB] SCD30 calibration to\t: " + String(ppmValue));
@@ -160,7 +167,12 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue) {
     }
 }
 
-/// set CO2 Altitude offset, recommended on high altitude
+/**
+ * @brief set CO2 altitude offset (m)
+ * @param altitude (m)
+ * 
+ * This method is used to compensate the CO2 value with the altitude. Recommended on high altitude.
+ */
 void Sensors::setCO2AltitudeOffset(float altitude){
     this->altoffset = altitude;
     this->hpa = hpaCalculation(altitude);       //hPa hectopascal calculation based on altitude
@@ -175,6 +187,16 @@ void Sensors::setCO2AltitudeOffset(float altitude){
         delay(100);
         scd4x.startPeriodicMeasurement();
     }
+}
+
+/**
+ * @brief set the sea level pressure (hPa)
+ * @param hpa (hPa)
+ * 
+ * This method is used to set the sea level pressure for some sensors that need it.
+ */
+void Sensors::setSeaLevelPressure(float hpa) {
+    sealevel = hpa;
 }
 
 /// restart and re-init all sensors (not recommended)
@@ -759,7 +781,7 @@ bool Sensors::CO2Mhz19Read() {
 }
 
 bool Sensors::CO2CM1106Read() {
-    CO2Val = cm1106->get_co2();;
+    CO2Val = cm1106->get_co2();
     if (CO2Val > 0) {
         dataReady = true;
         if(altoffset != 0) CO2correctionAlt();
@@ -849,17 +871,18 @@ void Sensors::bme280Read() {
     humi = humi1;
     temp = temp1-toffset;
     pres = bme280.readPressure();
-    alt = bme280.readAltitude(SEALEVELPRESSURE_HPA);
+    alt = bme280.readAltitude(sealevel);
     dataReady = true;
     DEBUG("-->[SLIB] BME280 read\t\t: done!");
     unitRegister(UNIT::TEMP);
     unitRegister(UNIT::HUM);
+    unitRegister(UNIT::ALT);
 }
 
 void Sensors::bmp280Read() {
     float temp1 = bmp280.readTemperature();
     float press1 = bmp280.readPressure();
-    float alt1 = bmp280.readAltitude(SEALEVELPRESSURE_HPA);
+    float alt1 = bmp280.readAltitude(sealevel);
     if (press1 == 0 || isnan(temp1) || isnan(alt1)) return;
     temp = temp1-toffset;
     pres = press1/100; // convert to hPa
@@ -880,13 +903,14 @@ void Sensors::bme680Read() {
     humi = bme680.humidity;
     pres = bme680.pressure / 100.0;
     gas = bme680.gas_resistance / 1000.0;
-    alt = bme680.readAltitude(SEALEVELPRESSURE_HPA);
+    alt = bme680.readAltitude(sealevel);
     dataReady = true;
     DEBUG("-->[SLIB] BME680 read\t\t: done!");
     unitRegister(UNIT::TEMP);
     unitRegister(UNIT::HUM);
     unitRegister(UNIT::PRESS);
     unitRegister(UNIT::GAS);
+    unitRegister(UNIT::ALT);
 }
 
 void Sensors::aht10Read() {
@@ -916,6 +940,7 @@ void Sensors::sht31Read() {
 }
 
 void Sensors::CO2scd30Read() {
+    if (!scd30.isConnected()) return;
     uint16_t tCO2 = scd30.getCO2();  // we need temp var, without it override CO2
     if (tCO2 > 0) {
         CO2Val = tCO2;

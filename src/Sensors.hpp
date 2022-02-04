@@ -17,8 +17,8 @@
 #include <s8_uart.h>
 #include <sps30.h>
 
-#define CSL_VERSION "0.5.1"
-#define CSL_REVISION 352
+#define CSL_VERSION "0.5.2"
+#define CSL_REVISION 355
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -77,10 +77,7 @@
 #define SENSOR_RETRY 1000  // Max Serial characters
 
 // Sensirion SPS30 sensor
-#define SENSOR_COMMS SERIALPORT2  // UART OR I2C
-
-//H&T definitions
-#define SEALEVELPRESSURE_HPA 1036.25
+#define SENSOR_COMMS SERIALPORT2  // UART OR I2C 
 
 #define SENSOR_UNITS           \
     X(NUNIT, "NUNIT", "NUNIT") \
@@ -150,6 +147,9 @@ class Sensors {
 
     // Altitud compensation variable
     float altoffset = 0.0;
+
+    // Sea level pressure (hPa)
+    float sealevel = 1013.25;
 
     // Altitud hpa calculation
     float hpa = 0.0;
@@ -246,6 +246,8 @@ class Sensors {
     void setTempOffset(float offset);
 
     void setCO2AltitudeOffset(float altitude);
+
+    void setSeaLevelPressure(float hpa);
 
     String getFormatTemp();
 
