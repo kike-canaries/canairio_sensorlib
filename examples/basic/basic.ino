@@ -47,8 +47,6 @@ void setup() {
     // sensors.init(sensors.SENSEAIRS8);            // Force UART detection to SenseAirS8 CO2 sensor
     // sensors.init(sensors.Auto,PMS_RX,PMS_TX);    // Auto detection on custom RX,TX
    
-    Serial.println("-->[SETUP] Sensor configured: " + sensors.getMainDeviceSelected());
-
     delay(500);
 }
 

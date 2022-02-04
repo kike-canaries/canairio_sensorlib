@@ -1,21 +1,5 @@
-/**
- * @file main.cpp
- * @author Antonio Vanegas @hpsaturn
- * @date June 2018 - 2020
- * @brief Particle meter sensor tests
- * @license GPL3
- * 
- * Full documentation:
- * https://github.com/kike-canaries/canairio_sensorlib#canairio-air-quality-sensors-library
- * 
- * Full implementation for WiFi and Bluetooth Air Quality fixed and mobile station:
- * https://github.com/kike-canaries/canairio_firmware#canairio-firmware
- * 
- * CanAirIO project docs:
- * https://canair.io/docs
- */
-
 #include <Arduino.h>
+#include <M5Atom.h>
 #include <Sensors.hpp>
 
 void printSensorsDetected() {
@@ -62,6 +46,7 @@ void setup() {
     Serial.begin(115200);
     delay(200);
     Serial.println("\n== Sensor test setup ==\n");
+    M5.begin(true,true,true); //Init M5Atom(Initialization of external I2C is also included).  M5Atom(初始化外部I2C也包含在内)
 
     Serial.println("-->[SETUP] Detecting sensors..");
 
@@ -69,7 +54,7 @@ void setup() {
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
     sensors.setDebugMode(true);                     // [optional] debug mode
-    sensors.detectI2COnly(false);                   // disable force to only i2c sensors
+    sensors.detectI2COnly(true);                    // force to only i2c sensors (disable for UART sensors)
     sensors.init();                                 // Auto detection to UART and i2c sensors
 
     // Alternatives only for UART sensors (TX/RX):

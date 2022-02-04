@@ -27,7 +27,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -U platformio
           platformio update
-      - name: Build test
+      - name: Submitted library code test
         run: |
+          pio run
+      - name: PlatformIO registry test (M5Atom example)
+        run: |
+          cd examples/m5atom
           pio run
       

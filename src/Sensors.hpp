@@ -4,98 +4,102 @@
 #include <AHT10.h>
 #include <AM232X.h>
 #include <Adafruit_BME280.h>
-#include <Adafruit_BMP280.h>
 #include <Adafruit_BME680.h>
+#include <Adafruit_BMP280.h>
 #include <Adafruit_SHT31.h>
 #include <Adafruit_Sensor.h>
 #include <MHZ19.h>
-#include <SparkFun_SCD30_Arduino_Library.h>
-#include <SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h>
-#include <dht_nonblocking.h>
-#include <sps30.h>
-#include <cm1106_uart.h>
-#include <s8_uart.h>
 #include <SensirionI2CScd4x.h>
+#include <SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h>
+#include <SparkFun_SCD30_Arduino_Library.h>
+#include <cm1106_uart.h>
+#include <dht_nonblocking.h>
+#include <s8_uart.h>
+#include <sps30.h>
 
-#define CSL_VERSION "0.4.4"
-#define CSL_REVISION  347
+#define CSL_VERSION "0.5.2"
+#define CSL_REVISION 355
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
 ***************************************************************/
 
 #ifdef WEMOSOLED
-#define PMS_RX 13           // config for Wemos board & TTGO18650
-#define PMS_TX 15           // some old TTGO18650 have PMS_RX 18 & PMS_TX 17
-#define DHT_SENSOR_PIN 23   // default DHT sensor pin 
+#define PMS_RX 13          // config for Wemos board & TTGO18650
+#define PMS_TX 15          // some old TTGO18650 have PMS_RX 18 & PMS_TX 17
+#define DHT_SENSOR_PIN 23  // default DHT sensor pin
 #elif HELTEC
-#define PMS_RX 17           // config for Heltec board, ESP32Sboard & ESPDUINO-32. Use Uart2
-#define PMS_TX 18           // some old ESP32Sboard have PMS_RX 27 & PMS_TX 25. Jump Uart2 tx from 16 to 18. !6 used by Oled.
+#define PMS_RX 17  // config for Heltec board, ESP32Sboard & ESPDUINO-32. Use Uart2
+#define PMS_TX 18  // some old ESP32Sboard have PMS_RX 27 & PMS_TX 25. Jump Uart2 tx from 16 to 18. !6 used by Oled.
 #define DHT_SENSOR_PIN 23
 #elif TTGO_TQ
-#define PMS_RX 13  
+#define PMS_RX 13
 #define PMS_TX 18
 #define DHT_SENSOR_PIN 23
 #elif M5COREINK
-#define PMS_RX 13           // config for backward header in M5CoreInk
+#define PMS_RX 13  // config for backward header in M5CoreInk
 #define PMS_TX 14
 #define DHT_SENSOR_PIN 25
 #elif TTGO_TDISPLAY
-#define PMS_RX 13  
+#define PMS_RX 13
 #define PMS_TX 12
 #define DHT_SENSOR_PIN 17
 #elif ESP32PICOD4
 #define PMS_RX 19
 #define PMS_TX 18
 #define DHT_SENSOR_PIN 12
-#elif ESP32GENERIC          // **DEFAULT** for pre-defined ESP32 board in PlatformIO environment
+#elif ESP32GENERIC
 #define PMS_RX RX
 #define PMS_TX TX
 #define DHT_SENSOR_PIN 12
-#elif M5STICKCPLUS          // **DEFAULT** for pre-defined ESP32 board in PlatformIO environment
+#elif M5STICKCPLUS
 #define PMS_RX 17
 #define PMS_TX 16
 #define DHT_SENSOR_PIN 34
-#else                       // **DEFAULT** for legacy CanAirIO devices:
-#define PMS_RX 17           // D1MIN1 / TTGOT7 / ESP32DEVKIT Default for main ESP32 dev boards
+#elif M5COREINK
+#define PMS_RX 13
+#define PMS_TX 14
+#define DHT_SENSOR_PIN 34
+#elif M5ATOM
+#define PMS_RX 23
+#define PMS_TX 33
+#define DHT_SENSOR_PIN 19
+#else              // **DEFAULT** for legacy CanAirIO devices:
+#define PMS_RX 17  // D1MIN1 / TTGOT7 / ESP32DEVKIT, also for main ESP32 dev boards use it
 #define PMS_TX 16
-#define DHT_SENSOR_PIN 23   // default DHT sensor pin 
+#define DHT_SENSOR_PIN 23  // default DHT sensor pin
 #endif
 
 // DHT sensor type
-#define DHT_SENSOR_TYPE DHT_TYPE_22  
+#define DHT_SENSOR_TYPE DHT_TYPE_22
 
-// Read UART sensor retry. 
-#define SENSOR_RETRY 1000         // Max Serial characters
+// Read UART sensor retry.
+#define SENSOR_RETRY 1000  // Max Serial characters
 
 // Sensirion SPS30 sensor
-#define SENSOR_COMMS SERIALPORT2  // UART OR I2C
+#define SENSOR_COMMS SERIALPORT2  // UART OR I2C 
 
-//H&T definitions
-#define SEALEVELPRESSURE_HPA 1036.25
+#define SENSOR_UNITS           \
+    X(NUNIT, "NUNIT", "NUNIT") \
+    X(PM1, "ug/m3", "PM1")     \
+    X(PM25, "ug/m3", "PM2.5")  \
+    X(PM4, "ug/m3", "PM4")     \
+    X(PM10, "ug/m3", "PM10")   \
+    X(TEMP, "C", "T")          \
+    X(HUM, "%", "H")           \
+    X(CO2, "ppm", "CO2")       \
+    X(CO2TEMP, "C", "CO2T")    \
+    X(CO2HUM, "%", "CO2H")     \
+    X(PRESS, "hPa", "P")       \
+    X(ALT, "m", "Alt")         \
+    X(GAS, "Ohm", "Gas")       \
+    X(UCOUNT, "COUNT", "UCOUNT")
 
-#define SENSOR_UNITS         \
-    X(NUNIT, "NUNIT", "NUNIT")    \
-    X(PM1, "ug/m3", "PM1")    \
-    X(PM25, "ug/m3", "PM2.5")   \
-    X(PM4, "ug/m3", "PM4")   \
-    X(PM10, "ug/m3", "PM10")    \
-    X(TEMP, "C", "T")     \
-    X(HUM, "%", "H")        \
-    X(CO2, "ppm", "CO2")      \
-    X(CO2TEMP, "C", "CO2T")  \
-    X(CO2HUM, "%", "CO2H")    \
-    X(PRESS, "hPa", "P")   \
-    X(ALT, "m", "Alt")       \
-    X(GAS, "Ohm", "Gas") \
-    X(UCOUNT, "COUNT", "UCOUNT") 
-
-
-#define X(unit, symbol, name) unit, 
+#define X(unit, symbol, name) unit,
 typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
 #undef X
 
-#define SENSORS_TYPES   \
+#define SENSORS_TYPES       \
     X(Auto, "GENERIC", 1)   \
     X(SGCJA5, "GCJA5", 1)   \
     X(SSPS30, "SPS30", 1)   \
@@ -114,19 +118,21 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
     X(SDHTX, "DHTX", 3)     \
     X(SCOUNT, "SCOUNT", 3)
 
-#define X(utype, uname, umaintype) utype, 
-typedef enum SENSORS : size_t { SENSORS_TYPES } SENSORS;  // backgroun compaitibility
+#define X(utype, uname, umaintype) utype,
+typedef enum SENSORS : size_t { SENSORS_TYPES } SENSORS;  // backward compatibility
 #undef X
+
+// MAIN SENSOR TYPE
+enum class SensorGroup { SENSOR_NONE,
+                         SENSOR_PM,
+                         SENSOR_CO2,
+                         SENSOR_ENV };
 
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
 
 class Sensors {
    public:
-
-    // MAIN SENSOR TYPE
-    enum MAIN_SENSOR_TYPE { SENSOR_NONE, SENSOR_PM, SENSOR_CO2, SENSOR_ENV };
-
     // SPS30 values. Only for Sensirion SPS30 sensor.
     struct sps_values val;
 
@@ -137,10 +143,13 @@ class Sensors {
     int sample_time = 5;
 
     // temperature offset (for final temp output)
-    float toffset = 0.0;  
+    float toffset = 0.0;
 
     // Altitud compensation variable
     float altoffset = 0.0;
+
+    // Sea level pressure (hPa)
+    float sealevel = 1013.25;
 
     // Altitud hpa calculation
     float hpa = 0.0;
@@ -162,7 +171,7 @@ class Sensors {
     // BMP280 (Humidity, Pressure, Altitude and Temperature)
     Adafruit_BMP280 bmp280;
     // BME680 (Humidity, Gas, IAQ, Pressure, Altitude and Temperature)
-    Adafruit_BME680 bme680; 
+    Adafruit_BME680 bme680;
     // AHT10
     AHT10 aht10;
     // SHT31
@@ -189,8 +198,10 @@ class Sensors {
     SensirionI2CScd4x scd4x;
 
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
-    
+
     void loop();
+
+    bool readAllSensors();
 
     bool isDataReady();
 
@@ -207,10 +218,6 @@ class Sensors {
     bool isUARTSensorConfigured();
 
     int getUARTDeviceTypeSelected();
-
-    String getMainDeviceSelected();
-
-    int getMainSensorTypeSelected();
 
     uint16_t getPM1();
 
@@ -237,13 +244,15 @@ class Sensors {
     float getGas();
 
     void setTempOffset(float offset);
-    
+
     void setCO2AltitudeOffset(float altitude);
+
+    void setSeaLevelPressure(float hpa);
 
     String getFormatTemp();
 
     String getFormatPress();
-    
+
     String getFormatHum();
 
     String getFormatGas();
@@ -260,14 +269,14 @@ class Sensors {
 
     String getStringCO2();
 
-    String getStringCO2temp(); 
+    String getStringCO2temp();
 
     void setCO2RecalibrationFactor(int ppmValue);
 
     void detectI2COnly(bool enable);
 
     String getLibraryVersion();
-    
+
     int16_t getLibraryRevision();
 
     bool isSensorRegistered(SENSORS sensor);
@@ -278,6 +287,8 @@ class Sensors {
 
     String getSensorName(SENSORS sensor);
 
+    SensorGroup getSensorGroup(SENSORS sensor);
+
     uint8_t getUnitsRegisteredCount();
 
     bool isUnitRegistered(UNIT unit);
@@ -287,10 +298,20 @@ class Sensors {
     String getUnitSymbol(UNIT unit);
 
     UNIT getNextUnit();
-    
+
+    void resetUnitsRegister();
+
+    void resetSensorsRegister();
+
     void resetNextUnit();
 
+    void resetAllVariables();
+
     float getUnitValue(UNIT unit);
+
+    void printUnitsRegistered(bool debug = false);
+
+    void printSensorsRegistered(bool debug = false);
 
    private:
     /// DHT library
@@ -306,29 +327,25 @@ class Sensors {
 
     bool dataReady;
 
-    int main_device_type = -1;
-
-    int minor_device_type = -1;
+    bool readAllComplete = false;
 
     uint8_t sensors_registered_count;
 
     uint8_t units_registered_count;
-    
+
     uint8_t current_unit = 0;
 
-    uint8_t previous_unit = 0;
-    
     uint16_t pm1;   // PM1
     uint16_t pm25;  // PM2.5
     uint16_t pm4;   // PM4
     uint16_t pm10;  // PM10
 
-    float humi = 0.0;   // % Relative humidity
-    float temp = 0.0;   // Temperature (°C)
-    float pres = 0.0;   // Pressure
+    float humi = 0.0;  // % Relative humidity
+    float temp = 0.0;  // Temperature (°C)
+    float pres = 0.0;  // Pressure
     float alt = 0.0;
     float gas = 0.0;
-    
+
     uint16_t CO2Val;      // CO2 in ppm
     float CO2humi = 0.0;  // humidity of CO2 sensor
     float CO2temp = 0.0;  // temperature of CO2 sensor
@@ -380,7 +397,7 @@ class Sensors {
     bool pmSDS011Read();
     bool CO2Mhz19Read();
     bool CO2CM1106Read();
-    int  CO2CM1106val();
+    int CO2CM1106val();
     bool CO2Mhz19Init();
     bool CO2CM1106Init();
     bool senseAirS8Init();
@@ -396,9 +413,11 @@ class Sensors {
 
     void onSensorError(const char *msg);
 
-    void disableI2C();
+    void startI2C();
 
-    void enableI2C();
+    void enableWire1();
+
+    void disableWire1();
 
     bool serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx);
 
@@ -416,15 +435,7 @@ class Sensors {
 
     void unitRegister(UNIT unit);
 
-    void resetUnitsRegister();
-
-    void printUnitsRegistered(bool debug = false);
-
-    void printSensorsRegistered(bool debug = false);
-
-    void resetAllVariables();
-
-    uint8_t * getUnitsRegistered();
+    uint8_t *getUnitsRegistered();
 
 // @todo use DEBUG_ESP_PORT ?
 #ifdef WM_DEBUG_PORT

@@ -59,8 +59,6 @@ void setup() {
     sensors.init(sensors.Panasonic, 5, 6);          // Panasonic sensor with ESP8266 software serial pines
                                                     // default is empty (I2C pines)
     
-    Serial.println("-->[SETUP] Sensor configured: " + sensors.getMainDeviceSelected());
-
     delay(500);
 }
 
