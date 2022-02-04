@@ -12,10 +12,12 @@
 #include <SensirionI2CScd4x.h>
 #include <SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h>
 #include <SparkFun_SCD30_Arduino_Library.h>
-#include <cm1106_uart.h>
 #include <dht_nonblocking.h>
 #include <s8_uart.h>
 #include <sps30.h>
+#ifdef ESP32
+#include <cm1106_uart.h>
+#endif 
 
 #define CSL_VERSION "0.5.2"
 #define CSL_REVISION 355
@@ -183,11 +185,13 @@ class Sensors {
     // SCD30 sensor
     SCD30 scd30;
     // CM1106 UART
+    #ifdef ESP32
     CM1106_UART *cm1106;
 
     CM1106_sensor cm1106sensor;
 
     CM1106_ABC abc;
+    #endif
     // Panasonic SN-GCJA5
     SFE_PARTICLE_SENSOR pmGCJA5;
     // SenseAir S8 CO2 sensor
