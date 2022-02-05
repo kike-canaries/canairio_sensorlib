@@ -1667,6 +1667,7 @@ bool Sensors::serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int
         //on a Sparkfun ESP32 Thing the default pins for serial1 are used for acccessing flash memory
         //you have to define different pins upfront in order to use serial1 port.
         case SERIALPORT1:
+            DEBUG("-->[SLIB] UART COMM port \t: Serial1");
             if (pms_rx == 0 || pms_tx == 0) {
                 DEBUG("-->[SLIB] TX/RX line not defined");
                 return false;
@@ -1676,6 +1677,7 @@ bool Sensors::serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int
             break;
 
         case SERIALPORT2:
+            DEBUG("-->[SLIB] UART COMM port \t: Serial2");
             if (pms_type == SENSORS::SSPS30)
                 Serial2.begin(speed_baud);
             else

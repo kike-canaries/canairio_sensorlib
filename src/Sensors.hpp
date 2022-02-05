@@ -17,8 +17,8 @@
 #include <s8_uart.h>
 #include <sps30.h>
 
-#define CSL_VERSION "0.5.2"
-#define CSL_REVISION 355
+#define CSL_VERSION "0.5.3"
+#define CSL_REVISION 356
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -53,8 +53,8 @@
 #define PMS_TX TX
 #define DHT_SENSOR_PIN 12
 #elif M5STICKCPLUS
-#define PMS_RX 17
-#define PMS_TX 16
+#define PMS_RX 36   // provisional for M5StickCPlus board for now
+#define PMS_TX 0
 #define DHT_SENSOR_PIN 34
 #elif M5COREINK
 #define PMS_RX 13
@@ -76,8 +76,8 @@
 // Read UART sensor retry.
 #define SENSOR_RETRY 1000  // Max Serial characters
 
-// Sensirion SPS30 sensor
-#define SENSOR_COMMS SERIALPORT2  // UART OR I2C 
+// UART defualt port
+#define SENSOR_COMMS SERIALPORT2
 
 #define SENSOR_UNITS           \
     X(NUNIT, "NUNIT", "NUNIT") \
