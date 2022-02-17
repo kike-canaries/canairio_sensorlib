@@ -160,6 +160,9 @@ class Sensors {
     // only detect i2c sensors
     bool i2conly;
 
+    // Solar station mode (power saving features)
+    bool solarmode = false;
+
     /*****************************************
      * I2C sensors:
      ****************************************/
