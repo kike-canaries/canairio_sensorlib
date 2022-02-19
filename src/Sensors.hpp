@@ -64,6 +64,11 @@
 #define PMS_RX 23
 #define PMS_TX 33
 #define DHT_SENSOR_PIN 19
+#elif M5PICOD4
+#define PMS_RX 3
+#define PMS_TX 1
+#define DHT_SENSOR_PIN 19
+
 #else              // **DEFAULT** for legacy CanAirIO devices:
 #define PMS_RX 17  // D1MIN1 / TTGOT7 / ESP32DEVKIT, also for main ESP32 dev boards use it
 #define PMS_TX 16
