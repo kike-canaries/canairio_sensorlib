@@ -1,6 +1,6 @@
 {
   "name": "CanAirIO Air Quality Sensors Library",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "homepage":"https://canair.io",
   "keywords": 
   [ 
@@ -41,7 +41,6 @@
   "frameworks": ["espidf", "freertos", "arduino"],
   "platforms":
   [
-    "atmelavr",
     "teensy",
     "espressif32",
     "espressif8266"
@@ -78,9 +77,9 @@
     {"name":"Adafruit BME280 Library", "owner":"adafruit","version":"2.2.2"},
     {"name":"Adafruit BMP280 Library", "owner":"adafruit","version":"2.6.1"},
     {"name":"Adafruit BME680 Library","owner":"adafruit","version":"2.0.1"},
-    {"name":"Adafruit BusIO", "owner":"adafruit","version":"1.11.0"},
+    {"name":"Adafruit BusIO", "owner":"adafruit","version":"1.11.1"},
     {"name":"Adafruit SHT31 Library", "owner":"adafruit","version":"2.0.0"},
-    {"name":"AM232X", "owner":"robtillaart", "version":"0.4.0"},
+    {"name":"AM232X", "owner":"robtillaart", "version":"0.4.1"},
     {"name":"AHT10", "owner":"enjoyneering","version":"1.1.0"},
     {"name":"sps30", "owner":"paulvha","version":"1.4.12"},
     {"name":"MH-Z19", "owner":"wifwaf", "version":"1.5.3"},

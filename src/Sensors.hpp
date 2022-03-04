@@ -17,8 +17,8 @@
 #include <s8_uart.h>
 #include <sps30.h>
 
-#define CSL_VERSION "0.5.3"
-#define CSL_REVISION 356
+#define CSL_VERSION "0.5.4"
+#define CSL_REVISION 357
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -64,6 +64,11 @@
 #define PMS_RX 23
 #define PMS_TX 33
 #define DHT_SENSOR_PIN 19
+#elif M5PICOD4
+#define PMS_RX 3
+#define PMS_TX 1
+#define DHT_SENSOR_PIN 19
+
 #else              // **DEFAULT** for legacy CanAirIO devices:
 #define PMS_RX 17  // D1MIN1 / TTGOT7 / ESP32DEVKIT, also for main ESP32 dev boards use it
 #define PMS_TX 16

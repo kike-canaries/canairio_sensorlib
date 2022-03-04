@@ -722,11 +722,6 @@ bool Sensors::sps30Read() {
     if (!isSensorRegistered(SENSORS::SSPS30)) return false;
     uint8_t ret, error_cnt = 0;
     delay(35);  //Delay for sincronization
-
-    if(i2conly && sample_time > 30) {
-        if (!sps30.start()) return false;  // power saving validation
-        delay(15000);
-    }
     
     do {
         ret = sps30.GetValues(&val);
@@ -753,8 +748,6 @@ bool Sensors::sps30Read() {
     unitRegister(UNIT::PM25);
     unitRegister(UNIT::PM4);
     unitRegister(UNIT::PM10);
-
-    if(i2conly && sample_time > 30) sps30.stop();  // power saving validation
 
     if (pm25 > 1000 && pm10 > 1000) {
         onSensorError("[W][SLIB] SPS30 setup message \t: out of range pm25 > 1000");
