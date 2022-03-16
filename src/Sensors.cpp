@@ -1799,8 +1799,8 @@ void geigerLoop() {
   char buf[12];
   dtostrf(mrem, 7, (mrem<1 ? 2: (mrem<10 ? 1 : 0)), buf); 
 
-  Serial.println("mili Rem"); Serial.println (mrem);
-  Serial.println("tics"); Serial.println(v);
+  Serial.print("mRem: "); Serial.println (mrem);
+  Serial.print("tics: "); Serial.println(v);
 
 }
 
