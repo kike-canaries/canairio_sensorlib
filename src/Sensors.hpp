@@ -20,6 +20,12 @@
 #define CSL_VERSION "0.5.4"
 #define CSL_REVISION 357
 
+/**************************************************************
+ *                          GEIGER
+ * ************************************************************/
+#define PINTIC 27           // GPIO18 is tic from geiger counter
+#define TICFACTOR 0.05      // factor between number of tics/second --> mR/hr
+
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
 ***************************************************************/
@@ -98,7 +104,8 @@
     X(PRESS, "hPa", "P")       \
     X(ALT, "m", "Alt")         \
     X(GAS, "Ohm", "Gas")       \
-    X(UCOUNT, "COUNT", "UCOUNT")
+    X(UCOUNT, "COUNT", "UCOUNT")\
+    X(RADIATION, "mR", "mRem")
 
 #define X(unit, symbol, name) unit,
 typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
@@ -121,7 +128,8 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
     X(SAHT10, "AHT10", 3)   \
     X(SAM232X, "AM232X", 3) \
     X(SDHTX, "DHTX", 3)     \
-    X(SCOUNT, "SCOUNT", 3)
+    X(SCOUNT, "SCOUNT", 3) /* \
+    X(RADIATION, "CAJOE", 2) */
 
 #define X(utype, uname, umaintype) utype,
 typedef enum SENSORS : size_t { SENSORS_TYPES } SENSORS;  // backward compatibility
@@ -455,3 +463,6 @@ extern Sensors sensors;
 #endif
 
 #endif
+
+void geigerInit();
+void geigerLoop();
