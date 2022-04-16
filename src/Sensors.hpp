@@ -449,6 +449,9 @@ class Sensors {
     void unitRegister(UNIT unit);
 
     uint8_t *getUnitsRegistered();
+    
+    void geigerInit();
+    void geigerLoop();
 
 // @todo use DEBUG_ESP_PORT ?
 #ifdef WM_DEBUG_PORT
@@ -463,6 +466,3 @@ extern Sensors sensors;
 #endif
 
 #endif
-
-void geigerInit();
-void geigerLoop();
