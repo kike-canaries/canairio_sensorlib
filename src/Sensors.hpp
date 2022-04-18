@@ -25,6 +25,7 @@
  * ************************************************************/
 #define PINTIC 27           // GPIO18 is tic from geiger counter
 #define TICFACTOR 0.05      // factor between number of tics/second --> mR/hr
+#define LOG_PERIOD  10      // for esp8266 variant
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -128,8 +129,8 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
     X(SAHT10, "AHT10", 3)   \
     X(SAM232X, "AM232X", 3) \
     X(SDHTX, "DHTX", 3)     \
-    X(SCOUNT, "SCOUNT", 3) /* \
-    X(RADIATION, "CAJOE", 2) */
+    X(SCOUNT, "SCOUNT", 3)  /*\
+    X(SRADIATION, "CAJOE", 2) */
 
 #define X(utype, uname, umaintype) utype,
 typedef enum SENSORS : size_t { SENSORS_TYPES } SENSORS;  // backward compatibility
@@ -450,8 +451,8 @@ class Sensors {
 
     uint8_t *getUnitsRegistered();
     
-    void geigerInit();
-    void geigerLoop();
+   // void geigerInit();
+   // void geigerLoop();
 
 // @todo use DEBUG_ESP_PORT ?
 #ifdef WM_DEBUG_PORT
@@ -466,3 +467,5 @@ extern Sensors sensors;
 #endif
 
 #endif
+    void geigerInit();
+    void geigerLoop();

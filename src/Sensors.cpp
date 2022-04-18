@@ -1721,11 +1721,17 @@ Sensors sensors;
 
 // *************** GEIGER ****************
 // ***************************************
+#ifdef ESP8266
+    static volatile unsigned long counts = 0;
+    static int secondcounts[60];
+    static unsigned long int secidx_prev = 0;
+    static unsigned long int count_prev = 0;
+    static unsigned long int second_prev = 0; 
+#else
 
-
- 
 // variables shared between main code and interrupt code
 hw_timer_t * timer = NULL;
+#endif
 volatile uint32_t updateTime = 0;       // time for next update
 volatile uint16_t tic_cnt = 0;
  
@@ -1740,14 +1746,21 @@ volatile uint16_t sec10 = 0;            // every 10 seconds counter
 volatile uint16_t sec10_buf[SEC10BUFSIZE];  // buffer to hold 10 sec history (40*10 = 400 seconds)
 volatile bool sec10updated = false;     // set to true when sec10_buf is updated
  
- 
+ #ifdef ESP8266
+   // interrupt routine
+ICACHE_RAM_ATTR static void TicISR()
+{
+    counts++;
+}
+#else
 // #########################################################################
 // Interrupt routine called on each click from the geiger tube
 //
 void IRAM_ATTR TicISR() {
   tic_cnt++;
 }
- 
+ #endif
+
 // #########################################################################
 // Interrupt timer routine called every 250 ms
 //
@@ -1770,11 +1783,11 @@ float tics2mrem(uint16_t tics) {
 }
 
  void geigerInit() {
-  
   Serial.begin(115200); // For debug
   Serial.println("Geiger counter startup");
+  #ifndef ESP8266
   updateTime = millis(); // Next update time
- // attach interrupt routine to TIC interface from the geiger counter module
+   // attach interrupt routine to TIC interface from the geiger counter module
   pinMode(PINTIC, INPUT);
   attachInterrupt(PINTIC, TicISR, FALLING);
  
@@ -1784,10 +1797,18 @@ float tics2mrem(uint16_t tics) {
   timerAlarmWrite(timer, 250000, true); // 250 ms
   timerAlarmEnable(timer);
   Serial.println("Geiger counter ready");
+  #else
+   // start counting
+    memset(secondcounts, 0, sizeof(secondcounts));
+    Serial.println("Starting count ...");
+
+    pinMode(PINTIC, INPUT);
+    attachInterrupt(digitalPinToInterrupt(PINTIC), TicISR, FALLING);
+  #endif
 }
 
 void geigerLoop() {
-  
+ #ifdef ESP32 
  // curent mR/hr value to display - add all tics from walking average 10 seconds
   uint16_t v=0;
   for (int i=0; i<TICBUFSIZE; i++) {
@@ -1801,7 +1822,28 @@ void geigerLoop() {
 
   Serial.print("mRem: "); Serial.println (mrem);
   Serial.print("tics: "); Serial.println(v);
+#else
+// update the circular buffer every second
+    unsigned long int second = millis() / 1000;
+    unsigned long int secidx = second % 60;
+    if (secidx != secidx_prev) {
+        // new second, store the counts from the last second
+        unsigned long int count = counts;
+        secondcounts[secidx_prev] = count - count_prev;
+        count_prev = count;
+        secidx_prev = secidx;
+    }
+    // report every LOG_PERIOD
+    if ((second - second_prev) >= LOG_PERIOD) {
+        second_prev = second;
 
+        // calculate sum
+        int cpm = 0;
+        for (int i = 0; i < 60; i++) {
+            cpm += secondcounts[i];
+        }
+        }
+#endif
 }
 
 /*// Convert tics to mR/hr
