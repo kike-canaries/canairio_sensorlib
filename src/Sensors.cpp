@@ -1842,6 +1842,8 @@ void geigerLoop() {
         for (int i = 0; i < 60; i++) {
             cpm += secondcounts[i];
         }
+        Serial.print("Counts: "); Serial.println(counts);
+        Serial.print("cpm: "); Serial.println(cpm);
         }
 #endif
 }
