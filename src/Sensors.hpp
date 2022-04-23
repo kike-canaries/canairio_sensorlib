@@ -23,7 +23,12 @@
 /**************************************************************
  *                          GEIGER
  * ************************************************************/
-#define PINTIC 27           // GPIO18 is tic from geiger counter
+// Define pin for tics from geiger counter
+#ifdef ESP8266
+#define PINTIC D5
+#else
+#define PINTIC 27   
+#endif        
 #define TICFACTOR 0.05      // factor between number of tics/second --> mR/hr
 #define LOG_PERIOD  10      // for esp8266 variant
 
