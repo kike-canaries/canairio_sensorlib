@@ -17,8 +17,8 @@
 #include <s8_uart.h>
 #include <sps30.h>
 
-#define CSL_VERSION "0.5.4"
-#define CSL_REVISION 357
+#define CSL_VERSION "0.5.5"
+#define CSL_REVISION 360
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
