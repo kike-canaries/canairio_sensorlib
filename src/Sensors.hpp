@@ -7,11 +7,11 @@
 #include <Adafruit_BME680.h>
 #include <Adafruit_BMP280.h>
 #include <Adafruit_SHT31.h>
+#include <Adafruit_SCD30.h>
 #include <Adafruit_Sensor.h>
 #include <MHZ19.h>
 #include <SensirionI2CScd4x.h>
 #include <SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h>
-#include <SparkFun_SCD30_Arduino_Library.h>
 #include <cm1106_uart.h>
 #include <dht_nonblocking.h>
 #include <s8_uart.h>
@@ -186,7 +186,7 @@ class Sensors {
     // Mhz19 sensor
     MHZ19 mhz19;
     // SCD30 sensor
-    SCD30 scd30;
+    Adafruit_SCD30 scd30;
     // CM1106 UART
     CM1106_UART *cm1106;
 
