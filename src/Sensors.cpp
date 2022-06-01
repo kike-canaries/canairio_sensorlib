@@ -60,7 +60,7 @@ bool Sensors::readAllSensors() {
         DEBUG("-->[SLIB] UART data ready \t:", dataReady ? "true" : "false");
     }
     enableWire1();
-    // CO2scd30Read();
+    CO2scd30Read();
     // GCJA5Read();
     sps30Read();
     CO2scd4xRead();
@@ -106,7 +106,7 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
         DEBUG("-->[SLIB] UART sensors detected\t:", "0");
     }
     startI2C();
-    // CO2scd30Init();
+    CO2scd30Init();
     sps30I2CInit();
     // GCJA5Init();
     CO2scd4xInit();
