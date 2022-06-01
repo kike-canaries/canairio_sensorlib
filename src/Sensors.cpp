@@ -140,7 +140,7 @@ void Sensors::setSampleTime(int seconds) {
 void Sensors::setCO2RecalibrationFactor(int ppmValue) {
     if (isSensorRegistered(SENSORS::SSCD30)) {
         Serial.println("-->[SLIB] SCD30 calibration to\t: " + String(ppmValue));
-        scd30.setForcedRecalibrationFactor(ppmValue);
+        scd30.forceRecalibrationWithReference(ppmValue);
     }
     if (isSensorRegistered(SENSORS::SCM1106)) {
         Serial.println("-->[SLIB] CM1106 calibration to\t: " + String(ppmValue));
@@ -933,12 +933,12 @@ void Sensors::sht31Read() {
 }
 
 void Sensors::CO2scd30Read() {
-    if (!scd30.isConnected()) return;
-    uint16_t tCO2 = scd30.getCO2();  // we need temp var, without it override CO2
+    if (!scd30.dataReady() || !scd30.read()) return;
+    uint16_t tCO2 = scd30.CO2;  // we need temp var, without it override CO2
     if (tCO2 > 0) {
         CO2Val = tCO2;
-        CO2humi = scd30.getHumidity();
-        CO2temp = scd30.getTemperature();
+        CO2humi = scd30.relative_humidity;
+        CO2temp = scd30.temperature;
         dataReady = true;
         DEBUG("-->[SLIB] SCD30 read\t\t: done!");
         unitRegister(UNIT::CO2);
@@ -1424,16 +1424,16 @@ void Sensors::aht10Init() {
 void Sensors::CO2scd30Init() {
     sensorAnnounce(SENSORS::SSCD30);
     #ifdef ESP32
-    if (!scd30.begin() && !scd30.begin(Wire1,false,true)) return;
+    if (!scd30.begin() && !scd30.begin(SCD30_I2CADDR_DEFAULT, &Wire1, SCD30_CHIP_ID)) return;
     #else
     if (!scd30.begin()) return;
     #endif
     delay(10);
 
     DEBUG("-->[SLIB] SCD30 Temp offset\t:",String(scd30.getTemperatureOffset()).c_str());
-    DEBUG("-->[SLIB] SCD30 Altitude offset\t:", String(scd30.getAltitudeCompensation()).c_str());
+    DEBUG("-->[SLIB] SCD30 Altitude offset\t:", String(scd30.getAltitudeOffset()).c_str());
 
-    if(scd30.getAltitudeCompensation() != uint16_t(altoffset)){
+    if(scd30.getAltitudeOffset() != uint16_t(altoffset)){
         DEBUG("-->[SLIB] SCD30 altitude offset to\t:", String(altoffset).c_str());
         setSCD30AltitudeOffset(altoffset);
         delay(10);
@@ -1458,7 +1458,7 @@ void Sensors::setSCD30TempOffset(float offset) {
 void Sensors::setSCD30AltitudeOffset(float offset) {
     if (isSensorRegistered(SENSORS::SSCD30)) {
         Serial.println("-->[SLIB] SCD30 new altitude offset\t: " + String(offset));
-        scd30.setAltitudeCompensation(uint16_t(offset));
+        scd30.setAltitudeOffset(uint16_t(offset));
     }
 }
 
