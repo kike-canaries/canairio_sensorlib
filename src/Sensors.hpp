@@ -23,8 +23,20 @@
 #include "MovingSum.h"
 #endif
 
-#define CSL_VERSION "0.5.5"
-#define CSL_REVISION 360
+#define CSL_VERSION "0.5.6"
+#define CSL_REVISION 361
+
+/**************************************************************
+ *                          GEIGER
+ * ************************************************************/
+// Define pin for tics from geiger counter
+#ifdef ESP8266
+#define PINTIC D5
+#else
+#define PINTIC 27   
+#endif        
+#define TICFACTOR 0.05      // factor between number of tics/second --> mR/hr
+#define LOG_PERIOD  10      // for esp8266 variant
 
 /**************************************************************
  *                          GEIGER
@@ -144,6 +156,7 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
     X(SDHTX, "DHTX", 3)     \
     X(SCAJOE, "CAJOE", 4)   \
     X(SCOUNT, "SCOUNT", 3) 
+    //X(SRADIATION, "CAJOE", 2) */
 
 #define X(utype, uname, umaintype) utype,
 typedef enum SENSORS : size_t { SENSORS_TYPES } SENSORS;  // backward compatibility
@@ -478,6 +491,9 @@ class Sensors {
     void unitRegister(UNIT unit);
 
     uint8_t *getUnitsRegistered();
+    
+   // void geigerInit();
+   // void geigerLoop();
 
 // @todo use DEBUG_ESP_PORT ?
 #ifdef WM_DEBUG_PORT
