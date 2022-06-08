@@ -20,6 +20,18 @@
 #define CSL_VERSION "0.5.6"
 #define CSL_REVISION 361
 
+/**************************************************************
+ *                          GEIGER
+ * ************************************************************/
+// Define pin for tics from geiger counter
+#ifdef ESP8266
+#define PINTIC D5
+#else
+#define PINTIC 27   
+#endif        
+#define TICFACTOR 0.05      // factor between number of tics/second --> mR/hr
+#define LOG_PERIOD  10      // for esp8266 variant
+
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
 ***************************************************************/
@@ -98,7 +110,8 @@
     X(PRESS, "hPa", "P")       \
     X(ALT, "m", "Alt")         \
     X(GAS, "Ohm", "Gas")       \
-    X(UCOUNT, "COUNT", "UCOUNT")
+    X(UCOUNT, "COUNT", "UCOUNT")\
+    X(RADIATION, "mR", "mRem")
 
 #define X(unit, symbol, name) unit,
 typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
@@ -121,7 +134,8 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
     X(SAHT10, "AHT10", 3)   \
     X(SAM232X, "AM232X", 3) \
     X(SDHTX, "DHTX", 3)     \
-    X(SCOUNT, "SCOUNT", 3)
+    X(SCOUNT, "SCOUNT", 3)  /*\
+    X(SRADIATION, "CAJOE", 2) */
 
 #define X(utype, uname, umaintype) utype,
 typedef enum SENSORS : size_t { SENSORS_TYPES } SENSORS;  // backward compatibility
@@ -441,6 +455,9 @@ class Sensors {
     void unitRegister(UNIT unit);
 
     uint8_t *getUnitsRegistered();
+    
+   // void geigerInit();
+   // void geigerLoop();
 
 // @todo use DEBUG_ESP_PORT ?
 #ifdef WM_DEBUG_PORT
@@ -455,3 +472,5 @@ extern Sensors sensors;
 #endif
 
 #endif
+    void geigerInit();
+    void geigerLoop();
