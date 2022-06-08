@@ -30,8 +30,9 @@ jobs:
       - name: Submitted library code test
         run: |
           pio run
-      - name: PlatformIO registry test (M5Atom example)
+      - name: PlatformIO registry test (M5CoreInk example)
         run: |
-          cd examples/m5atom
+          git clone https://github.com/hpsaturn/co2_m5coreink.git
+          cd co2_m5coreink
           pio run
       

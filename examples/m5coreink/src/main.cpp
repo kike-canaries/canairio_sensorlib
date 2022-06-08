@@ -5,9 +5,12 @@
  * This project using CanAirIO Sensors Library. You can find the library here:
  * https://github.com/kike-canaries/canairio_sensorlib
  * 
- * The source code, documentation and the last version of this project here:
+ * == W A R N I N G ==
+ *
+ * The source code, documentation and the **last version** of this sample is here:
  * https://github.com/hpsaturn/co2_m5coreink
  * 
+ * ==================
  * Tested with:
  * 
  * - One SCD30 (C02 sensor)
