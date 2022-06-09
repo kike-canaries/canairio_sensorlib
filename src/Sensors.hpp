@@ -32,14 +32,13 @@
 
 #ifdef CAJOE_GEIGER
 #ifdef ESP32
-#define GEIGER_TIMER        1               // timer0 is already used somewhere ???
+#define GEIGER_TIMER        1               // timer0 is already used (at least on TTGO-TDisplay) somewhere ???
 #define GEIGER_PINTIC       26              // GPIO27 is busy (used as sensor(s) enable)
 #else
-#define GEIGER_TIMER        0               // timer0 was used
-#define GEIGER_PINTIC 		D5				// 
+#define GEIGER_PINTIC 		D5			    // 
 #endif        
-#define GEIGER_BUFSIZE      240             // moving sum buffer size (1 sample every 250 ms * 240 samples = 60000ms = 60s)
-#define J305_CONV_FACTOR    0.008120370     // conversion Factor used for conversion from CPM to uSv/h units (J305 tube)
+#define GEIGER_BUFSIZE      60              // moving sum buffer size (1 sample every 1s * 60 samples = 60s)
+#define J305_CONV_FACTOR    0.008120370     // conversion factor used for conversion from CPM to uSv/h units (J305 tube)
 #endif        
 
 /***************************************************************
