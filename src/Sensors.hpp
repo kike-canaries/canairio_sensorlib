@@ -29,26 +29,17 @@
 /**************************************************************
  *                          GEIGER
  * ************************************************************/
-// Define pin for tics from geiger counter
-#ifdef ESP8266
-#define PINTIC D5
-#else
-#define PINTIC 27   
-#endif        
-#define TICFACTOR 0.05      // factor between number of tics/second --> mR/hr
-#define LOG_PERIOD  10      // for esp8266 variant
-
-/**************************************************************
- *                          GEIGER
- * ************************************************************/
 
 #ifdef CAJOE_GEIGER
 #ifdef ESP32
 #define GEIGER_TIMER        1               // timer0 is already used somewhere ???
 #define GEIGER_PINTIC       26              // GPIO27 is busy (used as sensor(s) enable)
+#else
+#define GEIGER_TIMER        0               // timer0 was used
+#define GEIGER_PINTIC 		D5				// 
+#endif        
 #define GEIGER_BUFSIZE      240             // moving sum buffer size (1 sample every 250 ms * 240 samples = 60000ms = 60s)
 #define J305_CONV_FACTOR    0.008120370     // conversion Factor used for conversion from CPM to uSv/h units (J305 tube)
-#endif        
 #endif        
 
 /***************************************************************
@@ -156,7 +147,6 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
     X(SDHTX, "DHTX", 3)     \
     X(SCAJOE, "CAJOE", 4)   \
     X(SCOUNT, "SCOUNT", 3) 
-    //X(SRADIATION, "CAJOE", 2) */
 
 #define X(utype, uname, umaintype) utype,
 typedef enum SENSORS : size_t { SENSORS_TYPES } SENSORS;  // backward compatibility
@@ -491,9 +481,6 @@ class Sensors {
     void unitRegister(UNIT unit);
 
     uint8_t *getUnitsRegistered();
-    
-   // void geigerInit();
-   // void geigerLoop();
 
 // @todo use DEBUG_ESP_PORT ?
 #ifdef WM_DEBUG_PORT
