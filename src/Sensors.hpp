@@ -17,8 +17,30 @@
 #include <s8_uart.h>
 #include <sps30.h>
 
-#define CSL_VERSION "0.5.5"
-#define CSL_REVISION 360
+#define CAJOE_GEIGER
+
+#ifdef CAJOE_GEIGER
+#include "MovingSum.h"
+#endif
+
+#define CSL_VERSION "0.5.6"
+#define CSL_REVISION 361
+
+/**************************************************************
+ *                          GEIGER
+ * ************************************************************/
+
+#ifdef CAJOE_GEIGER
+#ifdef ESP32
+#define GEIGER_TIMER        1               // timer0 is already used somewhere ???
+#define GEIGER_PINTIC       26              // GPIO27 is busy (used as sensor(s) enable)
+#else
+#define GEIGER_TIMER        0               // timer0 was used
+#define GEIGER_PINTIC 		D5				// 
+#endif        
+#define GEIGER_BUFSIZE      240             // moving sum buffer size (1 sample every 250 ms * 240 samples = 60000ms = 60s)
+#define J305_CONV_FACTOR    0.008120370     // conversion Factor used for conversion from CPM to uSv/h units (J305 tube)
+#endif        
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -98,6 +120,8 @@
     X(PRESS, "hPa", "P")       \
     X(ALT, "m", "Alt")         \
     X(GAS, "Ohm", "Gas")       \
+    X(CPM, "CPM", "CPM")       \
+    X(RADIATION, "uSv/h", "Radiation") \
     X(UCOUNT, "COUNT", "UCOUNT")
 
 #define X(unit, symbol, name) unit,
@@ -121,7 +145,8 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
     X(SAHT10, "AHT10", 3)   \
     X(SAM232X, "AM232X", 3) \
     X(SDHTX, "DHTX", 3)     \
-    X(SCOUNT, "SCOUNT", 3)
+    X(SCAJOE, "CAJOE", 4)   \
+    X(SCOUNT, "SCOUNT", 3) 
 
 #define X(utype, uname, umaintype) utype,
 typedef enum SENSORS : size_t { SENSORS_TYPES } SENSORS;  // backward compatibility
@@ -131,7 +156,9 @@ typedef enum SENSORS : size_t { SENSORS_TYPES } SENSORS;  // backward compatibil
 enum class SensorGroup { SENSOR_NONE,
                          SENSOR_PM,
                          SENSOR_CO2,
-                         SENSOR_ENV };
+                         SENSOR_ENV, 
+                         SENSOR_RAD  // CAJOE_GEIGER
+                         };
 
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
@@ -247,6 +274,11 @@ class Sensors {
     float getAltitude();
 
     float getGas();
+
+#ifdef CAJOE_GEIGER
+    uint32_t getGeigerCPM(void);
+    float getGeigerMicroSievertHour(void);
+#endif
 
     void setTempOffset(float offset);
 
@@ -392,6 +424,14 @@ class Sensors {
     void dhtRead();
     bool dhtIsReady(float *temperature, float *humidity);
 
+   // Geiger methods:
+
+#ifdef CAJOE_GEIGER
+    void geigerInit();
+    void geigerEvaluate();
+    float CPM2uSvh(uint32_t cpm);
+#endif
+
     // UART sensors methods:
 
     bool sensorSerialInit(int pms_type, int rx, int tx);
@@ -455,3 +495,4 @@ extern Sensors sensors;
 #endif
 
 #endif
+    
