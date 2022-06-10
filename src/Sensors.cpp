@@ -1853,7 +1853,7 @@ void Sensors::geigerInit() {
 
 #else
 
-   pinMode(GEIGER_PINTIC, INPUT);
+   pinMode(GEIGER_PINTIC, INPUT_PULLUP);
 
    attachInterrupt(digitalPinToInterrupt(GEIGER_PINTIC), GeigerTicISR, FALLING); // WARNING! not sure if it's counted twice as on ESP32 or not...
 
@@ -1886,18 +1886,33 @@ void Sensors::geigerEvaluate() {
 #else
 
    unsigned long int second;
-   unsigned long int secidx;
+   unsigned long int secidx_curr;
    static unsigned long int secidx_prev = 0;
 
    second = millis() / 1000;
-   secidx = second % 60;
+   secidx_curr = second % 60;
 
-// update the moving sum every second
-   if (secidx != secidx_prev){
-      cajoe_fms->add(tics_cnt / 2); // WARNING! tics are counted twice... also on ESP8266 ??? needs to be checked...
-      secidx_prev = secidx;
-      tics_cnt = 0;
+   Serial.print("-->[SLIB] sPREV: "); Serial.println(secidx_prev);
+   Serial.print("-->[SLIB] sCURR: "); Serial.println(secidx_curr);
+
+// exit in case we are called twice (or more) in a second...
+   if (secidx_curr == secidx_prev) return;
+
+// evaluate the number of missing samples in case geigerEvaluate() is not called every seconds...
+// WARNING! we still expects to be called at least once a minute...
+   int delta = (secidx_prev < secidx_curr) ? secidx_curr-secidx_prev : 60-secidx_prev+secidx_curr;
+
+// zeroes the missing samples... if any...
+   for(int i=1; i<delta; i++){
+      Serial.print("-->[SLIB] add 0 @"); Serial.println((secidx_prev+i)%60);
+      cajoe_fms->add(0);
       }
+
+// add last sample
+   Serial.print("-->[SLIB] add "); Serial.print(tics_cnt / 2); Serial.print(" @"); Serial.println(secidx_curr);
+   cajoe_fms->add(tics_cnt / 2); // WARNING! tics are counted twice... also on ESP8266 ??? needs to be checked...
+   secidx_prev = secidx_curr;
+   tics_cnt = 0;
 
    tics_cpm = cajoe_fms->getCurrentSum();
    tics_len = cajoe_fms->getCurrentFilterLength();
