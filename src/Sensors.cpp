@@ -36,8 +36,8 @@ uint8_t sensors_registered [SCOUNT];
 
     float uSvh = 0.0f;
     uint32_t tics_cpm = 0U; // tics in last 60s
-    uint16_t tics_cnt = 0U; // tics in 1000ms x2
-    uint32_t tics_tot = 0U; // total tics since boot x2
+    uint16_t tics_cnt = 0U; // tics in 1000ms (x1 on ESP8266, x2 on ESP32)
+    uint32_t tics_tot = 0U; // total tics since boot (x1 on ESP8266, x2 on ESP32)
     MovingSum<uint16_t, uint32_t>* cajoe_fms;
 
 #endif
@@ -1774,8 +1774,8 @@ Sensors sensors;
        portENTER_CRITICAL_ISR(geiger_timerMux);
 #endif
 
-       tics_cnt++; // tics in 1000ms x2
-       tics_tot++; // total tics since boot x2
+       tics_cnt++; // tics in 1000ms (x1 on ESP8266, x2 on ESP32)
+       tics_tot++; // total tics since boot (x1 on ESP8266, x2 on ESP32)
 
 #ifdef ESP32
        portEXIT_CRITICAL_ISR(geiger_timerMux);
@@ -1793,7 +1793,7 @@ Sensors sensors;
 void IRAM_ATTR onGeigerTimer() {
     
     portENTER_CRITICAL_ISR(geiger_timerMux);
-    cajoe_fms->add(tics_cnt / 2); // tics are counted twice... on falling and rising edges... 
+    cajoe_fms->add(tics_cnt / 2); // on ESP32 tics are counted twice... on falling and rising edges... 
     tics_cnt = 0;
     portEXIT_CRITICAL_ISR(geiger_timerMux);
 }
@@ -1820,8 +1820,8 @@ float Sensors::CPM2uSvh(uint32_t cpm) {
 
 void Sensors::geigerInit() {
 
-   tics_cnt = 0U; // tics in 1000ms x2
-   tics_tot = 0U; // total tics since boot x2
+   tics_cnt = 0U; // tics in 1000ms (x1 on ESP8266, x2 on ESP32)
+   tics_tot = 0U; // total tics since boot (x1 on ESP8266, x2 on ESP32)
    
 #ifdef ESP32
    geiger_timer = NULL;
@@ -1855,7 +1855,7 @@ void Sensors::geigerInit() {
 
    pinMode(GEIGER_PINTIC, INPUT);
 
-   attachInterrupt(digitalPinToInterrupt(GEIGER_PINTIC), GeigerTicISR, FALLING); // WARNING! not sure if it's counted twice as on ESP32 or not...
+   attachInterrupt(digitalPinToInterrupt(GEIGER_PINTIC), GeigerTicISR, FALLING); // counted once (as expected)
 
 #endif
 
@@ -1886,18 +1886,33 @@ void Sensors::geigerEvaluate() {
 #else
 
    unsigned long int second;
-   unsigned long int secidx;
+   unsigned long int secidx_curr;
    static unsigned long int secidx_prev = 0;
 
    second = millis() / 1000;
-   secidx = second % 60;
+   secidx_curr = second % 60;
 
-// update the moving sum every second
-   if (secidx != secidx_prev){
-      cajoe_fms->add(tics_cnt / 2); // WARNING! tics are counted twice... also on ESP8266 ??? needs to be checked...
-      secidx_prev = secidx;
-      tics_cnt = 0;
+   Serial.print("-->[SLIB] sPREV: "); Serial.println(secidx_prev);
+   Serial.print("-->[SLIB] sCURR: "); Serial.println(secidx_curr);
+
+// exit in case we are called twice (or more) in a second...
+   if (secidx_curr == secidx_prev) return;
+
+// evaluate the number of missing samples in case geigerEvaluate() is not called every seconds...
+// WARNING! we still expects to be called at least once a minute...
+   int delta = (secidx_prev < secidx_curr) ? secidx_curr-secidx_prev : 60-secidx_prev+secidx_curr;
+
+// zeroes the missing samples... if any...
+   for(int i=1; i<delta; i++){
+      Serial.print("-->[SLIB] add 0 @"); Serial.println((secidx_prev+i)%60);
+      cajoe_fms->add(0);
       }
+
+// add last sample
+   Serial.print("-->[SLIB] add "); Serial.print(tics_cnt); Serial.print(" @"); Serial.println(secidx_curr);
+   cajoe_fms->add(tics_cnt);
+   secidx_prev = secidx_curr;
+   tics_cnt = 0;
 
    tics_cpm = cajoe_fms->getCurrentSum();
    tics_len = cajoe_fms->getCurrentFilterLength();
@@ -1915,14 +1930,14 @@ void Sensors::geigerEvaluate() {
       uSvh = 0.0; 
       }    
 
-   Serial.print("-->[SLIB] tTOT: "); Serial.println(tics_tot / 2); // tics are counted twice... on falling and rising edges...
+#ifdef ESP32
+   Serial.print("-->[SLIB] tTOT: "); Serial.println(tics_tot / 2); // on ESP32 tics are counted twice... on falling and rising edges...
+#else
+   Serial.print("-->[SLIB] tTOT: "); Serial.println(tics_tot); // on ESP8266 tics are counted only on the falling edge...
+#endif
    Serial.print("-->[SLIB] tLEN: "); Serial.print  (tics_len); Serial.println(ready ? " (ready)" : " (not ready)");
    Serial.print("-->[SLIB] tCPM: "); Serial.println(tics_cpm);
    Serial.print("-->[SLIB] uSvh: "); Serial.println(uSvh);
-
-// WARNING! does this actually print on TFT ???
-   Serial.print("uSvh: "); Serial.println(uSvh);
-   Serial.print("cpm: "); Serial.println(tics_cpm);
 }
 
 #endif
