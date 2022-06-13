@@ -36,8 +36,8 @@ uint8_t sensors_registered [SCOUNT];
 
     float uSvh = 0.0f;
     uint32_t tics_cpm = 0U; // tics in last 60s
-    uint16_t tics_cnt = 0U; // tics in 1000ms x2
-    uint32_t tics_tot = 0U; // total tics since boot x2
+    uint16_t tics_cnt = 0U; // tics in 1000ms (x1 on ESP8266, x2 on ESP32)
+    uint32_t tics_tot = 0U; // total tics since boot (x1 on ESP8266, x2 on ESP32)
     MovingSum<uint16_t, uint32_t>* cajoe_fms;
 
 #endif
@@ -1774,8 +1774,8 @@ Sensors sensors;
        portENTER_CRITICAL_ISR(geiger_timerMux);
 #endif
 
-       tics_cnt++; // tics in 1000ms x2
-       tics_tot++; // total tics since boot x2
+       tics_cnt++; // tics in 1000ms (x1 on ESP8266, x2 on ESP32)
+       tics_tot++; // total tics since boot (x1 on ESP8266, x2 on ESP32)
 
 #ifdef ESP32
        portEXIT_CRITICAL_ISR(geiger_timerMux);
@@ -1793,7 +1793,7 @@ Sensors sensors;
 void IRAM_ATTR onGeigerTimer() {
     
     portENTER_CRITICAL_ISR(geiger_timerMux);
-    cajoe_fms->add(tics_cnt / 2); // tics are counted twice... on falling and rising edges... 
+    cajoe_fms->add(tics_cnt / 2); // on ESP32 tics are counted twice... on falling and rising edges... 
     tics_cnt = 0;
     portEXIT_CRITICAL_ISR(geiger_timerMux);
 }
@@ -1820,8 +1820,8 @@ float Sensors::CPM2uSvh(uint32_t cpm) {
 
 void Sensors::geigerInit() {
 
-   tics_cnt = 0U; // tics in 1000ms x2
-   tics_tot = 0U; // total tics since boot x2
+   tics_cnt = 0U; // tics in 1000ms (x1 on ESP8266, x2 on ESP32)
+   tics_tot = 0U; // total tics since boot (x1 on ESP8266, x2 on ESP32)
    
 #ifdef ESP32
    geiger_timer = NULL;
@@ -1853,9 +1853,9 @@ void Sensors::geigerInit() {
 
 #else
 
-   pinMode(GEIGER_PINTIC, INPUT_PULLUP);
+   pinMode(GEIGER_PINTIC, INPUT);
 
-   attachInterrupt(digitalPinToInterrupt(GEIGER_PINTIC), GeigerTicISR, FALLING); // WARNING! not sure if it's counted twice as on ESP32 or not...
+   attachInterrupt(digitalPinToInterrupt(GEIGER_PINTIC), GeigerTicISR, FALLING); // counted once (as expected)
 
 #endif
 
@@ -1909,8 +1909,8 @@ void Sensors::geigerEvaluate() {
       }
 
 // add last sample
-   Serial.print("-->[SLIB] add "); Serial.print(tics_cnt / 2); Serial.print(" @"); Serial.println(secidx_curr);
-   cajoe_fms->add(tics_cnt / 2); // WARNING! tics are counted twice... also on ESP8266 ??? needs to be checked...
+   Serial.print("-->[SLIB] add "); Serial.print(tics_cnt); Serial.print(" @"); Serial.println(secidx_curr);
+   cajoe_fms->add(tics_cnt);
    secidx_prev = secidx_curr;
    tics_cnt = 0;
 
@@ -1930,14 +1930,14 @@ void Sensors::geigerEvaluate() {
       uSvh = 0.0; 
       }    
 
-   Serial.print("-->[SLIB] tTOT: "); Serial.println(tics_tot / 2); // tics are counted twice... on falling and rising edges...
+#ifdef ESP32
+   Serial.print("-->[SLIB] tTOT: "); Serial.println(tics_tot / 2); // on ESP32 tics are counted twice... on falling and rising edges...
+#else
+   Serial.print("-->[SLIB] tTOT: "); Serial.println(tics_tot); // on ESP8266 tics are counted only on the falling edge...
+#endif
    Serial.print("-->[SLIB] tLEN: "); Serial.print  (tics_len); Serial.println(ready ? " (ready)" : " (not ready)");
    Serial.print("-->[SLIB] tCPM: "); Serial.println(tics_cpm);
    Serial.print("-->[SLIB] uSvh: "); Serial.println(uSvh);
-
-// WARNING! does this actually print on TFT ???
-   Serial.print("uSvh: "); Serial.println(uSvh);
-   Serial.print("cpm: "); Serial.println(tics_cpm);
 }
 
 #endif

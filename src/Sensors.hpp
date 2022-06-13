@@ -35,7 +35,7 @@
 #define GEIGER_TIMER        1               // timer0 is already used (at least on TTGO-TDisplay) somewhere ???
 #define GEIGER_PINTIC       26              // GPIO27 is busy (used as sensor(s) enable)
 #else
-#define GEIGER_PINTIC 		D5			    // 
+#define GEIGER_PINTIC 		D5			    // tested on ESP8266 NodeMCU
 #endif        
 #define GEIGER_BUFSIZE      60              // moving sum buffer size (1 sample every 1s * 60 samples = 60s)
 #define J305_CONV_FACTOR    0.008120370     // conversion factor used for conversion from CPM to uSv/h units (J305 tube)
