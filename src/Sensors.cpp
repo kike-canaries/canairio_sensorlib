@@ -36,8 +36,8 @@ uint8_t sensors_registered [SCOUNT];
 
     float uSvh = 0.0f;
     uint32_t tics_cpm = 0U; // tics in last 60s
-    uint16_t tics_cnt = 0U; // tics in 1000ms (x1 on ESP8266, x2 on ESP32)
-    uint32_t tics_tot = 0U; // total tics since boot (x1 on ESP8266, x2 on ESP32)
+    uint16_t tics_cnt = 0U; // tics in 1000ms
+    uint32_t tics_tot = 0U; // total tics since boot
     MovingSum<uint16_t, uint32_t>* cajoe_fms;
 
 #endif
@@ -1774,8 +1774,8 @@ Sensors sensors;
        portENTER_CRITICAL_ISR(geiger_timerMux);
 #endif
 
-       tics_cnt++; // tics in 1000ms (x1 on ESP8266, x2 on ESP32)
-       tics_tot++; // total tics since boot (x1 on ESP8266, x2 on ESP32)
+       tics_cnt++; // tics in 1000ms
+       tics_tot++; // total tics since boot
 
 #ifdef ESP32
        portEXIT_CRITICAL_ISR(geiger_timerMux);
@@ -1793,7 +1793,7 @@ Sensors sensors;
 void IRAM_ATTR onGeigerTimer() {
     
     portENTER_CRITICAL_ISR(geiger_timerMux);
-    cajoe_fms->add(tics_cnt / 2); // on ESP32 tics are counted twice... on falling and rising edges... 
+    cajoe_fms->add(tics_cnt); 
     tics_cnt = 0;
     portEXIT_CRITICAL_ISR(geiger_timerMux);
 }
@@ -1820,8 +1820,8 @@ float Sensors::CPM2uSvh(uint32_t cpm) {
 
 void Sensors::geigerInit() {
 
-   tics_cnt = 0U; // tics in 1000ms (x1 on ESP8266, x2 on ESP32)
-   tics_tot = 0U; // total tics since boot (x1 on ESP8266, x2 on ESP32)
+   tics_cnt = 0U; // tics in 1000ms
+   tics_tot = 0U; // total tics since boot
    
 #ifdef ESP32
    geiger_timer = NULL;
@@ -1841,9 +1841,7 @@ void Sensors::geigerInit() {
 
 // attach interrupt routine to the GPI connected to the Geiger counter module
    pinMode(GEIGER_PINTIC, INPUT);
-// attachInterrupt(digitalPinToInterrupt(GEIGER_PINTIC), GeigerTicISR, RISING); // counted twice (unexpected)
-// attachInterrupt(digitalPinToInterrupt(GEIGER_PINTIC), GeigerTicISR, FALLING);// counted twice (unexpected)
-   attachInterrupt(digitalPinToInterrupt(GEIGER_PINTIC), GeigerTicISR, CHANGE); // counted twice (as expected)
+   attachInterrupt(digitalPinToInterrupt(GEIGER_PINTIC), GeigerTicISR, FALLING);
    
 // attach interrupt routine to internal timer, to fire every 1000 ms
    geiger_timer = timerBegin(GEIGER_TIMER, 80, true);     
@@ -1855,7 +1853,7 @@ void Sensors::geigerInit() {
 
    pinMode(GEIGER_PINTIC, INPUT);
 
-   attachInterrupt(digitalPinToInterrupt(GEIGER_PINTIC), GeigerTicISR, FALLING); // counted once (as expected)
+   attachInterrupt(digitalPinToInterrupt(GEIGER_PINTIC), GeigerTicISR, FALLING);
 
 #endif
 
@@ -1930,11 +1928,7 @@ void Sensors::geigerEvaluate() {
       uSvh = 0.0; 
       }    
 
-#ifdef ESP32
-   Serial.print("-->[SLIB] tTOT: "); Serial.println(tics_tot / 2); // on ESP32 tics are counted twice... on falling and rising edges...
-#else
-   Serial.print("-->[SLIB] tTOT: "); Serial.println(tics_tot); // on ESP8266 tics are counted only on the falling edge...
-#endif
+   Serial.print("-->[SLIB] tTOT: "); Serial.println(tics_tot);
    Serial.print("-->[SLIB] tLEN: "); Serial.print  (tics_len); Serial.println(ready ? " (ready)" : " (not ready)");
    Serial.print("-->[SLIB] tCPM: "); Serial.println(tics_cpm);
    Serial.print("-->[SLIB] uSvh: "); Serial.println(uSvh);
