@@ -86,7 +86,7 @@
     {"name":"MH-Z19", "owner":"wifwaf", "version":"1.5.3"},
     {"name":"Sensirion Core","owner":"sensirion","version":"0.5.3"},
     {"name":"Sensirion I2C SCD4x","owner":"sensirion","version":"0.3.1"},
-    {"name":"DHT_nonblocking", "version":"https://github.com/hpsaturn/DHT_nonblocking.git"},
+    {"name":"DHT_nonblocking", "version":"https://github.com/hpsaturn/DHT_nonblocking.git#ec6e5b9"},
     {"name":"SN-GCJA5", "version":"https://github.com/paulvha/SN-GCJA5.git"},
     {"name":"S8_UART", "version":"https://github.com/jcomas/S8_UART.git"},
     {"name":"CM1106_UART", "version":"https://github.com/jcomas/CM1106_UART.git"}

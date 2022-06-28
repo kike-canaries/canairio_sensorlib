@@ -24,7 +24,7 @@
 #endif
 
 #define CSL_VERSION "0.5.6"
-#define CSL_REVISION 361
+#define CSL_REVISION 362
 
 /**************************************************************
  *                          GEIGER
