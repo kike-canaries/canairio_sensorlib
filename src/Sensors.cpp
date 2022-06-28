@@ -24,6 +24,24 @@ int sensors_device_types[] = { SENSORS_TYPES };
 
 uint8_t sensors_registered [SCOUNT];
 
+// #########################################################################
+// variables shared between main code and interrupt code
+
+#ifdef CAJOE_GEIGER
+
+#ifdef ESP32
+    hw_timer_t* geiger_timer = NULL;
+    portMUX_TYPE* geiger_timerMux = NULL;
+#endif
+
+    float uSvh = 0.0f;
+    uint32_t tics_cpm = 0U; // tics in last 60s
+    uint16_t tics_cnt = 0U; // tics in 1000ms
+    uint32_t tics_tot = 0U; // total tics since boot
+    MovingSum<uint16_t, uint32_t>* cajoe_fms;
+
+#endif
+
 /***********************************************************************************
  *  P U B L I C   M E T H O D S
  * *********************************************************************************/
@@ -72,7 +90,11 @@ bool Sensors::readAllSensors() {
     bme680Read();
     dhtRead();
     disableWire1();
-    geigerLoop();;
+
+#ifdef CAJOE_GEIGER
+    geigerEvaluate();
+#endif
+
     printValues();
     printSensorsRegistered(devmode);
     printUnitsRegistered(devmode);
@@ -117,7 +139,9 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     sht31Init();
     aht10Init();
     dhtInit();
+#ifdef CAJOE_GEIGER
     geigerInit();
+#endif
     printSensorsRegistered(true);
 }
 
@@ -243,7 +267,7 @@ uint16_t Sensors::getPM1() {
 
 /// @deprecated get PM1.0 ug/m3 formated value
 String Sensors::getStringPM1() {
-    char output[5];
+    char output[6];
     sprintf(output, "%03d", getPM1());
     return String(output);
 }
@@ -255,7 +279,7 @@ uint16_t Sensors::getPM25() {
 
 /// @deprecated get PM2.5 ug/m3 formated value
 String Sensors::getStringPM25() {
-    char output[5];
+    char output[6];
     sprintf(output, "%03d", getPM25());
     return String(output);
 }
@@ -267,7 +291,7 @@ uint16_t Sensors::getPM4() {
 
 /// @deprecated get PM4 ug/m3 formated value
 String Sensors::getStringPM4() {
-    char output[5];
+    char output[6];
     sprintf(output, "%03d", getPM4());
     return String(output);
 }
@@ -279,7 +303,7 @@ uint16_t Sensors::getPM10() {
 
 /// @deprecated get PM10 ug/m3 formated value
 String Sensors::getStringPM10() {
-    char output[5];
+    char output[6];
     sprintf(output, "%03d", getPM10());
     return String(output);
 }
@@ -291,7 +315,7 @@ uint16_t Sensors::getCO2() {
 
 /// @deprecated get CO2 ppm formated value
 String Sensors::getStringCO2() {
-    char output[5];
+    char output[6];
     sprintf(output, "%04d", getCO2());
     return String(output);
 }
@@ -560,6 +584,14 @@ float Sensors::getUnitValue(UNIT unit) {
             return alt;
         case GAS:
             return gas;
+
+#ifdef CAJOE_GEIGER
+        case CPM:
+            return tics_cpm;
+        case RADIATION:
+            return uSvh;
+#endif
+
         default:
             return 0.0;
     }
@@ -1572,6 +1604,13 @@ void Sensors::resetAllVariables() {
     alt = 0.0;
     gas = 0.0;
     pres = 0.0;
+
+#ifdef CAJOE_GEIGER
+    if (cajoe_fms != NULL) cajoe_fms->clear();
+    tics_cpm = 0;
+    uSvh = 0.0;
+#endif
+
 }
 
 void Sensors::DEBUG(const char *text, const char *textb) {
@@ -1719,146 +1758,202 @@ bool Sensors::serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int
 Sensors sensors;
 #endif
 
-// *************** GEIGER ****************
-// ***************************************
-#ifdef ESP8266
-    static volatile unsigned long counts = 0;
-    static int secondcounts[60];
-    static unsigned long int secidx_prev = 0;
-    static unsigned long int count_prev = 0;
-    static unsigned long int second_prev = 0; 
-#else
-
-// variables shared between main code and interrupt code
-hw_timer_t * timer = NULL;
-#endif
-volatile uint32_t updateTime = 0;       // time for next update
-volatile uint16_t tic_cnt = 0;
- 
-// To calculate a running average over 10 sec, we keep tic counts in 250ms intervals and add all 40 tic_buf values
-#define TICBUFSIZE 40                   // running average buffer size
-volatile uint16_t tic_buf[TICBUFSIZE];  // buffer for 40 times 250ms tick values (to have a running average for 10 seconds)
-volatile uint16_t tic_buf_cnt = 0;
- 
-// In order to display a history of the last 7 minutes, we keep the last 50 values of 10sec tics
-#define SEC10BUFSIZE 50                 // history array for displaymode==true
-volatile uint16_t sec10 = 0;            // every 10 seconds counter
-volatile uint16_t sec10_buf[SEC10BUFSIZE];  // buffer to hold 10 sec history (40*10 = 400 seconds)
-volatile bool sec10updated = false;     // set to true when sec10_buf is updated
- 
- #ifdef ESP8266
-   // interrupt routine
-ICACHE_RAM_ATTR static void TicISR()
-{
-    counts++;
-}
-#else
 // #########################################################################
 // Interrupt routine called on each click from the geiger tube
-//
-void IRAM_ATTR TicISR() {
-  tic_cnt++;
-}
- #endif
+// WARNING! the ISR is actually called on both the rising and the falling edge even if configure for FALLING or RISING
 
-// #########################################################################
-// Interrupt timer routine called every 250 ms
-//
-void IRAM_ATTR onTimer() {
-  tic_buf[tic_buf_cnt++] = tic_cnt;
-  tic_cnt = 0;
-  if (tic_buf_cnt>=TICBUFSIZE) {
-    uint16_t tot = 0;
-    for (int i=0; i<TICBUFSIZE; i++) tot += tic_buf[i];
-    sec10_buf[sec10++] = tot;
-    tic_buf_cnt = 0;    
-    if (sec10>=SEC10BUFSIZE) sec10 = 0;
-    sec10updated = true;
-  }
-}
- 
- // Convert tics to mR/hr
-float tics2mrem(uint16_t tics) {
-  return float(tics) * TICFACTOR;
-}
+#ifdef CAJOE_GEIGER
 
- void geigerInit() {
-  Serial.begin(115200); // For debug
-  Serial.println("Geiger counter startup");
-  #ifndef ESP8266
-  updateTime = millis(); // Next update time
-   // attach interrupt routine to TIC interface from the geiger counter module
-  pinMode(PINTIC, INPUT);
-  attachInterrupt(PINTIC, TicISR, FALLING);
- 
-  // attach interrupt routine to internal timer, to fire every 250 ms
-  timer = timerBegin(0, 80, true);
-  timerAttachInterrupt(timer, &onTimer, true);
-  timerAlarmWrite(timer, 250000, true); // 250 ms
-  timerAlarmEnable(timer);
-  Serial.println("Geiger counter ready");
-  #else
-   // start counting
-    memset(secondcounts, 0, sizeof(secondcounts));
-    Serial.println("Starting count ...");
-
-    pinMode(PINTIC, INPUT);
-    attachInterrupt(digitalPinToInterrupt(PINTIC), TicISR, FALLING);
-  #endif
-}
-
-void geigerLoop() {
- #ifdef ESP32 
- // curent mR/hr value to display - add all tics from walking average 10 seconds
-  uint16_t v=0;
-  for (int i=0; i<TICBUFSIZE; i++) {
-     v+=tic_buf[i];
-  }
-     
-   // convert tics to mR/hr and put in display buffer for TFT
-  float mrem = tics2mrem(v); 
-  char buf[12];
-  dtostrf(mrem, 7, (mrem<1 ? 2: (mrem<10 ? 1 : 0)), buf); 
-
-  Serial.print("mRem: "); Serial.println (mrem);
-  Serial.print("tics: "); Serial.println(v);
+#ifdef ESP32
+    void IRAM_ATTR GeigerTicISR() {
 #else
-// update the circular buffer every second
-    unsigned long int second = millis() / 1000;
-    unsigned long int secidx = second % 60;
-    if (secidx != secidx_prev) {
-        // new second, store the counts from the last second
-        unsigned long int count = counts;
-        secondcounts[secidx_prev] = count - count_prev;
-        count_prev = count;
-        secidx_prev = secidx;
-    }
-    // report every LOG_PERIOD
-    if ((second - second_prev) >= LOG_PERIOD) {
-        second_prev = second;
+   IRAM_ATTR static void GeigerTicISR() {
+#endif
 
-        // calculate sum
-        int cpm = 0;
-        for (int i = 0; i < 60; i++) {
-            cpm += secondcounts[i];
-        }
-        Serial.print("Counts: "); Serial.println(counts);
-        Serial.print("cpm: "); Serial.println(cpm);
-        }
+#ifdef ESP32
+       portENTER_CRITICAL_ISR(geiger_timerMux);
+#endif
+
+       tics_cnt++; // tics in 1000ms
+       tics_tot++; // total tics since boot
+
+#ifdef ESP32
+       portEXIT_CRITICAL_ISR(geiger_timerMux);
 #endif
 }
 
-/*// Convert tics to mR/hr
-//
-float tics2mrem(uint16_t tics) {
-  return float(tics) * TICFACTOR;
-}
-*/ 
+#endif
 
-/* // convert millirem value to a log percentage on analog and bar graph
-//
-int mrem2perc(float mrem, int maxperc) {
-  if (mrem<=0) {
-    return 0;
-  } */
- 
+// #########################################################################
+// Interrupt timer routine called every 1000 ms
+
+#ifdef CAJOE_GEIGER
+#ifdef ESP32
+
+void IRAM_ATTR onGeigerTimer() {
+    
+    portENTER_CRITICAL_ISR(geiger_timerMux);
+    cajoe_fms->add(tics_cnt); 
+    tics_cnt = 0;
+    portEXIT_CRITICAL_ISR(geiger_timerMux);
+}
+
+#endif
+#endif
+
+// #########################################################################
+// Converts CPM to uSv/h units (J305 tube)
+
+#ifdef CAJOE_GEIGER
+
+float Sensors::CPM2uSvh(uint32_t cpm) {
+
+   return float(cpm) * J305_CONV_FACTOR;
+}
+
+#endif
+
+// #########################################################################
+// Initialize Geiger counter
+
+#ifdef CAJOE_GEIGER
+
+void Sensors::geigerInit() {
+
+   tics_cnt = 0U; // tics in 1000ms
+   tics_tot = 0U; // total tics since boot
+   
+#ifdef ESP32
+   geiger_timer = NULL;
+   geiger_timerMux = new portMUX_TYPE(portMUX_INITIALIZER_UNLOCKED);
+#endif
+
+// moving sum for CAJOE Geiger Counter, configured for 60 samples (1 sample every 1s * 60 samples = 60s)
+   cajoe_fms = new MovingSum<uint16_t, uint32_t>(GEIGER_BUFSIZE);
+
+   Serial.println("-->[SLIB] Geiger counter startup");
+
+   sensorRegister(SENSORS::SCAJOE);
+   unitRegister(UNIT::CPM);
+   unitRegister(UNIT::RADIATION);
+
+#ifdef ESP32
+
+// attach interrupt routine to the GPI connected to the Geiger counter module
+   pinMode(GEIGER_PINTIC, INPUT);
+   attachInterrupt(digitalPinToInterrupt(GEIGER_PINTIC), GeigerTicISR, FALLING);
+   
+// attach interrupt routine to internal timer, to fire every 1000 ms
+   geiger_timer = timerBegin(GEIGER_TIMER, 80, true);     
+   timerAttachInterrupt(geiger_timer, &onGeigerTimer, true);
+   timerAlarmWrite(geiger_timer, 1000000, true); // 1000 ms
+   timerAlarmEnable(geiger_timer);
+
+#else
+
+   pinMode(GEIGER_PINTIC, INPUT);
+
+   attachInterrupt(digitalPinToInterrupt(GEIGER_PINTIC), GeigerTicISR, FALLING);
+
+#endif
+
+   Serial.println("-->[SLIB] Geiger counter ready");
+}
+
+#endif
+
+// #########################################################################
+// Geiger counts evaluation
+// CAJOE kit comes with a Chinese J305 geiger tube
+// Conversion factor used for conversion from CPM to uSv/h is 0.008120370 (J305 tube)
+
+#ifdef CAJOE_GEIGER
+
+void Sensors::geigerEvaluate() {
+
+   bool ready;
+   uint32_t tics_len;
+
+#ifdef ESP32
+
+   portENTER_CRITICAL(geiger_timerMux);
+   tics_cpm = cajoe_fms->getCurrentSum();
+   tics_len = cajoe_fms->getCurrentFilterLength();
+   portEXIT_CRITICAL(geiger_timerMux);
+
+#else
+
+   unsigned long int second;
+   unsigned long int secidx_curr;
+   static unsigned long int secidx_prev = 0;
+
+   second = millis() / 1000;
+   secidx_curr = second % 60;
+
+   Serial.print("-->[SLIB] sPREV: "); Serial.println(secidx_prev);
+   Serial.print("-->[SLIB] sCURR: "); Serial.println(secidx_curr);
+
+// exit in case we are called twice (or more) in a second...
+   if (secidx_curr == secidx_prev) return;
+
+// evaluate the number of missing samples in case geigerEvaluate() is not called every seconds...
+// WARNING! we still expects to be called at least once a minute...
+   int delta = (secidx_prev < secidx_curr) ? secidx_curr-secidx_prev : 60-secidx_prev+secidx_curr;
+
+// zeroes the missing samples... if any...
+   for(int i=1; i<delta; i++){
+      Serial.print("-->[SLIB] add 0 @"); Serial.println((secidx_prev+i)%60);
+      cajoe_fms->add(0);
+      }
+
+// add last sample
+   Serial.print("-->[SLIB] add "); Serial.print(tics_cnt); Serial.print(" @"); Serial.println(secidx_curr);
+   cajoe_fms->add(tics_cnt);
+   secidx_prev = secidx_curr;
+   tics_cnt = 0;
+
+   tics_cpm = cajoe_fms->getCurrentSum();
+   tics_len = cajoe_fms->getCurrentFilterLength();
+
+#endif
+
+// check whether the moving sum is full 
+   ready = (tics_len == cajoe_fms->getFilterLength());
+
+// convert CPM (tics in last minute) to uSv/h and put in display buffer for TFT
+// moving sum buffer size is 60 (1 sample every 1000 ms * 60 samples): the complete sum cover exactly last 60s
+   if (ready){
+      uSvh = CPM2uSvh(tics_cpm); 
+      }else{
+      uSvh = 0.0; 
+      }    
+
+   Serial.print("-->[SLIB] tTOT: "); Serial.println(tics_tot);
+   Serial.print("-->[SLIB] tLEN: "); Serial.print  (tics_len); Serial.println(ready ? " (ready)" : " (not ready)");
+   Serial.print("-->[SLIB] tCPM: "); Serial.println(tics_cpm);
+   Serial.print("-->[SLIB] uSvh: "); Serial.println(uSvh);
+}
+
+#endif
+
+// #########################################################################
+
+#ifdef CAJOE_GEIGER
+
+uint32_t Sensors::getGeigerCPM(void) {
+
+   return tics_cpm;
+}
+
+#endif
+
+// #########################################################################
+
+#ifdef CAJOE_GEIGER
+
+float Sensors::getGeigerMicroSievertHour(void) {
+
+    return uSvh;
+}
+
+#endif
