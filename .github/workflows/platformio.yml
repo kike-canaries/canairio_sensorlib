@@ -30,7 +30,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -U platformio
           pio pkg update
-      - name: Submitted library code test
+      - name: Submitted library code tests
         run: |
           pio run
       - name: PlatformIO registry test (M5CoreInk example)
