@@ -1670,12 +1670,14 @@ bool Sensors::serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int
             break;
 
         case SERIALPORT2:
+            #ifndef ESP32C3
             DEBUG("-->[SLIB] UART COMM port \t: Serial2");
             if (pms_type == SENSORS::SSPS30)
                 Serial2.begin(speed_baud);
             else
                 Serial2.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx, false);
             _serial = &Serial2;
+            #endif
             break;
 #endif
         default:
