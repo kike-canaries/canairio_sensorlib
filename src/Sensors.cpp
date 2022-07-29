@@ -1650,7 +1650,7 @@ void Sensors::enableWire1() {
 #endif
 #ifdef M5ATOM
     Wire1.flush();
-    Wire1.begin(26,32,100000);   // M5CoreInk Ext port (default for all sensors)
+    Wire1.begin(26,32);   // M5CoreInk Ext port (default for all sensors)
 #endif
 }
 
