@@ -1,6 +1,10 @@
 name: PlatformIO
 
 on:
+  schedule:
+    - cron:  '0 12 * * 4'
+
+on:
   push:
     branches:
       - master
