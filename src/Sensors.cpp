@@ -242,7 +242,7 @@ uint16_t Sensors::getPM1() {
 
 /// @deprecated get PM1.0 ug/m3 formated value
 String Sensors::getStringPM1() {
-    char output[5];
+    char output[6];
     sprintf(output, "%03d", getPM1());
     return String(output);
 }
@@ -254,7 +254,7 @@ uint16_t Sensors::getPM25() {
 
 /// @deprecated get PM2.5 ug/m3 formated value
 String Sensors::getStringPM25() {
-    char output[5];
+    char output[6];
     sprintf(output, "%03d", getPM25());
     return String(output);
 }
@@ -266,7 +266,7 @@ uint16_t Sensors::getPM4() {
 
 /// @deprecated get PM4 ug/m3 formated value
 String Sensors::getStringPM4() {
-    char output[5];
+    char output[6];
     sprintf(output, "%03d", getPM4());
     return String(output);
 }
@@ -725,17 +725,17 @@ bool Sensors::sps30Read() {
     
     do {
         ret = sps30.GetValues(&val);
-        if (ret == ERR_DATALENGTH) {
+        if (ret == SPS30_ERR_DATALENGTH) {
             if (error_cnt++ > 3) {
                 DEBUG("[W][SLIB] SPS30 setup message \t: error on values\t: ", String(ret).c_str());
                 return false;
             }
             delay(500);
-        } else if (ret != ERR_OK) {
+        } else if (ret != SPS30_ERR_OK) {
             sps30ErrToMess((char *)"[W][SLIB] SPS30 setup message \t: error on values\t: ", ret);
             return false;
         }
-    } while (ret != ERR_OK);
+    } while (ret != SPS30_ERR_OK);
 
     DEBUG("-->[SLIB] SPS30 read \t\t: done!");
 
@@ -1303,7 +1303,7 @@ void Sensors::sps30DeviceInfo() {
 
     //try to read serial number
     ret = sps30.GetSerialNumber(buf, 32);
-    if (ret == ERR_OK) {
+    if (ret == SPS30_ERR_OK) {
         if (strlen(buf) > 0)
             DEBUG("-->[SLIB] SPS30 Serial number\t: ", buf);
         else
@@ -1313,7 +1313,7 @@ void Sensors::sps30DeviceInfo() {
 
     // try to get product name
     ret = sps30.GetProductName(buf, 32);
-    if (ret == ERR_OK) {
+    if (ret == SPS30_ERR_OK) {
         if (strlen(buf) > 0)
             DEBUG("-->[SLIB] SPS30 product name\t: ", buf);
         else
@@ -1323,7 +1323,7 @@ void Sensors::sps30DeviceInfo() {
 
     // try to get version info
     ret = sps30.GetVersion(&v);
-    if (ret != ERR_OK) {
+    if (ret != SPS30_ERR_OK) {
         DEBUG("[SLIB] SPS30 can not read version info");
         return;
     }
