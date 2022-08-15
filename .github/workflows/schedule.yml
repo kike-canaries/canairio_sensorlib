@@ -1,13 +1,9 @@
-name: PlatformIO
+name: Schedule
+ 
 
 on:
-  push:
-    branches:
-      - master
-
-  pull_request:
-    branches:
-      - master
+  schedule:
+    - cron:  '30 10 * * 3'
 
 jobs:
   build:
@@ -27,12 +23,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -U platformio
           pio pkg update
-      - name: Submitted library code test
+      - name: Current source code test
         run: |
-          pio run
-      - name: PlatformIO registry test (M5CoreInk example)
-        run: |
-          git clone https://github.com/hpsaturn/co2_m5coreink.git
-          cd co2_m5coreink
           pio run
       
