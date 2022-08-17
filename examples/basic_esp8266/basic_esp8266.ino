@@ -1,7 +1,7 @@
 /**
  * @file main.cpp
  * @author Antonio Vanegas @hpsaturn
- * @date June 2018 - 2020
+ * @date June 2018 - 2022
  * @brief Particle meter sensor tests
  * @license GPL3
  * 
@@ -19,10 +19,12 @@
 #include <Sensors.hpp>
 
 void onSensorDataOk() {
-    Serial.print("-->[MAIN] PM1.0: "+sensors.getStringPM1());
-    Serial.print  (" PM2.5: " + sensors.getStringPM25());
-    Serial.println(" PM10: " + sensors.getStringPM10());
-    Serial.println(" PM1: " + sensors.getStringPM1());
+    Serial.print ("-->[MAIN] PM1.0: "+String(sensors.getPM1()));
+    Serial.print (" PM2.5: " + String(sensors.getPM25()));
+    Serial.print (" PM10 : " + String(sensors.getPM10()));
+    Serial.print (" PM1.0: " + String(sensors.getPM1())); 
+    Serial.print (" CO2: " + String(sensors.getCO2()));
+    Serial.println(" T: " + String(sensors.getTemperature()));
 }
 
 void onSensorDataError(const char * msg){
@@ -47,16 +49,18 @@ void setup() {
 
     // Alternatives only for UART sensors (TX/RX):
 
-    // sensors.init(sensors.Auto);                  // Auto detection to UART sensors (Honeywell, Plantower, Panasonic)
-    // sensors.init(sensors.Panasonic);             // Force UART detection to Panasonic sensor
-    // sensors.init(sensors.Sensirion);             // Force UART detection to Sensirion sensor
-    // sensors.init(sensors.Mhz19);                 // Force UART detection to Mhz14 or Mhz19 CO2 sensor
-    // sensors.init(sensors.SDS011);                // Force UART detection to SDS011 sensor
-    // sensors.init(sensors.CM1106);                // Force UART detection to CM1106 CO2 sensor
-    // sensors.init(sensors.SENSEAIRS8);            // Force UART detection to SenseAirS8 CO2 sensor
-    // sensors.init(sensors.Auto,PMS_RX,PMS_TX);    // Auto detection on custom RX,TX
+    // sensors.init(SENSORS::Auto);                    // Auto detection to UART sensors (Honeywell, Plantower, Panasonic)
+    // sensors.init(SENSORS::SGCJA5);                  // Force UART detection to Panasonic sensor
+    // sensors.init(SENSORS::SSPS30);                  // Force UART detection to Sensirion sensor
+    // sensors.init(SENSORS::SMHZ19);                  // Force UART detection to Mhz14 or Mhz19 CO2 sensor
+    // sensors.init(SENSORS::SDS011);                  // Force UART detection to SDS011 sensor
+    // sensors.init(SENSORS::IKEAVK);                  // Force UART detection to IKEA Vindriktning sensor
+    // sensors.init(SENSORS::SCM1106);                 // Force UART detection to CM1106 CO2 sensor
+    // sensors.init(SENSORS::SAIRS8);                  // Force UART detection to SenseAirS8 CO2 sensor
+    // sensors.init(SENSORS::Auto,PMS_RX,PMS_TX);      // Auto detection on custom RX,TX
+   
 
-    sensors.init(sensors.Panasonic, 5, 6);          // Panasonic sensor with ESP8266 software serial pines
+    sensors.init(SENSORS::SGCJA5, 5, 6);            // Panasonic sensor with ESP8266 software serial pines
                                                     // default is empty (I2C pines)
     
     delay(500);

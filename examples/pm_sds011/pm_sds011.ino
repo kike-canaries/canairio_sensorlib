@@ -1,6 +1,6 @@
 /**
  * @file main.cpp
- * @date June 2018 - 2020
+ * @date 2018 - 2022
  * @brief Particle meter sensor tests
  * @license GPL3
  * 
@@ -19,11 +19,11 @@
 #include <Sensors.hpp>
 
 void onSensorDataOk() {
-    Serial.print("-->[MAIN] PM1: " + sensors.getStringPM1());
-    Serial.print(" PM2.5: " + sensors.getStringPM25());
-    Serial.print(" PM10: " + sensors.getStringPM10());
+    Serial.print("-->[MAIN] PM1: " + String(sensors.getPM1()));
+    Serial.print(" PM2.5: " + String(sensors.getPM25()));
+    Serial.print(" PM10: " + String(sensors.getPM10()));
 
-    Serial.print(" CO2: " + sensors.getStringCO2());
+    Serial.print(" CO2: " + String(sensors.getCO2()));
     Serial.print(" CO2humi: " + String(sensors.getCO2humi()));
     Serial.print(" CO2temp: " + String(sensors.getCO2temp()));
 
@@ -51,7 +51,7 @@ void setup() {
     sensors.setOnErrorCallBack(&onSensorDataError);  // [optional] error callback
     sensors.setDebugMode(true);                      // [optional] debug mode
 
-    sensors.init(sensors.SDS011);                    // forced for SDS011 via UART, empty for auto detection
+    sensors.init(SENSORS::SDS011);                    // forced for SDS011 via UART, empty for auto detection
 
 
     delay(500);
