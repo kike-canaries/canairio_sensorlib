@@ -1,6 +1,6 @@
 {
   "name": "CanAirIO Air Quality Sensors Library",
-  "version": "0.5.7",
+  "version": "0.5.8",
   "homepage":"https://canair.io",
   "keywords": 
   [ 
@@ -13,6 +13,8 @@
     "SN-GCJA5",
     "sps30",
     "hpma115",
+    "IKEA",
+    "Vindriktning",
     "PMS7003",
     "PMS5003",
     "AM2320",
