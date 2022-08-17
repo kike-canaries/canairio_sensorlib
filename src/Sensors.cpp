@@ -694,6 +694,35 @@ bool Sensors::pmSDS011Read() {
 }
 
 /**
+ *  @brief IKEA Vindriktning particulate meter sensor read.
+ *  @return true if header and sensor data is right
+ */
+bool Sensors::pmVindriktnRead() {
+    int lenght_buffer = 64;
+    uint8_t checksum = 0;
+    String txtMsg = hwSerialRead(lenght_buffer);
+    if (txtMsg[0] == 0x16 && txtMsg[1] == 0x11 && txtMsg[2] == 0x0B) {
+        for (uint8_t i = 0; i < 20; i++) checksum += txtMsg[i];
+        if (checksum != 0) {
+            onSensorError("[W][SLIB] Vindriktn UART msg \t: invalid checksum");
+            return false;
+        }
+        DEBUG("-->[SLIB] UART Vindriktn read\t: done!");
+        pm25 = (txtMsg[5] << 8) | txtMsg[6];
+
+        unitRegister(UNIT::PM25);
+
+        if (pm25 > 1000 && pm10 > 2000) {
+            onSensorError("[W][SLIB] Vindriktn UART msg\t: out of range pm25 > 2000");
+        } else
+            return true;
+    } else {
+        onSensorError("[W][SLIB] Vindriktn UART msg\t: invalid header");
+    }
+    return false;
+}
+
+/**
  * @brief PMSensor Serial read to basic string
  * 
  * @param SENSOR_RETRY attempts before failure
@@ -811,12 +840,12 @@ bool Sensors::pmSensorRead() {
             return pmGCJA5Read();
             break;
 
-        // case SSPS30:  CHECK: we don't need more this read here
-        //     return sps30Read();
-        //     break;
-
         case SDS011:
             return pmSDS011Read();
+            break;
+
+        case IKEAVK:
+            return pmVindriktnRead();
             break;
 
         case SMHZ19:
