@@ -35,4 +35,8 @@ jobs:
           git clone https://github.com/hpsaturn/co2_m5coreink.git
           cd co2_m5coreink
           pio run
+      - name: Arduino IDE example test
+        run: |
+          cd examples/advanced_sensirion
+          pio run
       
