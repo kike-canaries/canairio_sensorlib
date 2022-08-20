@@ -1087,6 +1087,9 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
     } else if (pms_type == SENSORS::SAIRS8) {
         DEBUG("-->[SLIB] UART detecting type\t: SENSEAIRS8");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
+    } else if (pms_type == SENSORS::IKEAVK) {
+        DEBUG("-->[SLIB] UART detecting type\t: SENSEAIRS8");
+        if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     }
 
     // starting auto detection loop
@@ -1121,6 +1124,13 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
     if (pms_type == SENSORS::SDS011) {
         if (pmSDS011Read()) {
             dev_uart_type = SENSORS::SDS011;
+            return true;
+        }
+    }
+
+    if (pms_type == SENSORS::IKEAVK) {
+        if (pmVindriktnRead()) {
+            dev_uart_type = SENSORS::IKEAVK;
             return true;
         }
     }
