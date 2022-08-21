@@ -205,7 +205,7 @@ class Sensors {
     SensirionI2CScd4x scd4x;
 
     // IKA Vindriktn sensor
-    PM1006 pm1006(&_serial);
+    PM1006 *pm1006;
 
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
@@ -405,7 +405,7 @@ class Sensors {
     bool pmGenericRead();
     bool pmGCJA5Read();
     bool pmSDS011Read();
-    bool pmVindriktnRead();
+    bool pm1006Read();
     bool CO2Mhz19Read();
     bool CO2CM1106Read();
     int CO2CM1106val();
@@ -413,6 +413,7 @@ class Sensors {
     bool CO2CM1106Init();
     bool senseAirS8Init();
     bool senseAirS8Read();
+    bool PM1006Init();
 
     bool sps30I2CInit();
     bool sps30UARTInit();

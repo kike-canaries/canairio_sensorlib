@@ -8,9 +8,9 @@
 
 #define DEFAULT_TIMEOUT 1000
 
-PM1006::PM1006(Stream * serial, bool debug)
+PM1006::PM1006(Stream &serial, bool debug)
 {
-    _serial = serial;
+    _serial = &serial;
     _debug = debug;
 
     _state = PM1006_HEADER;

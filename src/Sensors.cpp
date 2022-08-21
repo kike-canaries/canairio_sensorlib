@@ -698,39 +698,15 @@ bool Sensors::pmSDS011Read() {
  *  @return true if header and sensor data is right
  */
 
-bool Sensors::pmVindriktnRead() {
+bool Sensors::pm1006Read() {
   uint16_t pm2_5;
-  if(pm1006.read_pm25(&pm2_5)) {
+  if(pm1006->read_pm25(&pm2_5)) {
     pm25 = pm2_5;
     unitRegister(UNIT::PM25);
     return true;
   }
+  return false;
 }
-
-// bool Sensors::pmVindriktnRead() {
-//     int lenght_buffer = 64;
-//     uint8_t checksum = 0;
-//     String txtMsg = hwSerialRead(lenght_buffer);
-//     if (txtMsg[0] == 0x16 && txtMsg[1] == 0x11 && txtMsg[2] == 0x0B) {
-//         for (uint8_t i = 0; i < 20; i++) checksum += txtMsg[i];
-//         if (checksum != 0) {
-//             onSensorError("[W][SLIB] Vindriktn UART msg \t: invalid checksum");
-//             return false;
-//         }
-//         DEBUG("-->[SLIB] UART Vindriktn read\t: done!");
-//         pm25 = (txtMsg[5] << 8) | txtMsg[6];
-
-//         unitRegister(UNIT::PM25);
-
-//         if (pm25 > 1000 && pm10 > 2000) {
-//             onSensorError("[W][SLIB] Vindriktn UART msg\t: out of range pm25 > 2000");
-//         } else
-//             return true;
-//     } else {
-//         onSensorError("[W][SLIB] Vindriktn UART msg\t: invalid header");
-//     }
-//     return false;
-// }
 
 /**
  * @brief PMSensor Serial read to basic string
@@ -855,7 +831,7 @@ bool Sensors::pmSensorRead() {
             break;
 
         case IKEAVK:
-            return pmVindriktnRead();
+            return pm1006Read();
             break;
 
         case SMHZ19:
@@ -1139,7 +1115,7 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
     }
 
     if (pms_type == SENSORS::IKEAVK) {
-        if (pmVindriktnRead()) {
+        if (pm1006Read()) {
             dev_uart_type = SENSORS::IKEAVK;
             return true;
         }
@@ -1183,11 +1159,13 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
 
 bool Sensors::CO2Mhz19Init() {
     mhz19.begin(*_serial);
-    mhz19.autoCalibration(false); 
-    delay(100);
-    int co2 = mhz19.getCO2();
-    if (co2 == 0 ) return false;
     sensorRegister(SENSORS::SMHZ19);
+    return true;
+}
+
+bool Sensors::PM1006Init() {
+    pm1006 = new PM1006(*_serial);
+    sensorRegister(SENSORS::IKEAVK);
     return true;
 }
 

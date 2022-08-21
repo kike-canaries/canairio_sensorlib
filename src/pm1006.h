@@ -13,7 +13,7 @@ typedef enum {
 class PM1006 {
 
 private:
-    Stream *_serial;
+    Stream* _serial;
     bool _debug;
 
     pm1006_state_t _state;
@@ -35,7 +35,7 @@ public:
      *
      * @param serial the serial port, NOTE: the serial port has to be configured for a bit rate of PM1006::BIT_RATE !
      */
-    explicit PM1006(Stream *serial, bool debug = false);
+    explicit PM1006(Stream &serial, bool debug = false);
  
      /**
      * Reads the PM2.5 value (plus some other yet unknown parameters)
