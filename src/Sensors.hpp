@@ -16,6 +16,7 @@
 #include <dht_nonblocking.h>
 #include <s8_uart.h>
 #include <sps30.h>
+#include <pm1006.h>
 
 #define CSL_VERSION "0.5.8"
 #define CSL_REVISION 364
@@ -202,6 +203,9 @@ class Sensors {
     S8_sensor s8sensor;
     // SCD4x sensor
     SensirionI2CScd4x scd4x;
+
+    // IKA Vindriktn sensor
+    PM1006 pm1006(&_serial);
 
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
