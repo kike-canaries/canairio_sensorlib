@@ -1115,7 +1115,7 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
     }
 
     if (pms_type == SENSORS::IKEAVK) {
-        if (pm1006Read()) {
+        if (PM1006Init()) {
             dev_uart_type = SENSORS::IKEAVK;
             return true;
         }
@@ -1166,7 +1166,7 @@ bool Sensors::CO2Mhz19Init() {
 bool Sensors::PM1006Init() {
     pm1006 = new PM1006(*_serial);
     sensorRegister(SENSORS::IKEAVK);
-    return true;
+    return pm1006Read();
 }
 
 bool Sensors::CO2CM1106Init() {
