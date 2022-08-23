@@ -1159,14 +1159,19 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
 
 bool Sensors::CO2Mhz19Init() {
     mhz19.begin(*_serial);
+    mhz19.autoCalibration(false); 
+    delay(100);
+    int co2 = mhz19.getCO2();
+    if (co2 == 0 ) return false;
     sensorRegister(SENSORS::SMHZ19);
     return true;
 }
 
 bool Sensors::PM1006Init() {
     pm1006 = new PM1006(*_serial);
+    if(!pm1006Read()) return false;
     sensorRegister(SENSORS::IKEAVK);
-    return pm1006Read();
+    return true;
 }
 
 bool Sensors::CO2CM1106Init() {
