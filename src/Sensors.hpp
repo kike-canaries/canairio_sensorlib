@@ -16,7 +16,7 @@
 #include <dht_nonblocking.h>
 #include <s8_uart.h>
 #include <sps30.h>
-#include <pm1006.h>
+#include <drivers/pm1006.h>
 
 #define CSL_VERSION "0.5.8"
 #define CSL_REVISION 364
