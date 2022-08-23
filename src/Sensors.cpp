@@ -1169,9 +1169,8 @@ bool Sensors::CO2Mhz19Init() {
 
 bool Sensors::PM1006Init() {
     pm1006 = new PM1006(*_serial);
-    if(!pm1006Read()) return false;
     sensorRegister(SENSORS::IKEAVK);
-    return true;
+    return pm1006Read();
 }
 
 bool Sensors::CO2CM1106Init() {
