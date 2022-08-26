@@ -1,9 +1,3 @@
-#include <Arduino.h>
-
-#include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
-
 #include "pm1006.h"
 
 #define DEFAULT_TIMEOUT 1000

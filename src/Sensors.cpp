@@ -1075,7 +1075,7 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     } else if (pms_type == SENSORS::IKEAVK) {
         DEBUG("-->[SLIB] UART detecting type\t: SENSEAIRS8");
-        if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
+        if (!serialInit(pms_type, PM1006::BIT_RATE, pms_rx, pms_tx)) return false;
     }
 
     // starting auto detection loop

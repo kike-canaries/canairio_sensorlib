@@ -1,3 +1,7 @@
+#include <Arduino.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
 
 typedef enum {
     PM1006_HEADER,
