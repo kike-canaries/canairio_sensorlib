@@ -694,6 +694,21 @@ bool Sensors::pmSDS011Read() {
 }
 
 /**
+ *  @brief IKEA Vindriktning particulate meter sensor read.
+ *  @return true if header and sensor data is right
+ */
+
+bool Sensors::pm1006Read() {
+  uint16_t pm2_5;
+  if(pm1006->read_pm25(&pm2_5)) {
+    pm25 = pm2_5;
+    unitRegister(UNIT::PM25);
+    return true;
+  }
+  return false;
+}
+
+/**
  * @brief PMSensor Serial read to basic string
  * 
  * @param SENSOR_RETRY attempts before failure
@@ -811,12 +826,12 @@ bool Sensors::pmSensorRead() {
             return pmGCJA5Read();
             break;
 
-        // case SSPS30:  CHECK: we don't need more this read here
-        //     return sps30Read();
-        //     break;
-
         case SDS011:
             return pmSDS011Read();
+            break;
+
+        case IKEAVK:
+            return pm1006Read();
             break;
 
         case SMHZ19:
@@ -1058,6 +1073,9 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
     } else if (pms_type == SENSORS::SAIRS8) {
         DEBUG("-->[SLIB] UART detecting type\t: SENSEAIRS8");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
+    } else if (pms_type == SENSORS::IKEAVK) {
+        DEBUG("-->[SLIB] UART detecting type\t: SENSEAIRS8");
+        if (!serialInit(pms_type, PM1006::BIT_RATE, pms_rx, pms_tx)) return false;
     }
 
     // starting auto detection loop
@@ -1092,6 +1110,13 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
     if (pms_type == SENSORS::SDS011) {
         if (pmSDS011Read()) {
             dev_uart_type = SENSORS::SDS011;
+            return true;
+        }
+    }
+
+    if (pms_type == SENSORS::IKEAVK) {
+        if (PM1006Init()) {
+            dev_uart_type = SENSORS::IKEAVK;
             return true;
         }
     }
@@ -1140,6 +1165,12 @@ bool Sensors::CO2Mhz19Init() {
     if (co2 == 0 ) return false;
     sensorRegister(SENSORS::SMHZ19);
     return true;
+}
+
+bool Sensors::PM1006Init() {
+    pm1006 = new PM1006(*_serial);
+    sensorRegister(SENSORS::IKEAVK);
+    return pm1006Read();
 }
 
 bool Sensors::CO2CM1106Init() {

@@ -1,6 +1,6 @@
 /**
  * @file main.cpp
- * @date June 2018 - 2021
+ * @date June 2018 - 2022
  * @brief Particle meter sensor tests
  * @license GPL3
  * 
@@ -19,12 +19,7 @@
 #include <Sensors.hpp>
 
 void onSensorDataOk() {
-    Serial.print("-->[MAIN] CO2: " + String(sensors.getStringCO2()));
-    Serial.print(" CO2humi: " + String(sensors.getCO2humi()));
-    Serial.print(" CO2temp: " + String(sensors.getCO2temp()));
-
-    Serial.print(" H: " + String(sensors.getHumidity()));
-    Serial.println(" T: " + String(sensors.getTemperature()));
+    Serial.println("-->[MAIN] PM2.5: " + String(sensors.getPM25()));
 }
 
 void onSensorDataError(const char* msg) {
@@ -45,13 +40,9 @@ void setup() {
     sensors.setSampleTime(5);                        // config sensors sample time interval
     sensors.setOnDataCallBack(&onSensorDataOk);      // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError);  // [optional] error callback
-    sensors.setDebugMode(false);                     // [optional] debug mode
-    sensors.detectI2COnly(true);                     // force to only i2c sensors
+    sensors.setDebugMode(true);                      // [optional] debug mode
+    sensors.init(SENSORS::IKEAVK);                   // forced for IKEAVK via UART, empty for auto detection
 
-    // sensors.setCO2RecalibrationFactor(400);       // calibration method (in outdoors)
-    // sensors.scd30.setTemperatureOffset(2.0);      // example to set temp offset
-
-    sensors.init();
 
     delay(500);
 }
