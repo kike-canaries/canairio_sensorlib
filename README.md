@@ -7,6 +7,14 @@ Generic sensor manager, abstractions and bindings of multiple sensors [libraries
 
 For developers also you can check the complete library documentation [here](http://hpsaturn.com/canairio_sensorlib_doc/html/index.html)
 
+<table>
+	<tr>
+		<td>
+			Don't forget to star ⭐ this repository
+		</td>
+	</tr>
+</table>
+
 # Supported sensors
 
 ### PM sensors
