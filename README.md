@@ -267,10 +267,10 @@ The library has [pre-defined some UART pin configs](https://github.com/kike-cana
 
 ### Custom UART:
 
-Also you could define a custom UART pins in the init() method if it isn't autodected:
+Also you could define a custom UART pins in the init() method and select specific sensors model, like this:
 
 ```cpp
-sensors.init(sensors.Auto,RX,TX); // custom RX, custom TX pines.
+sensors.init(SENSORS::SDS011,yourRX,yourTX); // custom RX, custom TX pines.
 ```
 
 ## I2C (recommended)
