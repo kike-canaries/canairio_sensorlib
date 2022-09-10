@@ -20,42 +20,86 @@
 #include "seeed_line_chart.h" 
 
 TFT_eSPI tft;
+TFT_eSprite spr = TFT_eSprite(&tft);  // Sprite
 
 #define MAX_SIZE 30 // maximum size of data
 doubles data;       // Initilising a doubles type to store data
 int brightness;
+int header_height;
+int btn_trigger;
+
+UNIT current_unit = UNIT::PM25; 
+
+void guiShowSensor(UNIT unit) {
+
+  String uName = sensors.getUnitName(unit);
+  float uValue = sensors.getUnitValue(unit);
+  String uSymb = sensors.getUnitSymbol(unit);
+
+  String title = uName + " " +String(uValue) + " (" + uSymb + ")";
+
+  // Settings for the line graph title
+  auto header = text(0, 0)
+                    .value(title.c_str())
+                    .align(center)
+                    .valign(vcenter)
+                    .width(spr.width())
+                    .thickness(2);
 
 
-void printSensorsDetected() {
-    uint16_t sensors_count =  sensors.getSensorsRegisteredCount();
-    uint16_t units_count   =  sensors.getUnitsRegisteredCount();
-    Serial.println("-->[MAIN] Sensors detected count\t: " + String(sensors_count));
-    Serial.println("-->[MAIN] Sensors units count  \t: " + String(units_count));
-    Serial.print(  "-->[MAIN] Sensors devices names\t: ");
-    int i = 0;
-    while (sensors.getSensorsRegistered()[i++] != 0) {
-        Serial.print(sensors.getSensorName((SENSORS)sensors.getSensorsRegistered()[i - 1]));
-        Serial.print(",");
-    }
-    Serial.println();
+  spr.fillSprite(TFT_WHITE);
+  header.height(header.font_height(&spr) * 2);
+  header.draw(&spr);  // Header height is the twice the height of the font
+  header_height = header.height();
+
+  if (data.size() > MAX_SIZE) data.pop();  // keep the old line chart front
+  data.push(uValue);
+  // Settings for the line graph
+  auto content = line_chart(20, header_height);  //(x,y) where the line graph begins
+  content
+      .height(spr.height() - header_height * 1.5)  // actual height of the line chart
+      .width(spr.width() - content.x() * 2)        // actual width of the line chart
+      .based_on(0.0)                               // Starting point of y-axis, must be a float
+      .show_circle(false)                          // drawing a cirle at each point, default is on.
+      .value(data)                                 // passing through the data to line graph
+      .max_size(MAX_SIZE)
+      .color(TFT_RED)        // Setting the color for the line
+      .backgroud(TFT_WHITE)  // Setting the color for the backgroud
+      .draw(&spr);
+
+  spr.pushSprite(0, 0);
 }
 
-void printSensorsValues() {
-    Serial.println("-->[MAIN] Preview sensor values:");
-    UNIT unit = sensors.getNextUnit();
-    while(unit != UNIT::NUNIT) {
-        String uName = sensors.getUnitName(unit);
-        float uValue = sensors.getUnitValue(unit);
-        String uSymb = sensors.getUnitSymbol(unit);
-        Serial.println("-->[MAIN] " + uName + " \t: " + String(uValue) + " " + uSymb);
-        unit = sensors.getNextUnit();
-    }
+void printSensorsDetected() {
+  uint16_t sensors_count = sensors.getSensorsRegisteredCount();
+  uint16_t units_count = sensors.getUnitsRegisteredCount();
+  Serial.print("-->[MAIN] Sensors devices\t: ");
+  int i = 0;
+  while (sensors.getSensorsRegistered()[i++] != 0) {
+    String sensor = sensors.getSensorName((SENSORS)sensors.getSensorsRegistered()[i - 1]);
+    Serial.print(sensor);
+    Serial.print(",");
+  }
+  Serial.println(); 
+}
+
+void selectNextUnit() {
+  current_unit = sensors.getNextUnit();
+  if (current_unit == UNIT::NUNIT) current_unit = sensors.getNextUnit();
+  btn_trigger = 0;
+}
+
+void buttonsLoop() {
+  if (digitalRead(WIO_5S_LEFT) == LOW && btn_trigger++ > 6) {
+    selectNextUnit();
+  } else if (digitalRead(WIO_5S_RIGHT) == LOW && btn_trigger++ > 6) {
+    selectNextUnit();
+  }
 }
 
 void onSensorDataOk() {
-    Serial.println("======= E X A M P L E   T E S T =========");
     printSensorsDetected();
-    printSensorsValues(); 
+    guiShowSensor(current_unit);
     Serial.println("=========================================");
 }
 
@@ -73,7 +117,7 @@ void setup() {
 
     Serial.println("-->[SETUP] Detecting sensors..");
 
-    sensors.setSampleTime(5);                       // config sensors sample time interval
+    sensors.setSampleTime(1);                       // config sensors sample time interval
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
     sensors.setDebugMode(true);                     // [optional] debug mode
@@ -84,42 +128,21 @@ void setup() {
     tft.begin();
     tft.setRotation(3);
     tft.fillScreen(TFT_WHITE);
+    tft.setRotation(3);
+    spr.createSprite(TFT_HEIGHT,TFT_WIDTH);
+    spr.setRotation(3);
+
+    pinMode(WIO_5S_UP, INPUT_PULLUP);
+    pinMode(WIO_5S_DOWN, INPUT_PULLUP);
+    pinMode(WIO_5S_LEFT, INPUT_PULLUP);
+    pinMode(WIO_5S_RIGHT, INPUT_PULLUP);
+    pinMode(WIO_5S_PRESS, INPUT_PULLUP);
+
+    selectNextUnit();
 }
 
 void loop() {
-    sensors.loop();  // read sensor data and showed it
-    brightness = analogRead(A0);
-
-    if (data.size() > MAX_SIZE) // keep the old line chart front
-    {
-        data.pop(); // this is used to remove the first read variable
-    }
-
-    data.push(brightness); // read variables and store in data
-
-    // Settings for the line graph title
-    auto header = text(0, 0)
-                      .value("Light Sensor Readings")
-                      .align(center)
-                      .valign(vcenter)
-                      .width(tft.width())
-                      .thickness(2);
-
-    header.height(header.font_height(&tft) * 2);
-    header.draw(&tft); // Header height is the twice the height of the font
-
-    // Settings for the line graph
-    auto content = line_chart(20, header.height()); //(x,y) where the line graph begins
-    content
-        .height(tft.height() - header.height() * 1.5) // actual height of the line chart
-        .width(tft.width() - content.x() * 2)         // actual width of the line chart
-        .based_on(0.0)                                // Starting point of y-axis, must be a float
-        .show_circle(false)                           // drawing a cirle at each point, default is on.
-        .value(data)                                  // passing through the data to line graph
-        .max_size(MAX_SIZE)
-        .color(TFT_RED)                               // Setting the color for the line
-        .backgroud(TFT_WHITE)                         // Setting the color for the backgroud
-        .draw(&tft);
-    
-    delay(200);
+  sensors.loop();  // read sensor data and showed it 
+  buttonsLoop();
+  delay(20);
 }
