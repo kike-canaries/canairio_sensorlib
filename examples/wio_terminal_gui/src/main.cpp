@@ -30,6 +30,19 @@ int btn_trigger;
 
 UNIT current_unit = UNIT::PM25; 
 
+
+int guiShowGraphHeader(String title){
+  auto header = text(0, 0)
+                    .value(title.c_str())
+                    .align(center)
+                    .valign(vcenter)
+                    .width(spr.width())
+                    .thickness(2);
+  header.height(header.font_height(&spr) * 2);
+  header.draw(&spr);  // Header height is the twice the height of the font
+  return header.height();
+}
+
 void guiShowSensor(UNIT unit) {
 
   String uName = sensors.getUnitName(unit);
@@ -38,24 +51,15 @@ void guiShowSensor(UNIT unit) {
 
   String title = uName + " " +String(uValue) + " (" + uSymb + ")";
 
-  // Settings for the line graph title
-  auto header = text(0, 0)
-                    .value(title.c_str())
-                    .align(center)
-                    .valign(vcenter)
-                    .width(spr.width())
-                    .thickness(2);
-
-
-  spr.fillSprite(TFT_WHITE);
-  header.height(header.font_height(&spr) * 2);
-  header.draw(&spr);  // Header height is the twice the height of the font
-  header_height = header.height();
-
   if (data.size() > MAX_SIZE) data.pop();  // keep the old line chart front
   data.push(uValue);
+
+  // Update graph
+  spr.fillSprite(TFT_WHITE);
+  header_height = guiShowGraphHeader(title);
+
   // Settings for the line graph
-  auto content = line_chart(20, header_height);  //(x,y) where the line graph begins
+  auto content = line_chart(20, header_height);    //(x,y) where the line graph begins
   content
       .height(spr.height() - header_height * 1.5)  // actual height of the line chart
       .width(spr.width() - content.x() * 2)        // actual width of the line chart
@@ -83,17 +87,19 @@ void printSensorsDetected() {
   Serial.println(); 
 }
 
-void selectNextUnit() {
+bool selectNextUnit() {
   current_unit = sensors.getNextUnit();
-  if (current_unit == UNIT::NUNIT) current_unit = sensors.getNextUnit();
-  btn_trigger = 0;
+  if (current_unit == UNIT::NUNIT) sensors.getNextUnit();
+  return current_unit != UNIT::NUNIT;
 }
 
 void buttonsLoop() {
   if (digitalRead(WIO_5S_LEFT) == LOW && btn_trigger++ > 6) {
-    selectNextUnit();
+    while(!selectNextUnit())sensors.loop();
+    btn_trigger = 0;
   } else if (digitalRead(WIO_5S_RIGHT) == LOW && btn_trigger++ > 6) {
-    selectNextUnit();
+    while(!selectNextUnit())sensors.loop();
+    btn_trigger = 0;
   }
 }
 
@@ -111,34 +117,37 @@ void onSensorDataError(const char * msg){
 ******************************************************************************/
 
 void setup() {
-    Serial.begin(115200);
-    delay(200);
-    Serial.println("\n== Sensor test setup ==\n");
+  Serial.begin(115200);
+  delay(200);
+  Serial.println("\n== Sensor test setup ==\n");
 
-    Serial.println("-->[SETUP] Detecting sensors..");
+  Serial.println("-->[SETUP] Detecting sensors..");
 
-    sensors.setSampleTime(1);                       // config sensors sample time interval
-    sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
-    sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
-    sensors.setDebugMode(true);                     // [optional] debug mode
-    sensors.detectI2COnly(true);                   // disable force to only i2c sensors
-    sensors.init();                                 // Auto detection to UART and i2c sensors
+  sensors.setSampleTime(1);                        // config sensors sample time interval
+  sensors.setOnDataCallBack(&onSensorDataOk);      // all data read callback
+  sensors.setOnErrorCallBack(&onSensorDataError);  // [optional] error callback
+  sensors.setDebugMode(true);                      // [optional] debug mode
+  sensors.detectI2COnly(true);                     // disable force to only i2c sensors
+  sensors.init();                                  // Auto detection to UART and i2c sensors
 
-    pinMode(A0, INPUT);
-    tft.begin();
-    tft.setRotation(3);
-    tft.fillScreen(TFT_WHITE);
-    tft.setRotation(3);
-    spr.createSprite(TFT_HEIGHT,TFT_WIDTH);
-    spr.setRotation(3);
+  pinMode(A0, INPUT);
+  tft.begin();
+  tft.setRotation(3);
+  tft.fillScreen(TFT_WHITE);
+  tft.setRotation(3);
+  spr.createSprite(TFT_HEIGHT, TFT_WIDTH);
+  spr.setRotation(3);
 
-    pinMode(WIO_5S_UP, INPUT_PULLUP);
-    pinMode(WIO_5S_DOWN, INPUT_PULLUP);
-    pinMode(WIO_5S_LEFT, INPUT_PULLUP);
-    pinMode(WIO_5S_RIGHT, INPUT_PULLUP);
-    pinMode(WIO_5S_PRESS, INPUT_PULLUP);
+  pinMode(WIO_5S_UP, INPUT_PULLUP);
+  pinMode(WIO_5S_DOWN, INPUT_PULLUP);
+  pinMode(WIO_5S_LEFT, INPUT_PULLUP);
+  pinMode(WIO_5S_RIGHT, INPUT_PULLUP);
+  pinMode(WIO_5S_PRESS, INPUT_PULLUP);
 
-    selectNextUnit();
+  spr.fillSprite(TFT_WHITE);
+  guiShowGraphHeader("Waiting for sensors..");
+  spr.pushSprite(0, 0);
+  while (!selectNextUnit()) sensors.loop();
 }
 
 void loop() {
