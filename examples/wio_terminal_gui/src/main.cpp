@@ -27,6 +27,8 @@ doubles data;       // Initilising a doubles type to store data
 int brightness;
 int header_height;
 int btn_trigger;
+int sampleTime = 1;  // default to 1 second
+String title;
 
 UNIT current_unit = UNIT::PM25; 
 
@@ -36,6 +38,7 @@ int guiShowGraphHeader(String title){
                     .value(title.c_str())
                     .align(center)
                     .valign(vcenter)
+                    .font_size(1)
                     .width(spr.width())
                     .thickness(2);
   header.height(header.font_height(&spr) * 2);
@@ -44,16 +47,6 @@ int guiShowGraphHeader(String title){
 }
 
 void guiShowSensor(UNIT unit) {
-
-  String uName = sensors.getUnitName(unit);
-  float uValue = sensors.getUnitValue(unit);
-  String uSymb = sensors.getUnitSymbol(unit);
-
-  String title = uName + " " +String(uValue) + " (" + uSymb + ")";
-
-  if (data.size() > MAX_SIZE) data.pop();  // keep the old line chart front
-  data.push(uValue);
-
   // Update graph
   spr.fillSprite(TFT_WHITE);
   header_height = guiShowGraphHeader(title);
@@ -87,25 +80,60 @@ void printSensorsDetected() {
   Serial.println(); 
 }
 
+void updateSensorTitle(){
+  float uValue = sensors.getUnitValue(current_unit);
+  String uName = sensors.getUnitName(current_unit);
+  String uSymb = sensors.getUnitSymbol(current_unit);
+  title = uName + " " +String(uValue) + " (" + uSymb + ")";
+}
+
 bool selectNextUnit() {
   current_unit = sensors.getNextUnit();
   if (current_unit == UNIT::NUNIT) sensors.getNextUnit();
   return current_unit != UNIT::NUNIT;
 }
 
+bool setSampleTime(int sample_time) {
+  if (sampleTime > 300) sampleTime = 300;
+  if (sampleTime < 1) sampleTime = 1;
+  sensors.setSampleTime(sampleTime);
+  title = "Sample Time: " + String(sampleTime) + " sec";
+}
+
 void buttonsLoop() {
-  if (digitalRead(WIO_5S_LEFT) == LOW && btn_trigger++ > 6) {
-    while(!selectNextUnit())sensors.loop();
+  if (digitalRead(WIO_5S_RIGHT) == LOW && btn_trigger++ > 6) {
+    while (!selectNextUnit()) sensors.loop();
+    updateSensorTitle();
     btn_trigger = 0;
-  } else if (digitalRead(WIO_5S_RIGHT) == LOW && btn_trigger++ > 6) {
-    while(!selectNextUnit())sensors.loop();
+  } else if (digitalRead(WIO_KEY_A) == LOW && btn_trigger++ > 100) {
+    NVIC_SystemReset(); 
+    btn_trigger = 0;
+  } else if (digitalRead(WIO_5S_UP) == LOW && btn_trigger++ > 5) {
+    sampleTime = sampleTime + 1;
+    setSampleTime(sampleTime);
+    btn_trigger = 0;
+  } else if (digitalRead(WIO_5S_DOWN) == LOW && btn_trigger++ > 5) {
+    sampleTime = sampleTime - 1;
+    setSampleTime(sampleTime);
     btn_trigger = 0;
   }
 }
 
+void guiLoop() {
+  static uint32_t pmGuiTimeStamp = 0;                 
+    if ((millis() - pmGuiTimeStamp > 80)) {  
+        pmGuiTimeStamp = millis();
+        guiShowSensor(current_unit);
+    }
+}
+
 void onSensorDataOk() {
     printSensorsDetected();
-    guiShowSensor(current_unit);
+    updateSensorTitle();
+    float uValue = sensors.getUnitValue(current_unit);
+    if (data.size() > MAX_SIZE) data.pop();  // keep the old line chart front
+    data.push(uValue);
+    
     Serial.println("=========================================");
 }
 
@@ -123,7 +151,7 @@ void setup() {
 
   Serial.println("-->[SETUP] Detecting sensors..");
 
-  sensors.setSampleTime(1);                        // config sensors sample time interval
+  sensors.setSampleTime(sampleTime);                        // config sensors sample time interval
   sensors.setOnDataCallBack(&onSensorDataOk);      // all data read callback
   sensors.setOnErrorCallBack(&onSensorDataError);  // [optional] error callback
   sensors.setDebugMode(true);                      // [optional] debug mode
@@ -143,6 +171,7 @@ void setup() {
   pinMode(WIO_5S_LEFT, INPUT_PULLUP);
   pinMode(WIO_5S_RIGHT, INPUT_PULLUP);
   pinMode(WIO_5S_PRESS, INPUT_PULLUP);
+  pinMode(WIO_KEY_A, INPUT_PULLUP);
 
   spr.fillSprite(TFT_WHITE);
   guiShowGraphHeader("Waiting for sensors..");
@@ -153,5 +182,6 @@ void setup() {
 void loop() {
   sensors.loop();  // read sensor data and showed it 
   buttonsLoop();
+  guiLoop();
   delay(20);
 }
