@@ -21,7 +21,7 @@
 #include <Sensors.hpp>
 
 void onSensorDataOk() {
-    Serial.print(" CO2: " + sensors.getStringCO2());
+    Serial.print(" CO2: " + String(sensors.getCO2()));
     Serial.print(" CO2humi: " + String(sensors.getCO2humi()));
     Serial.print(" CO2temp: " + String(sensors.getCO2temp()));
 
@@ -51,7 +51,7 @@ void setup() {
 
     // sensors.setCO2RecalibrationFactor(400);       // calibration method (in outdoors)
 
-    sensors.init(sensors.Mhz19);                     // forced UAQ sensor. Empty for auto detection
+    sensors.init(SENSORS::SMHZ19);                     // forced UAQ sensor. Empty for auto detection
     
     delay(500);
 }

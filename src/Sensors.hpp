@@ -16,6 +16,7 @@
 #include <dht_nonblocking.h>
 #include <s8_uart.h>
 #include <sps30.h>
+#include <drivers/pm1006.h>
 
 #define CAJOE_GEIGER
 
@@ -23,8 +24,8 @@
 #include "MovingSum.h"
 #endif
 
-#define CSL_VERSION "0.5.6"
-#define CSL_REVISION 362
+#define CSL_VERSION "0.5.9"
+#define CSL_REVISION 366
 
 /**************************************************************
  *                          GEIGER
@@ -135,6 +136,7 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
     X(SMHZ19, "MHZ19", 2)   \
     X(SCM1106, "CM1106", 2) \
     X(SAIRS8, "SAIRS8", 2)  \
+    X(IKEAVK, "IKEAVK",1)   \
     X(SSCD30, "SCD30", 2)   \
     X(SSCD4X, "SCD4X", 2)   \
     X(SSHT31, "SHT31", 3)   \
@@ -227,6 +229,9 @@ class Sensors {
     S8_sensor s8sensor;
     // SCD4x sensor
     SensirionI2CScd4x scd4x;
+
+    // IKA Vindriktn sensor
+    PM1006 *pm1006;
 
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
@@ -439,6 +444,7 @@ class Sensors {
     bool pmGenericRead();
     bool pmGCJA5Read();
     bool pmSDS011Read();
+    bool pm1006Read();
     bool CO2Mhz19Read();
     bool CO2CM1106Read();
     int CO2CM1106val();
@@ -446,6 +452,7 @@ class Sensors {
     bool CO2CM1106Init();
     bool senseAirS8Init();
     bool senseAirS8Read();
+    bool PM1006Init();
 
     bool sps30I2CInit();
     bool sps30UARTInit();

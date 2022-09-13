@@ -10,18 +10,7 @@
  * The source code, documentation and the **last version** of this sample is here:
  * https://github.com/hpsaturn/co2_m5coreink
  * 
- * ==================
- * Tested with:
- * 
- * - One SCD30 (C02 sensor)
- * - One GCJA5 (Particulate Matter sensor)
- * - ENVII M5 Hat
- * 
- * But you can use it with any other i2c sensors, for example SPS30 or SCD41
- * UART sensors right nos is untested. 
- * 
  ***********************************************************************************/
-
 
 #include <Arduino.h>
 #include <M5CoreInk.h>

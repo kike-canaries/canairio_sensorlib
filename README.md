@@ -7,6 +7,14 @@ Generic sensor manager, abstractions and bindings of multiple sensors [libraries
 
 For developers also you can check the complete library documentation [here](http://hpsaturn.com/canairio_sensorlib_doc/html/index.html)
 
+<table>
+	<tr>
+		<td>
+			Don't forget to star ⭐ this repository
+		</td>
+	</tr>
+</table>
+
 # Supported sensors
 
 ### PM sensors
@@ -17,6 +25,7 @@ For developers also you can check the complete library documentation [here](http
 | Panasonic SN-GCJA5L | Yes | Yes | Auto | STABLE |
 | Plantower models    | Yes | --- | Auto | STABLE |
 | Nova SDS011         | Yes | --- | Auto | STABLE |
+| IKEA Vindriktning   | Yes | --- | Select | TESTING|
 | Sensirion SPS30     | Yes | Yes | Select / Auto | STABLE |
 
 NOTE: Panasonic via UART in ESP8266 maybe needs select in detection
@@ -108,15 +117,17 @@ void setup() {
 
     // Alternatives only for UART sensors (TX/RX):
 
-    // sensors.init(sensors.Auto);                  // Auto detection to UART sensors (Honeywell, Plantower, Panasonic)
-    // sensors.init(sensors.Panasonic);             // Force UART detection to Panasonic sensor
-    // sensors.init(sensors.Sensirion);             // Force UART detection to Sensirion sensor
-    // sensors.init(sensors.Mhz19);                 // Force UART detection to Mhz14 or Mhz19 CO2 sensor
-    // sensors.init(sensors.SDS011);                // Force UART detection to SDS011 sensor
-    // sensors.init(sensors.CM1106);                // Force UART detection to CM1106 CO2 sensor
-    // sensors.init(sensors.SENSEAIRS8);            // Force UART detection to SenseAirS8 CO2 sensor
-    // sensors.init(sensors.Auto,PMS_RX,PMS_TX);    // Auto detection on custom RX,TX
- 
+    // sensors.init(SENSORS::Auto);                 // Auto detection to UART sensors (Honeywell, Plantower, Panasonic)
+    // sensors.init(SENSORS::SGCJA5);               // Force UART detection to Panasonic sensor
+    // sensors.init(SENSORS::SSPS30);               // Force UART detection to Sensirion sensor
+    // sensors.init(SENSORS::SMHZ19);               // Force UART detection to Mhz14 or Mhz19 CO2 sensor
+    // sensors.init(SENSORS::SDS011);               // Force UART detection to SDS011 sensor
+    // sensors.init(SENSORS::IKEAVK);               // Force UART detection to IKEA Vindriktning sensor
+    // sensors.init(SENSORS::SCM1106);              // Force UART detection to CM1106 CO2 sensor
+    // sensors.init(SENSORS::SAIRS8);               // Force UART detection to SenseAirS8 CO2 sensor
+    // sensors.init(SENSORS::Auto,PMS_RX,PMS_TX);   // Auto detection on custom RX,TX
+  
+
 
     // Also you can access to sub library objects, and perform for example calls like next:
 
@@ -256,10 +267,10 @@ The library has [pre-defined some UART pin configs](https://github.com/kike-cana
 
 ### Custom UART:
 
-Also you could define a custom UART pins in the init() method if it isn't autodected:
+Also you could define a custom UART pins in the init() method and select specific sensors model, like this:
 
 ```cpp
-sensors.init(sensors.Auto,RX,TX); // custom RX, custom TX pines.
+sensors.init(SENSORS::SDS011,yourRX,yourTX); // custom RX, custom TX pines.
 ```
 
 ## I2C (recommended)
