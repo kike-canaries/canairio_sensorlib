@@ -1,7 +1,7 @@
 #ifndef Sensors_hpp
 #define Sensors_hpp
 
-#include <AHT10.h>
+#include <AHTxx.h>
 #include <AM232X.h>
 #include <Adafruit_BME280.h>
 #include <Adafruit_BME680.h>
@@ -120,7 +120,7 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
     X(SBME280, "BME280", 3) \
     X(SBMP280, "BMP280", 3) \
     X(SBME680, "BME680", 3) \
-    X(SAHT10, "AHT10", 3)   \
+    X(SAHTXX, "AHTXX", 3)   \
     X(SAM232X, "AM232X", 3) \
     X(SDHTX, "DHTX", 3)     \
     X(SCOUNT, "SCOUNT", 3)
@@ -180,7 +180,7 @@ class Sensors {
     // BME680 (Humidity, Gas, IAQ, Pressure, Altitude and Temperature)
     Adafruit_BME680 bme680;
     // AHT10
-    AHT10 aht10;
+    AHTxx aht10;
     // SHT31
     Adafruit_SHT31 sht31;
     // DHT sensor

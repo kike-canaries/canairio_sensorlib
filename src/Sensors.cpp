@@ -1446,10 +1446,10 @@ void Sensors::bme680Init() {
 }
 
 void Sensors::aht10Init() {
-    sensorAnnounce(SENSORS::SAHT10);
-    aht10 = AHT10(AHT10_ADDRESS_0X38);
+    sensorAnnounce(SENSORS::SAHTXX);
+    aht10 = AHTxx(AHTXX_ADDRESS_X38, AHT1x_SENSOR);
     if (!aht10.begin()) return; 
-    sensorRegister(SENSORS::SAHT10);
+    sensorRegister(SENSORS::SAHTXX);
 }
 
 void Sensors::CO2scd30Init() {
