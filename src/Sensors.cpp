@@ -87,7 +87,7 @@ bool Sensors::readAllSensors() {
  * @param pms_rx (optional) UART PMS RX pin.
  * @param pms_tx (optional) UART PMS TX pin.
  */
-void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
+void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
 // override with debug INFO level (>=3)
 #ifdef CORE_DEBUG_LEVEL
     if (CORE_DEBUG_LEVEL >= 3) devmode = true;
@@ -240,23 +240,9 @@ uint16_t Sensors::getPM1() {
     return pm1;
 }
 
-/// @deprecated get PM1.0 ug/m3 formated value
-String Sensors::getStringPM1() {
-    char output[5];
-    sprintf(output, "%03d", getPM1());
-    return String(output);
-}
-
 /// get PM2.5 ug/m3 value
 uint16_t Sensors::getPM25() {
     return pm25;
-}
-
-/// @deprecated get PM2.5 ug/m3 formated value
-String Sensors::getStringPM25() {
-    char output[5];
-    sprintf(output, "%03d", getPM25());
-    return String(output);
 }
 
 /// get PM4 ug/m3 value
@@ -264,35 +250,14 @@ uint16_t Sensors::getPM4() {
     return pm4;
 }
 
-/// @deprecated get PM4 ug/m3 formated value
-String Sensors::getStringPM4() {
-    char output[5];
-    sprintf(output, "%03d", getPM4());
-    return String(output);
-}
-
 /// get PM10 ug/m3 value
 uint16_t Sensors::getPM10() {
     return pm10;
 }
 
-/// @deprecated get PM10 ug/m3 formated value
-String Sensors::getStringPM10() {
-    char output[5];
-    sprintf(output, "%03d", getPM10());
-    return String(output);
-}
-
 /// get CO2 ppm value
 uint16_t Sensors::getCO2() {
     return CO2Val;
-}
-
-/// @deprecated get CO2 ppm formated value
-String Sensors::getStringCO2() {
-    char output[5];
-    sprintf(output, "%04d", getCO2());
-    return String(output);
 }
 
 /// get humidity % value of CO2 sensor device
@@ -385,7 +350,7 @@ uint8_t Sensors::getSensorsRegisteredCount() {
  * @return True if the sensor is registered, false otherwise.
  */
 bool Sensors::isSensorRegistered(SENSORS sensor) {
-    for (int i = 0; i < SCOUNT; i++) {
+    for (u_int i = 0; i < SCOUNT; i++) {
         if (sensors_registered[i] == sensor) return true;
     }
     return false;
@@ -433,7 +398,7 @@ uint8_t * Sensors::getSensorsRegistered() {
  */
 bool Sensors::isUnitRegistered(UNIT unit) {
     if (unit == UNIT::NUNIT) return false;
-    for (int i = 0; i < UCOUNT; i++) {
+    for (u_int i = 0; i < UCOUNT; i++) {
         if (units_registered[i] == unit) return true;
     }
     return false;
@@ -479,7 +444,7 @@ String Sensors::getUnitSymbol(UNIT unit) {
  * @return UNIT enum value.
  */
 UNIT Sensors::getNextUnit() {
-    for (int i = current_unit; i < UCOUNT; i++) {
+    for (u_int i = current_unit; i < UCOUNT; i++) {
         if (units_registered[i] != 0) {
             current_unit = i + 1;
             return (UNIT) units_registered[i];
@@ -497,7 +462,7 @@ UNIT Sensors::getNextUnit() {
  */
 void Sensors::resetUnitsRegister() {
     units_registered_count = 0;
-    for (int i = 0; i < UCOUNT; i++) {
+    for (u_int i = 0; i < UCOUNT; i++) {
         units_registered[i] = 0;
     }
 }
@@ -510,7 +475,7 @@ void Sensors::resetUnitsRegister() {
  */
 void Sensors::resetSensorsRegister() {
     sensors_registered_count = 0;
-    for (int i = 0; i < SCOUNT; i++) {
+    for (u_int i = 0; i < SCOUNT; i++) {
         sensors_registered[i] = 0;
     }
 }
@@ -598,7 +563,7 @@ void Sensors::printSensorsRegistered(bool debug) {
 void Sensors::printValues() {
     if (!devmode) return;
     Serial.print("-->[SLIB] Preview sensors values\t: ");
-    for (int i = 0; i < UCOUNT; i++) {
+    for (u_int i = 0; i < UCOUNT; i++) {
         if (units_registered[i] != 0) {
             Serial.print(getUnitName((UNIT)units_registered[i]));
             Serial.print(":");
@@ -1048,7 +1013,7 @@ void Sensors::sps30Errorloop(char *mess, uint8_t r) {
  * @param pms_rx PMS RX pin.
  * @param pms_tx PMS TX pin.
  **/
-bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
+bool Sensors::sensorSerialInit(u_int pms_type, int pms_rx, int pms_tx) {
     // set UART for autodetection sensors (Honeywell, Plantower)
     if (pms_type == Auto) {
         DEBUG("-->[SLIB] UART detecting type\t: Auto");
@@ -1097,7 +1062,7 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
  * In order UART config, this method looking up for
  * special header on Serial stream
  **/
-bool Sensors::pmSensorAutoDetect(int pms_type) {
+bool Sensors::pmSensorAutoDetect(u_int pms_type) {
     delay(1000);  // sync serial
 
     if (pms_type == SENSORS::SSPS30) {
@@ -1446,10 +1411,10 @@ void Sensors::bme680Init() {
 }
 
 void Sensors::aht10Init() {
-    sensorAnnounce(SENSORS::SAHT10);
-    aht10 = AHT10(AHT10_ADDRESS_0X38);
+    sensorAnnounce(SENSORS::SAHTXX);
+    aht10 = AHTxx(AHTXX_ADDRESS_X38, AHT1x_SENSOR);
     if (!aht10.begin()) return; 
-    sensorRegister(SENSORS::SAHT10);
+    sensorRegister(SENSORS::SAHTXX);
 }
 
 void Sensors::CO2scd30Init() {
@@ -1656,7 +1621,7 @@ void Sensors::disableWire1() {
 #endif
 }
 
-bool Sensors::serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx) {
+bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx) {
     if(devmode)Serial.printf("-->[SLIB] UART init with speed\t: %lu RX:%i TX:%i\n", speed_baud, pms_rx, pms_tx);
     switch (SENSOR_COMMS) {
         case SERIALPORT:

@@ -1,7 +1,7 @@
 /**
  * @file main.cpp
  * @author Antonio Vanegas @hpsaturn
- * @date June 2018 - 2020
+ * @date June 2018 - 2022
  * @brief Particle meter sensor tests
  * @license GPL3
  * 
@@ -69,7 +69,7 @@ void setup() {
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
     sensors.setDebugMode(true);                     // [optional] debug mode
-    sensors.detectI2COnly(true);                   // disable force to only i2c sensors
+    sensors.detectI2COnly(true);                    // disable force to only i2c sensors
     sensors.init();                                 // Auto detection to UART and i2c sensors
 }
 

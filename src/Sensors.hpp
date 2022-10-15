@@ -1,7 +1,7 @@
 #ifndef Sensors_hpp
 #define Sensors_hpp
 
-#include <AHT10.h>
+#include <AHTxx.h>
 #include <AM232X.h>
 #include <Adafruit_BME280.h>
 #include <Adafruit_BME680.h>
@@ -18,8 +18,8 @@
 #include <sps30.h>
 #include <drivers/pm1006.h>
 
-#define CSL_VERSION "0.5.8"
-#define CSL_REVISION 364
+#define CSL_VERSION "0.6.0"
+#define CSL_REVISION 368
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -120,7 +120,7 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
     X(SBME280, "BME280", 3) \
     X(SBMP280, "BMP280", 3) \
     X(SBME680, "BME680", 3) \
-    X(SAHT10, "AHT10", 3)   \
+    X(SAHTXX, "AHTXX", 3)   \
     X(SAM232X, "AM232X", 3) \
     X(SDHTX, "DHTX", 3)     \
     X(SCOUNT, "SCOUNT", 3)
@@ -180,7 +180,7 @@ class Sensors {
     // BME680 (Humidity, Gas, IAQ, Pressure, Altitude and Temperature)
     Adafruit_BME680 bme680;
     // AHT10
-    AHT10 aht10;
+    AHTxx aht10;
     // SHT31
     Adafruit_SHT31 sht31;
     // DHT sensor
@@ -207,7 +207,7 @@ class Sensors {
     // IKA Vindriktn sensor
     PM1006 *pm1006;
 
-    void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
+    void init(u_int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
     void loop();
 
@@ -258,28 +258,6 @@ class Sensors {
     void setCO2AltitudeOffset(float altitude);
 
     void setSeaLevelPressure(float hpa);
-
-    String getFormatTemp();
-
-    String getFormatPress();
-
-    String getFormatHum();
-
-    String getFormatGas();
-
-    String getFormatAlt();
-
-    String getStringPM1();
-
-    String getStringPM25();
-
-    String getStringPM4();
-
-    String getStringPM10();
-
-    String getStringCO2();
-
-    String getStringCO2temp();
 
     void setCO2RecalibrationFactor(int ppmValue);
 
@@ -399,8 +377,8 @@ class Sensors {
 
     // UART sensors methods:
 
-    bool sensorSerialInit(int pms_type, int rx, int tx);
-    bool pmSensorAutoDetect(int pms_type);
+    bool sensorSerialInit(u_int pms_type, int rx, int tx);
+    bool pmSensorAutoDetect(u_int pms_type);
     bool pmSensorRead();
     bool pmGenericRead();
     bool pmGCJA5Read();
@@ -431,7 +409,7 @@ class Sensors {
 
     void disableWire1();
 
-    bool serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx);
+    bool serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx);
 
     String hwSerialRead(unsigned int lenght_buffer);
 
