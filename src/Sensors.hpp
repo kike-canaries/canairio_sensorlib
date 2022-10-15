@@ -207,7 +207,7 @@ class Sensors {
     // IKA Vindriktn sensor
     PM1006 *pm1006;
 
-    void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
+    void init(u_int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
     void loop();
 
@@ -377,8 +377,8 @@ class Sensors {
 
     // UART sensors methods:
 
-    bool sensorSerialInit(int pms_type, int rx, int tx);
-    bool pmSensorAutoDetect(int pms_type);
+    bool sensorSerialInit(u_int pms_type, int rx, int tx);
+    bool pmSensorAutoDetect(u_int pms_type);
     bool pmSensorRead();
     bool pmGenericRead();
     bool pmGCJA5Read();
@@ -409,7 +409,7 @@ class Sensors {
 
     void disableWire1();
 
-    bool serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx);
+    bool serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx);
 
     String hwSerialRead(unsigned int lenght_buffer);
 
