@@ -259,28 +259,6 @@ class Sensors {
 
     void setSeaLevelPressure(float hpa);
 
-    String getFormatTemp();
-
-    String getFormatPress();
-
-    String getFormatHum();
-
-    String getFormatGas();
-
-    String getFormatAlt();
-
-    String getStringPM1();
-
-    String getStringPM25();
-
-    String getStringPM4();
-
-    String getStringPM10();
-
-    String getStringCO2();
-
-    String getStringCO2temp();
-
     void setCO2RecalibrationFactor(int ppmValue);
 
     void detectI2COnly(bool enable);

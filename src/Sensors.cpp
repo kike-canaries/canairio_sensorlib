@@ -240,23 +240,9 @@ uint16_t Sensors::getPM1() {
     return pm1;
 }
 
-/// @deprecated get PM1.0 ug/m3 formated value
-String Sensors::getStringPM1() {
-    char output[5];
-    sprintf(output, "%03d", getPM1());
-    return String(output);
-}
-
 /// get PM2.5 ug/m3 value
 uint16_t Sensors::getPM25() {
     return pm25;
-}
-
-/// @deprecated get PM2.5 ug/m3 formated value
-String Sensors::getStringPM25() {
-    char output[5];
-    sprintf(output, "%03d", getPM25());
-    return String(output);
 }
 
 /// get PM4 ug/m3 value
@@ -264,35 +250,14 @@ uint16_t Sensors::getPM4() {
     return pm4;
 }
 
-/// @deprecated get PM4 ug/m3 formated value
-String Sensors::getStringPM4() {
-    char output[5];
-    sprintf(output, "%03d", getPM4());
-    return String(output);
-}
-
 /// get PM10 ug/m3 value
 uint16_t Sensors::getPM10() {
     return pm10;
 }
 
-/// @deprecated get PM10 ug/m3 formated value
-String Sensors::getStringPM10() {
-    char output[5];
-    sprintf(output, "%03d", getPM10());
-    return String(output);
-}
-
 /// get CO2 ppm value
 uint16_t Sensors::getCO2() {
     return CO2Val;
-}
-
-/// @deprecated get CO2 ppm formated value
-String Sensors::getStringCO2() {
-    char output[5];
-    sprintf(output, "%04d", getCO2());
-    return String(output);
 }
 
 /// get humidity % value of CO2 sensor device
