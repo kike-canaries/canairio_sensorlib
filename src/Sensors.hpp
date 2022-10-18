@@ -56,10 +56,6 @@
 #elif M5STICKCPLUS
 #define PMS_RX 36   // provisional for M5StickCPlus board for now
 #define PMS_TX 0
-#define HAT_I2C_SDA 0
-#define HAT_I2C_SCL 26
-#define EXT_I2C_SDA 32
-#define EXT_I2C_SCL 33
 #define DHT_SENSOR_PIN 34
 #elif M5COREINK
 #define PMS_RX 13
@@ -79,6 +75,12 @@
 #define PMS_TX 16
 #define DHT_SENSOR_PIN 23  // default DHT sensor pin
 #endif
+
+// I2C pins for M5COREINK and M5STICKCPLUS
+#define HAT_I2C_SDA 0
+#define HAT_I2C_SCL 26
+#define EXT_I2C_SDA 32
+#define EXT_I2C_SCL 33
 
 // DHT sensor type
 #define DHT_SENSOR_TYPE DHT_TYPE_22
