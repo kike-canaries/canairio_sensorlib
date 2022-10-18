@@ -18,8 +18,8 @@
 #include <sps30.h>
 #include <drivers/pm1006.h>
 
-#define CSL_VERSION "0.6.0"
-#define CSL_REVISION 368
+#define CSL_VERSION "0.6.1"
+#define CSL_REVISION 369
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -56,6 +56,10 @@
 #elif M5STICKCPLUS
 #define PMS_RX 36   // provisional for M5StickCPlus board for now
 #define PMS_TX 0
+#define HAT_I2C_SDA 0
+#define HAT_I2C_SCL 26
+#define EXT_I2C_SDA 32
+#define EXT_I2C_SCL 33
 #define DHT_SENSOR_PIN 34
 #elif M5COREINK
 #define PMS_RX 13
