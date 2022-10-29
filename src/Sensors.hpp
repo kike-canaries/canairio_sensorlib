@@ -18,8 +18,8 @@
 #include <sps30.h>
 #include <drivers/pm1006.h>
 
-#define CSL_VERSION "0.6.0"
-#define CSL_REVISION 368
+#define CSL_VERSION "0.6.1"
+#define CSL_REVISION 369
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -75,6 +75,12 @@
 #define PMS_TX 16
 #define DHT_SENSOR_PIN 23  // default DHT sensor pin
 #endif
+
+// I2C pins for M5COREINK and M5STICKCPLUS
+#define HAT_I2C_SDA 0
+#define HAT_I2C_SCL 26
+#define EXT_I2C_SDA 32
+#define EXT_I2C_SCL 33
 
 // DHT sensor type
 #define DHT_SENSOR_TYPE DHT_TYPE_22
