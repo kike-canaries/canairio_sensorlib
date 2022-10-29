@@ -66,10 +66,10 @@ bool Sensors::readAllSensors() {
     CO2scd4xRead();
     am2320Read();
     sht31Read();
-    aht10Read();
     bme280Read();
     bmp280Read();
     bme680Read();
+    aht10Read();
     dhtRead();
     disableWire1();
 
@@ -887,10 +887,10 @@ void Sensors::bme680Read() {
 }
 
 void Sensors::aht10Read() {
-    float humi1 = aht10.readHumidity();
-    float temp1 = aht10.readTemperature();
-    if (humi1 != 255) humi = humi1;
-    if (temp1 != 255) {
+    float temp1 = aht10.readTemperature(AHTXX_USE_READ_DATA);
+    if (temp1 != AHTXX_ERROR) { 
+        float humi1 = aht10.readHumidity(AHTXX_FORCE_READ_DATA);
+        if (humi1 != AHTXX_ERROR) humi = humi1;
         temp = temp1-toffset;
         dataReady = true;
         DEBUG("-->[SLIB] AHT10 read\t\t: done!");
@@ -1413,7 +1413,11 @@ void Sensors::bme680Init() {
 void Sensors::aht10Init() {
     sensorAnnounce(SENSORS::SAHTXX);
     aht10 = AHTxx(AHTXX_ADDRESS_X38, AHT1x_SENSOR);
+    #ifdef M5STICKCPLUS // issue: https://github.com/enjoyneering/AHTxx/issues/11
+    if(!aht10.begin(EXT_I2C_SDA, EXT_I2C_SCL, 100000, 50000)) return;
+    #else
     if (!aht10.begin()) return; 
+    #endif
     sensorRegister(SENSORS::SAHTXX);
 }
 
@@ -1584,7 +1588,7 @@ void Sensors::DEBUG(const char *text, const char *textb) {
 
 void Sensors::startI2C() {
 #if defined(M5STICKCPLUS) || defined(M5COREINK) 
-    Wire.begin(32,33);   // M5CoreInk Ext port (default for all sensors)
+    Wire.begin(EXT_I2C_SDA, EXT_I2C_SCL);   // M5CoreInk Ext port (default for all sensors)
     enableWire1();
 #endif
 #ifdef M5ATOM
@@ -1598,7 +1602,7 @@ void Sensors::startI2C() {
 void Sensors::enableWire1() {
 #ifdef M5STICKCPLUS
     Wire1.flush();
-    Wire1.begin(0,26);   // M5CoreInk hat pines (header on top)
+    Wire1.begin(HAT_I2C_SDA, HAT_I2C_SCL);   // M5CoreInk hat pines (header on top)
 #endif
 #ifdef M5COREINK
     Wire1.flush();
