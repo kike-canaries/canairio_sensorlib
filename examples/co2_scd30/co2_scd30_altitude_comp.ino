@@ -19,7 +19,7 @@
 #include <Sensors.hpp>
 
 void onSensorDataOk() {
-    Serial.print(" CO2: " + sensors.getStringCO2());
+    Serial.print(" CO2: " + String(sensors.getCO2()));
     Serial.print(" CO2humi: " + String(sensors.getCO2humi()));
     Serial.print(" CO2temp: " + String(sensors.getCO2temp()));
 
