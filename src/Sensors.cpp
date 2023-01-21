@@ -705,17 +705,17 @@ bool Sensors::sps30Read() {
     
     do {
         ret = sps30.GetValues(&val);
-        if (ret == ERR_DATALENGTH) {
+        if (ret == SPS30_ERR_DATALENGTH) {
             if (error_cnt++ > 3) {
                 DEBUG("[W][SLIB] SPS30 setup message \t: error on values\t: ", String(ret).c_str());
                 return false;
             }
             delay(500);
-        } else if (ret != ERR_OK) {
+        } else if (ret != SPS30_ERR_OK) {
             sps30ErrToMess((char *)"[W][SLIB] SPS30 setup message \t: error on values\t: ", ret);
             return false;
         }
-    } while (ret != ERR_OK);
+    } while (ret != SPS30_ERR_OK);
 
     DEBUG("-->[SLIB] SPS30 read \t\t: done!");
 
@@ -1299,7 +1299,7 @@ void Sensors::sps30DeviceInfo() {
 
     //try to read serial number
     ret = sps30.GetSerialNumber(buf, 32);
-    if (ret == ERR_OK) {
+    if (ret == SPS30_ERR_OK) {
         if (strlen(buf) > 0)
             DEBUG("-->[SLIB] SPS30 Serial number\t: ", buf);
         else
@@ -1309,7 +1309,7 @@ void Sensors::sps30DeviceInfo() {
 
     // try to get product name
     ret = sps30.GetProductName(buf, 32);
-    if (ret == ERR_OK) {
+    if (ret == SPS30_ERR_OK) {
         if (strlen(buf) > 0)
             DEBUG("-->[SLIB] SPS30 product name\t: ", buf);
         else
@@ -1319,7 +1319,7 @@ void Sensors::sps30DeviceInfo() {
 
     // try to get version info
     ret = sps30.GetVersion(&v);
-    if (ret != ERR_OK) {
+    if (ret != SPS30_ERR_OK) {
         DEBUG("[SLIB] SPS30 can not read version info");
         return;
     }
