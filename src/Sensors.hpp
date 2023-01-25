@@ -18,8 +18,8 @@
 #include <sps30.h>
 #include <drivers/pm1006.h>
 
-#define CSL_VERSION "0.6.2"
-#define CSL_REVISION 370
+#define CSL_VERSION "0.6.3"
+#define CSL_REVISION 371
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
