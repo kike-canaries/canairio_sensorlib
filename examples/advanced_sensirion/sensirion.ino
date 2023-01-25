@@ -1,7 +1,7 @@
 /**
  * @file main.cpp
  * @author Antonio Vanegas @hpsaturn
- * @date June 2018 - 2020
+ * @date June 2018 - 2022
  * @brief Particle meter sensor tests
  * @license GPL3
  * 
@@ -19,10 +19,10 @@
 #include <Sensors.hpp>
 
 void onSensorDataOk() {
-    Serial.print ("-->[MAIN] PM1.0: "+sensors.getStringPM1());
-    Serial.print (" PM2.5: " + sensors.getStringPM25());
-    Serial.print (" PM10: " + sensors.getStringPM10());
-    Serial.print (" PM1: " + sensors.getStringPM1());
+    Serial.print ("-->[MAIN] PM1.0: "+String(sensors.getPM1()));
+    Serial.print (" PM2.5: " + String(sensors.getPM25()));
+    Serial.print (" PM10 : " + String(sensors.getPM10()));
+    Serial.println(" PM1.0: " + String(sensors.getPM1()));
 }
 
 void onSensorDataError(const char * msg){ 
@@ -45,7 +45,7 @@ void setup() {
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
     sensors.setDebugMode(true);                     // [optional] debug mode
 
-    sensors.init(sensors.Sensirion);                // Forced Sensirion via UART, default is I2C
+    sensors.init(SENSORS::SSPS30);                  // Forced Sensirion via UART, default is I2C
                                                     // For Sensirion with i2c only leave empty this parameter
 
     delay(500);

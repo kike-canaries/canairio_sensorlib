@@ -49,6 +49,10 @@ void Sensors::loop() {
     dhtRead();  // DHT2x sensors need check fastest
 }
 
+void Sensors::printHumTemp() {
+    Serial.printf("-->[SLIB] sensorlib \t\t: T:%02.1f, H:%02.1f\n", humi, temp);
+}
+
 /**
  * @brief Read all sensors but use only one time or use loop() instead.
  * All sensors are read here. Use it carefully, better use sensors.loop()
@@ -66,10 +70,10 @@ bool Sensors::readAllSensors() {
     CO2scd4xRead();
     am2320Read();
     sht31Read();
-    aht10Read();
     bme280Read();
     bmp280Read();
     bme680Read();
+    aht10Read();
     dhtRead();
     disableWire1();
 
@@ -87,7 +91,7 @@ bool Sensors::readAllSensors() {
  * @param pms_rx (optional) UART PMS RX pin.
  * @param pms_tx (optional) UART PMS TX pin.
  */
-void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
+void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
 // override with debug INFO level (>=3)
 #ifdef CORE_DEBUG_LEVEL
     if (CORE_DEBUG_LEVEL >= 3) devmode = true;
@@ -240,23 +244,9 @@ uint16_t Sensors::getPM1() {
     return pm1;
 }
 
-/// @deprecated get PM1.0 ug/m3 formated value
-String Sensors::getStringPM1() {
-    char output[6];
-    sprintf(output, "%03d", getPM1());
-    return String(output);
-}
-
 /// get PM2.5 ug/m3 value
 uint16_t Sensors::getPM25() {
     return pm25;
-}
-
-/// @deprecated get PM2.5 ug/m3 formated value
-String Sensors::getStringPM25() {
-    char output[6];
-    sprintf(output, "%03d", getPM25());
-    return String(output);
 }
 
 /// get PM4 ug/m3 value
@@ -264,35 +254,14 @@ uint16_t Sensors::getPM4() {
     return pm4;
 }
 
-/// @deprecated get PM4 ug/m3 formated value
-String Sensors::getStringPM4() {
-    char output[6];
-    sprintf(output, "%03d", getPM4());
-    return String(output);
-}
-
 /// get PM10 ug/m3 value
 uint16_t Sensors::getPM10() {
     return pm10;
 }
 
-/// @deprecated get PM10 ug/m3 formated value
-String Sensors::getStringPM10() {
-    char output[5];
-    sprintf(output, "%03d", getPM10());
-    return String(output);
-}
-
 /// get CO2 ppm value
 uint16_t Sensors::getCO2() {
     return CO2Val;
-}
-
-/// @deprecated get CO2 ppm formated value
-String Sensors::getStringCO2() {
-    char output[5];
-    sprintf(output, "%04d", getCO2());
-    return String(output);
 }
 
 /// get humidity % value of CO2 sensor device
@@ -385,7 +354,7 @@ uint8_t Sensors::getSensorsRegisteredCount() {
  * @return True if the sensor is registered, false otherwise.
  */
 bool Sensors::isSensorRegistered(SENSORS sensor) {
-    for (int i = 0; i < SCOUNT; i++) {
+    for (u_int i = 0; i < SCOUNT; i++) {
         if (sensors_registered[i] == sensor) return true;
     }
     return false;
@@ -433,7 +402,7 @@ uint8_t * Sensors::getSensorsRegistered() {
  */
 bool Sensors::isUnitRegistered(UNIT unit) {
     if (unit == UNIT::NUNIT) return false;
-    for (int i = 0; i < UCOUNT; i++) {
+    for (u_int i = 0; i < UCOUNT; i++) {
         if (units_registered[i] == unit) return true;
     }
     return false;
@@ -479,7 +448,7 @@ String Sensors::getUnitSymbol(UNIT unit) {
  * @return UNIT enum value.
  */
 UNIT Sensors::getNextUnit() {
-    for (int i = current_unit; i < UCOUNT; i++) {
+    for (u_int i = current_unit; i < UCOUNT; i++) {
         if (units_registered[i] != 0) {
             current_unit = i + 1;
             return (UNIT) units_registered[i];
@@ -497,7 +466,7 @@ UNIT Sensors::getNextUnit() {
  */
 void Sensors::resetUnitsRegister() {
     units_registered_count = 0;
-    for (int i = 0; i < UCOUNT; i++) {
+    for (u_int i = 0; i < UCOUNT; i++) {
         units_registered[i] = 0;
     }
 }
@@ -510,7 +479,7 @@ void Sensors::resetUnitsRegister() {
  */
 void Sensors::resetSensorsRegister() {
     sensors_registered_count = 0;
-    for (int i = 0; i < SCOUNT; i++) {
+    for (u_int i = 0; i < SCOUNT; i++) {
         sensors_registered[i] = 0;
     }
 }
@@ -598,7 +567,7 @@ void Sensors::printSensorsRegistered(bool debug) {
 void Sensors::printValues() {
     if (!devmode) return;
     Serial.print("-->[SLIB] Preview sensors values\t: ");
-    for (int i = 0; i < UCOUNT; i++) {
+    for (u_int i = 0; i < UCOUNT; i++) {
         if (units_registered[i] != 0) {
             Serial.print(getUnitName((UNIT)units_registered[i]));
             Serial.print(":");
@@ -691,6 +660,21 @@ bool Sensors::pmSDS011Read() {
         }
     }
     return false;
+}
+
+/**
+ *  @brief IKEA Vindriktning particulate meter sensor read.
+ *  @return true if header and sensor data is right
+ */
+
+bool Sensors::pm1006Read() {
+  uint16_t pm2_5;
+  if(pm1006->read_pm25(&pm2_5)) {
+    pm25 = pm2_5;
+    unitRegister(UNIT::PM25);
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -811,12 +795,12 @@ bool Sensors::pmSensorRead() {
             return pmGCJA5Read();
             break;
 
-        // case SSPS30:  CHECK: we don't need more this read here
-        //     return sps30Read();
-        //     break;
-
         case SDS011:
             return pmSDS011Read();
+            break;
+
+        case IKEAVK:
+            return pm1006Read();
             break;
 
         case SMHZ19:
@@ -907,10 +891,10 @@ void Sensors::bme680Read() {
 }
 
 void Sensors::aht10Read() {
-    float humi1 = aht10.readHumidity();
     float temp1 = aht10.readTemperature();
-    if (humi1 != 255) humi = humi1;
-    if (temp1 != 255) {
+    if (temp1 != AHTXX_ERROR) { 
+        float humi1 = aht10.readHumidity();
+        if (humi1 != AHTXX_ERROR) humi = humi1;
         temp = temp1-toffset;
         dataReady = true;
         DEBUG("-->[SLIB] AHT10 read\t\t: done!");
@@ -1033,7 +1017,7 @@ void Sensors::sps30Errorloop(char *mess, uint8_t r) {
  * @param pms_rx PMS RX pin.
  * @param pms_tx PMS TX pin.
  **/
-bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
+bool Sensors::sensorSerialInit(u_int pms_type, int pms_rx, int pms_tx) {
     // set UART for autodetection sensors (Honeywell, Plantower)
     if (pms_type == Auto) {
         DEBUG("-->[SLIB] UART detecting type\t: Auto");
@@ -1058,6 +1042,9 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
     } else if (pms_type == SENSORS::SAIRS8) {
         DEBUG("-->[SLIB] UART detecting type\t: SENSEAIRS8");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
+    } else if (pms_type == SENSORS::IKEAVK) {
+        DEBUG("-->[SLIB] UART detecting type\t: SENSEAIRS8");
+        if (!serialInit(pms_type, PM1006::BIT_RATE, pms_rx, pms_tx)) return false;
     }
 
     // starting auto detection loop
@@ -1079,7 +1066,7 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
  * In order UART config, this method looking up for
  * special header on Serial stream
  **/
-bool Sensors::pmSensorAutoDetect(int pms_type) {
+bool Sensors::pmSensorAutoDetect(u_int pms_type) {
     delay(1000);  // sync serial
 
     if (pms_type == SENSORS::SSPS30) {
@@ -1092,6 +1079,13 @@ bool Sensors::pmSensorAutoDetect(int pms_type) {
     if (pms_type == SENSORS::SDS011) {
         if (pmSDS011Read()) {
             dev_uart_type = SENSORS::SDS011;
+            return true;
+        }
+    }
+
+    if (pms_type == SENSORS::IKEAVK) {
+        if (PM1006Init()) {
+            dev_uart_type = SENSORS::IKEAVK;
             return true;
         }
     }
@@ -1140,6 +1134,12 @@ bool Sensors::CO2Mhz19Init() {
     if (co2 == 0 ) return false;
     sensorRegister(SENSORS::SMHZ19);
     return true;
+}
+
+bool Sensors::PM1006Init() {
+    pm1006 = new PM1006(*_serial);
+    sensorRegister(SENSORS::IKEAVK);
+    return pm1006Read();
 }
 
 bool Sensors::CO2CM1106Init() {
@@ -1415,10 +1415,14 @@ void Sensors::bme680Init() {
 }
 
 void Sensors::aht10Init() {
-    sensorAnnounce(SENSORS::SAHT10);
-    aht10 = AHT10(AHT10_ADDRESS_0X38);
+    sensorAnnounce(SENSORS::SAHTXX);
+    aht10 = AHTxx(AHTXX_ADDRESS_X38, AHT1x_SENSOR);
+    #ifdef M5STICKCPLUS // issue: https://github.com/enjoyneering/AHTxx/issues/11
+    if(!aht10.begin(EXT_I2C_SDA, EXT_I2C_SCL, 100000, 50000)) return;
+    #else
     if (!aht10.begin()) return; 
-    sensorRegister(SENSORS::SAHT10);
+    #endif
+    sensorRegister(SENSORS::SAHTXX);
 }
 
 void Sensors::CO2scd30Init() {
@@ -1588,7 +1592,7 @@ void Sensors::DEBUG(const char *text, const char *textb) {
 
 void Sensors::startI2C() {
 #if defined(M5STICKCPLUS) || defined(M5COREINK) 
-    Wire.begin(32,33);   // M5CoreInk Ext port (default for all sensors)
+    Wire.begin(EXT_I2C_SDA, EXT_I2C_SCL);   // M5CoreInk Ext port (default for all sensors)
     enableWire1();
 #endif
 #ifdef M5ATOM
@@ -1602,7 +1606,7 @@ void Sensors::startI2C() {
 void Sensors::enableWire1() {
 #ifdef M5STICKCPLUS
     Wire1.flush();
-    Wire1.begin(0,26);   // M5CoreInk hat pines (header on top)
+    Wire1.begin(HAT_I2C_SDA, HAT_I2C_SCL);   // M5CoreInk hat pines (header on top)
 #endif
 #ifdef M5COREINK
     Wire1.flush();
@@ -1625,7 +1629,7 @@ void Sensors::disableWire1() {
 #endif
 }
 
-bool Sensors::serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx) {
+bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx) {
     if(devmode)Serial.printf("-->[SLIB] UART init with speed\t: %lu RX:%i TX:%i\n", speed_baud, pms_rx, pms_tx);
     switch (SENSOR_COMMS) {
         case SERIALPORT:

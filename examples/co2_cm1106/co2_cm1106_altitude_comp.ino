@@ -51,7 +51,7 @@ void setup() {
 
     // sensors.setCO2RecalibrationFactor(400);       // calibration method (in outdoors)
     
-    sensors.init(sensors.CM1106);                    // forced UART sensor. (empty for auto detection)
+    sensors.init(SENSORS::SCM1106);                    // forced UART sensor. (empty for auto detection)
 
     delay(500);
 }
