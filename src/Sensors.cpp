@@ -49,6 +49,10 @@ void Sensors::loop() {
     dhtRead();  // DHT2x sensors need check fastest
 }
 
+void Sensors::printHumTemp() {
+    Serial.printf("-->[SLIB] sensorlib \t\t: T:%02.1f, H:%02.1f\n", humi, temp);
+}
+
 /**
  * @brief Read all sensors but use only one time or use loop() instead.
  * All sensors are read here. Use it carefully, better use sensors.loop()
@@ -887,9 +891,9 @@ void Sensors::bme680Read() {
 }
 
 void Sensors::aht10Read() {
-    float temp1 = aht10.readTemperature(AHTXX_USE_READ_DATA);
+    float temp1 = aht10.readTemperature();
     if (temp1 != AHTXX_ERROR) { 
-        float humi1 = aht10.readHumidity(AHTXX_FORCE_READ_DATA);
+        float humi1 = aht10.readHumidity();
         if (humi1 != AHTXX_ERROR) humi = humi1;
         temp = temp1-toffset;
         dataReady = true;

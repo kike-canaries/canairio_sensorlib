@@ -425,6 +425,8 @@ class Sensors {
 
     void printValues();
 
+    void printHumTemp();
+
     void sensorRegister(SENSORS sensor);
 
     void sensorAnnounce(SENSORS sensor);
