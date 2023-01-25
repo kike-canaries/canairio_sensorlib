@@ -49,6 +49,10 @@ void Sensors::loop() {
     dhtRead();  // DHT2x sensors need check fastest
 }
 
+void Sensors::printHumTemp() {
+    Serial.printf("-->[SLIB] sensorlib \t\t: T:%02.1f, H:%02.1f\n", humi, temp);
+}
+
 /**
  * @brief Read all sensors but use only one time or use loop() instead.
  * All sensors are read here. Use it carefully, better use sensors.loop()
@@ -705,17 +709,17 @@ bool Sensors::sps30Read() {
     
     do {
         ret = sps30.GetValues(&val);
-        if (ret == ERR_DATALENGTH) {
+        if (ret == SPS30_ERR_DATALENGTH) {
             if (error_cnt++ > 3) {
                 DEBUG("[W][SLIB] SPS30 setup message \t: error on values\t: ", String(ret).c_str());
                 return false;
             }
             delay(500);
-        } else if (ret != ERR_OK) {
+        } else if (ret != SPS30_ERR_OK) {
             sps30ErrToMess((char *)"[W][SLIB] SPS30 setup message \t: error on values\t: ", ret);
             return false;
         }
-    } while (ret != ERR_OK);
+    } while (ret != SPS30_ERR_OK);
 
     DEBUG("-->[SLIB] SPS30 read \t\t: done!");
 
@@ -887,9 +891,9 @@ void Sensors::bme680Read() {
 }
 
 void Sensors::aht10Read() {
-    float temp1 = aht10.readTemperature(AHTXX_USE_READ_DATA);
+    float temp1 = aht10.readTemperature();
     if (temp1 != AHTXX_ERROR) { 
-        float humi1 = aht10.readHumidity(AHTXX_FORCE_READ_DATA);
+        float humi1 = aht10.readHumidity();
         if (humi1 != AHTXX_ERROR) humi = humi1;
         temp = temp1-toffset;
         dataReady = true;
@@ -1299,7 +1303,7 @@ void Sensors::sps30DeviceInfo() {
 
     //try to read serial number
     ret = sps30.GetSerialNumber(buf, 32);
-    if (ret == ERR_OK) {
+    if (ret == SPS30_ERR_OK) {
         if (strlen(buf) > 0)
             DEBUG("-->[SLIB] SPS30 Serial number\t: ", buf);
         else
@@ -1309,7 +1313,7 @@ void Sensors::sps30DeviceInfo() {
 
     // try to get product name
     ret = sps30.GetProductName(buf, 32);
-    if (ret == ERR_OK) {
+    if (ret == SPS30_ERR_OK) {
         if (strlen(buf) > 0)
             DEBUG("-->[SLIB] SPS30 product name\t: ", buf);
         else
@@ -1319,7 +1323,7 @@ void Sensors::sps30DeviceInfo() {
 
     // try to get version info
     ret = sps30.GetVersion(&v);
-    if (ret != ERR_OK) {
+    if (ret != SPS30_ERR_OK) {
         DEBUG("[SLIB] SPS30 can not read version info");
         return;
     }

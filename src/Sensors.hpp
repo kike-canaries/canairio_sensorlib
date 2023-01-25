@@ -18,8 +18,8 @@
 #include <sps30.h>
 #include <drivers/pm1006.h>
 
-#define CSL_VERSION "0.6.1"
-#define CSL_REVISION 369
+#define CSL_VERSION "0.6.3"
+#define CSL_REVISION 371
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -424,6 +424,8 @@ class Sensors {
     void DEBUG(const char *text, const char *textb = "");
 
     void printValues();
+
+    void printHumTemp();
 
     void sensorRegister(SENSORS sensor);
 
