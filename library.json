@@ -43,7 +43,7 @@
   "frameworks": ["espidf", "freertos", "arduino"],
   "platforms":
   [
-    "teensy",
+    "atmelsam",
     "espressif32",
     "espressif8266"
   ],
