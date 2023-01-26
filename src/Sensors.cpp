@@ -1674,6 +1674,7 @@ bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, i
             break;
 
         case SERIALPORT2:
+#ifdef Serial2
             DEBUG("-->[SLIB] UART COMM port \t: Serial2");
             if (pms_type == SENSORS::SSPS30)
                 Serial2.begin(speed_baud);
@@ -1681,6 +1682,10 @@ bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, i
                 Serial2.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx, false);
             _serial = &Serial2;
             break;
+#else
+            DEBUG("-->[SLIB] UART COMM port \t: Undefined");
+            return false;
+#endif  // Serial2
 #endif
         default:
 
