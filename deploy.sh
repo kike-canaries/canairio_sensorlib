@@ -55,15 +55,19 @@ validate_branch () {
 }
 
 clean () {
+  rm -rf .pio
+  rm -rf examples/advanced_sensirion/.pio
   rm -f $OUTPUT
 }
 
-runtest () {
-  pio run --target clean && pio run 
+runtests () {
+   pio run
+   cd examples/advanced_sensirion && pio run
 }
 
 build () {
-
+  
+  clean
   echo ""
   echo "***********************************************"
   echo "** Building rev$SRC_REV ($SRC_VER)"
@@ -111,7 +115,7 @@ else
       ;;
 
     test)
-      runtest 
+      runtests
       ;;
 
     help)
