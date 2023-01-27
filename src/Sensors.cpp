@@ -1342,14 +1342,14 @@ void Sensors::sps30DeviceInfo() {
 
 void Sensors::am2320Init() {
     sensorAnnounce(SENSORS::SAM232X);
-    #ifdef ESP32
+    #ifndef Wife1
+    if (!am2320.begin()) return;
+    #else
     am2320 = AM232X(&Wire);
     if (!am2320.begin()) {
         am2320 = AM232X(&Wire1);
         if (!am2320.begin()) return;
     }
-    #else
-    if (!am2320.begin()) return;
     #endif
     am2320.wakeUp();
     sensorRegister(SENSORS::SAM232X);
@@ -1358,36 +1358,36 @@ void Sensors::am2320Init() {
 void Sensors::sht31Init() {
     sensorAnnounce(SENSORS::SSHT31);
     sht31 = Adafruit_SHT31();
-    #ifdef ESP32
+    #ifndef Wire1
+    if (!sht31.begin()) return;
+    #else
     if (!sht31.begin()) {
         sht31 = Adafruit_SHT31(&Wire1);
         if (!sht31.begin()) return; 
     }
-    #else
-    if (!sht31.begin()) return;
     #endif
     sensorRegister(SENSORS::SSHT31);
 }
 
 void Sensors::bme280Init() {
     sensorAnnounce(SENSORS::SBME280);
-    #ifdef ESP32
-    if (!bme280.begin() && !bme280.begin(BME280_ADDRESS,&Wire1)) return; 
-    #else
+    #ifndef Wire1
     if (!bme280.begin()) return;
+    #else
+    if (!bme280.begin() && !bme280.begin(BME280_ADDRESS,&Wire1)) return; 
     #endif
     sensorRegister(SENSORS::SBME280);
 }
 
 void Sensors::bmp280Init() {
     sensorAnnounce(SENSORS::SBMP280);
-    #ifdef ESP32
+    #ifndef Wire1
+    if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return; 
+    #else
     if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) {
         bmp280 = Adafruit_BMP280(&Wire1);
         if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return;
     }
-    #else
-    if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return;
     #endif
     bmp280.setSampling(Adafruit_BMP280::MODE_NORMAL,      // Operating Mode.
                        Adafruit_BMP280::SAMPLING_X2,      // Temp. oversampling
@@ -1427,10 +1427,10 @@ void Sensors::aht10Init() {
 
 void Sensors::CO2scd30Init() {
     sensorAnnounce(SENSORS::SSCD30);
-    #ifdef ESP32
-    if (!scd30.begin() && !scd30.begin(SCD30_I2CADDR_DEFAULT, &Wire1, SCD30_CHIP_ID)) return;
-    #else
+    #ifndef Wire1
     if (!scd30.begin()) return;
+    #else
+    if (!scd30.begin() && !scd30.begin(SCD30_I2CADDR_DEFAULT, &Wire1, SCD30_CHIP_ID)) return;
     #endif
     delay(10);
 
@@ -1518,10 +1518,10 @@ void Sensors::setSCD4xAltitudeOffset(float offset) {
 
 void Sensors::GCJA5Init() {
     sensorAnnounce(SENSORS::SGCJA5);
-    #ifdef ESP32
-    if (!pmGCJA5.begin() && !pmGCJA5.begin(Wire1)) return;
-    #else
+    #ifndef Wire1
     if (!pmGCJA5.begin()) return;
+    #else
+    if (!pmGCJA5.begin() && !pmGCJA5.begin(Wire1)) return;
     #endif
     sensorRegister(SENSORS::SGCJA5);
 }
