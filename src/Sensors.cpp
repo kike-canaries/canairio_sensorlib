@@ -963,6 +963,9 @@ void Sensors::GCJA5Read() {
     unitRegister(UNIT::PM10);
 }
 
+/**
+ * @deprecated Please don't use this sensor anymore
+ */
 bool Sensors::dhtIsReady(float *temperature, float *humidity) {
     static unsigned long measurement_timestamp = millis();
     if (millis() - measurement_timestamp > sample_time * (uint32_t)1000) {
@@ -974,11 +977,18 @@ bool Sensors::dhtIsReady(float *temperature, float *humidity) {
     return (false);
 }
 
+/**
+ * @deprecated Please don't use this sensor anymore
+ */
 void Sensors::setDHTparameters(int dht_sensor_pin, int dht_sensor_type) {
     DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
 }
 
+/**
+ * @deprecated Please don't use this sensor anymore
+ */
 void Sensors::dhtRead() {
+#ifdef DHT11_ENABLED
     if (dhtIsReady(&dhttemp, &dhthumi) != true) return;
     temp = dhttemp - toffset;
     humi = dhthumi;
@@ -987,6 +997,7 @@ void Sensors::dhtRead() {
     DEBUG("-->[SLIB] DHTXX read\t\t: done!");
     unitRegister(UNIT::TEMP);
     unitRegister(UNIT::HUM);
+#endif
 }
 
 void Sensors::onSensorError(const char *msg) {
@@ -1526,9 +1537,14 @@ void Sensors::GCJA5Init() {
     sensorRegister(SENSORS::SGCJA5);
 }
 
+/**
+ * @deprecated Please don't use this sensor anymore
+ */
 void Sensors::dhtInit() {
+#ifdef DHT11_ENABLED
     sensorAnnounce(SENSORS::SDHTX);
     dhtRead();
+#endif
 }
 
 // Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
