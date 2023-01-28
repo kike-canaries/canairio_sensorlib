@@ -51,9 +51,22 @@ NOTE: Panasonic via UART in ESP8266 maybe needs select in detection
 | BME280      | i2c |  Auto | STABLE |
 | BMP280      | i2c |  Auto | TESTING |
 | BME680      | i2c |  Auto | STABLE |
-| DHTxx       | TwoWire |  Auto | DEPRECATED |
+| DHTxx       | TwoWire |  Auto | DISABLED |
 
-NOTE: DHT22 is supported but is not recommended
+NOTE: DHT22 is supported but is not recommended. Please see the documentation.
+
+### Platforms supported
+
+| Platform  | Variants  | Notes | Status |  
+|:----------------------- |:-----:|:-------:|:----------:|
+| ESP32  | WROVER* | ESP32Devkit and similar (recommended) | STABLE  |
+| ESP32S3  | LilyGo TDisplay | In testing | UNSTABLE |
+| ESP32C3  | Devkit v3 | In testing | UNSTABLE |
+| ESP8266  | 12 |  D1MINI tested and similar (old) | STABLE |
+| Atmelsam  | seeed_wio_terminal | Only works via i2c on left port | STABLE |
+| Arduino | Atmel  | Some third party libraries fails | IN PROGRESS |
+
+
 
 # Features
 
