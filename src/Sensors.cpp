@@ -1618,7 +1618,7 @@ void Sensors::startI2C() {
     Wire.begin();
 #endif
 #ifdef ESP32C3
-    Wire.begin(19,18)
+    Wire.begin(19,18);
 #endif
 }
 
