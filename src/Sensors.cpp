@@ -1614,8 +1614,11 @@ void Sensors::startI2C() {
 #ifdef M5ATOM
     enableWire1();
 #endif
-#if not defined(M5STICKCPLUS) && not defined(M5COREINK) && not defined(M5ATOM)
+#if not defined(M5STICKCPLUS) && not defined(M5COREINK) && not defined(M5ATOM) && not defined(ESP32C3)
     Wire.begin();
+#endif
+#ifdef ESP32C3
+    Wire.begin(19,18);
 #endif
 }
 
