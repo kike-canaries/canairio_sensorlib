@@ -62,12 +62,12 @@ void setup() {
     Serial.println("\n== Sensor test setup ==\n");
     Serial.println("-->[SETUP] Detecting sensors..");
     
-    sensors.setSampleTime(5);                        // config sensors sample time interval
+    sensors.setSampleTime(10);                        // config sensors sample time interval
     sensors.setOnDataCallBack(&onSensorDataOk);      // all data read callback
-    sensors.setDebugMode(false);                     // [optional] debug mode
+    sensors.setDebugMode(true);                     // [optional] debug mode
     sensors.detectI2COnly(false);                    // disable force to only i2c sensors
     sensors.init();                                  // Auto detection to UART and i2c sensors
-    delay(500);
+    delay(1000);
 }
 
 void loop() {

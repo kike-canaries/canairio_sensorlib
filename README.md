@@ -51,9 +51,22 @@ NOTE: Panasonic via UART in ESP8266 maybe needs select in detection
 | BME280      | i2c |  Auto | STABLE |
 | BMP280      | i2c |  Auto | TESTING |
 | BME680      | i2c |  Auto | STABLE |
-| DHTxx       | TwoWire |  Auto | DEPRECATED |
+| DHTxx       | TwoWire |  Auto | DISABLED |
 
-NOTE: DHT22 is supported but is not recommended
+NOTE: DHT22 is supported but is not recommended. Please see the documentation.
+
+### Platforms supported
+
+| Platform  | Variants  | Notes | Status |  
+|:----------------------- |:-----:|:-------:|:----------:|
+| ESP32  | WROVER* | ESP32Devkit and similar (recommended) | STABLE  |
+| ESP32S3  | LilyGo TDisplay | In testing | UNSTABLE |
+| ESP32C3  | Devkit v3 | In testing | UNSTABLE |
+| ESP8266  | 12 |  D1MINI tested and similar (old) | STABLE |
+| Atmelsam  | seeed_wio_terminal | Only works via i2c on left port | STABLE |
+| Arduino | Atmel  | Some third party libraries fails | IN PROGRESS |
+
+
 
 # Features
 
@@ -129,7 +142,7 @@ void setup() {
   
 
 
-    // Also you can access to sub library objects, and perform for example calls like next:
+    // Also you can access to sub-library objects, and perform for example calls like next:
 
     // sensors.sps30.sleep()
     // sensors.bme.readPressure();
@@ -147,20 +160,7 @@ void loop() {
 }
 ```
 
-## Output
-
-On your serial monitor you should have something like that:
-
-```bash
--->[SETUP] Detecting sensors..
--->[SETUP] Sensor configured: SENSIRION
--->[MAIN] PM1.0: 002 PM2.5: 004 PM10: 006
--->[MAIN] PM1.0: 002 PM2.5: 002 PM10: 002
--->[MAIN] PM1.0: 002 PM2.5: 002 PM10: 002
-```
-
 ## Multivariable demo
-
 
 In this [demo](https://www.youtube.com/watch?v=-5Va47Bap48) on two different devices with multiple sensors, you can choose the possible sub sensors units or variables:
 
@@ -169,7 +169,6 @@ In this [demo](https://www.youtube.com/watch?v=-5Va47Bap48) on two different dev
 In this [demo](https://www.youtube.com/watch?v=uxlmP905-FE) on a simple sketch you could have a dinamyc list of variables of multiple sensors brands:
 
 [![CanAirIO Sensors Lib DEMO with M5CoreInk](https://img.youtube.com/vi/i15iEF47CbY/0.jpg)](https://youtu.be/i15iEF47CbY)
-
 
 
 ## Multivariable alternative implementation
@@ -377,10 +376,11 @@ Also you can make a donation, be a patreon or buy a device:
 # Projects using this Library
 
 - [CanAirIO Device](https://github.com/kike-canaries/canairio_firmware): ESP32 Air quality device for mobile and fixed stations. (PM2.5 and CO2)
-- [Medidor de CO2](https://emariete.com/medidor-co2-display-tft-color-ttgo-t-display-sensirion-scd30): Un medidor de CO2 de alta calidad con pantalla en color. (CO2)    
+- [Medidor de CO2](https://emariete.com/medidor-co2-display-tft-color-ttgo-t-display-sensirion-scd30): Un medidor de CO2 de alta calidad con pantalla en color. (CO2)  
+- [M5CoreInk Multi Sensor](https://github.com/hpsaturn/co2_m5coreink#readme): Wall CO2, T, H, P, Alt, sensor with low consumption (30 days)
 
 # Credits
 
-Thanks to all collaborators and [CanAirIO](https://canair.io) community for testing and reports.
+Thanks to all collaborators and [CanAirIO](https://canair.io) community for testing and reports. Visit us on [Telegram](https://t.me/canairio)
 
 ---
