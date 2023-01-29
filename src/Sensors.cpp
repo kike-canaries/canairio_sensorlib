@@ -1,6 +1,5 @@
 #include "Sensors.hpp"
 
-DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
 
 // Units and sensors registers
 
@@ -46,7 +45,9 @@ void Sensors::loop() {
             _onErrorCb("[W][SLIB] Sensorslib error msg\t: No data from any sensor!"); 
     }
 
+    #ifdef DHT11_ENABLED
     dhtRead();  // DHT2x sensors need check fastest
+    #endif
 }
 
 void Sensors::printHumTemp() {
@@ -74,7 +75,11 @@ bool Sensors::readAllSensors() {
     bmp280Read();
     bme680Read();
     aht10Read();
+
+    #ifdef DHT11_ENABLED
     dhtRead();
+    #endif
+
     disableWire1();
 
     printValues();
@@ -120,7 +125,11 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     am2320Init();
     sht31Init();
     aht10Init();
+
+    #ifdef DHT11_ENABLED
     dhtInit();
+    #endif
+
     printSensorsRegistered(true);
 }
 
@@ -963,6 +972,8 @@ void Sensors::GCJA5Read() {
     unitRegister(UNIT::PM10);
 }
 
+#ifdef DHT11_ENABLED
+DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
 /**
  * @deprecated Please don't use this sensor anymore
  */
@@ -980,15 +991,15 @@ bool Sensors::dhtIsReady(float *temperature, float *humidity) {
 /**
  * @deprecated Please don't use this sensor anymore
  */
-void Sensors::setDHTparameters(int dht_sensor_pin, int dht_sensor_type) {
-    DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
+void Sensors::dhtInit() {
+    sensorAnnounce(SENSORS::SDHTX);
+    dhtRead();
 }
 
 /**
  * @deprecated Please don't use this sensor anymore
  */
 void Sensors::dhtRead() {
-#ifdef DHT11_ENABLED
     if (dhtIsReady(&dhttemp, &dhthumi) != true) return;
     temp = dhttemp - toffset;
     humi = dhthumi;
@@ -997,8 +1008,8 @@ void Sensors::dhtRead() {
     DEBUG("-->[SLIB] DHTXX read\t\t: done!");
     unitRegister(UNIT::TEMP);
     unitRegister(UNIT::HUM);
-#endif
 }
+#endif
 
 void Sensors::onSensorError(const char *msg) {
     DEBUG(msg);
@@ -1535,16 +1546,6 @@ void Sensors::GCJA5Init() {
     if (!pmGCJA5.begin() && !pmGCJA5.begin(Wire1)) return;
     #endif
     sensorRegister(SENSORS::SGCJA5);
-}
-
-/**
- * @deprecated Please don't use this sensor anymore
- */
-void Sensors::dhtInit() {
-#ifdef DHT11_ENABLED
-    sensorAnnounce(SENSORS::SDHTX);
-    dhtRead();
-#endif
 }
 
 // Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
