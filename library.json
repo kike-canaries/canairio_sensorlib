@@ -1,6 +1,6 @@
 {
   "name": "CanAirIO Air Quality Sensors Library",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "homepage":"https://canair.io",
   "keywords": 
   [ 
@@ -83,7 +83,7 @@
     {"name":"Adafruit SCD30", "owner":"adafruit","version":"1.0.9"},
     {"name":"Adafruit BusIO", "owner":"adafruit","version":"1.14.1"},
     {"name":"AM232X", "owner":"robtillaart", "version":"0.4.5"},
-    {"name":"sps30", "owner":"paulvha","version":"1.4.14"},
+    {"name":"sps30", "owner":"paulvha","version":"1.4.16"},
     {"name":"MH-Z19", "owner":"wifwaf", "version":"1.5.4"},
     {"name":"S8_UART", "owner":"jcomas", "version":"1.0.1"},
     {"name":"Sensirion Core","owner":"sensirion","version":"0.6.0"},

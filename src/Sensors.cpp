@@ -1,6 +1,5 @@
 #include "Sensors.hpp"
 
-DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
 
 // Units and sensors registers
 
@@ -46,7 +45,9 @@ void Sensors::loop() {
             _onErrorCb("[W][SLIB] Sensorslib error msg\t: No data from any sensor!"); 
     }
 
+    #ifdef DHT11_ENABLED
     dhtRead();  // DHT2x sensors need check fastest
+    #endif
 }
 
 void Sensors::printHumTemp() {
@@ -74,7 +75,11 @@ bool Sensors::readAllSensors() {
     bmp280Read();
     bme680Read();
     aht10Read();
+
+    #ifdef DHT11_ENABLED
     dhtRead();
+    #endif
+
     disableWire1();
 
     printValues();
@@ -120,7 +125,11 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     am2320Init();
     sht31Init();
     aht10Init();
+
+    #ifdef DHT11_ENABLED
     dhtInit();
+    #endif
+
     printSensorsRegistered(true);
 }
 
@@ -963,6 +972,11 @@ void Sensors::GCJA5Read() {
     unitRegister(UNIT::PM10);
 }
 
+#ifdef DHT11_ENABLED
+DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
+/**
+ * @deprecated Please don't use this sensor anymore
+ */
 bool Sensors::dhtIsReady(float *temperature, float *humidity) {
     static unsigned long measurement_timestamp = millis();
     if (millis() - measurement_timestamp > sample_time * (uint32_t)1000) {
@@ -974,10 +988,17 @@ bool Sensors::dhtIsReady(float *temperature, float *humidity) {
     return (false);
 }
 
-void Sensors::setDHTparameters(int dht_sensor_pin, int dht_sensor_type) {
-    DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
+/**
+ * @deprecated Please don't use this sensor anymore
+ */
+void Sensors::dhtInit() {
+    sensorAnnounce(SENSORS::SDHTX);
+    dhtRead();
 }
 
+/**
+ * @deprecated Please don't use this sensor anymore
+ */
 void Sensors::dhtRead() {
     if (dhtIsReady(&dhttemp, &dhthumi) != true) return;
     temp = dhttemp - toffset;
@@ -988,6 +1009,7 @@ void Sensors::dhtRead() {
     unitRegister(UNIT::TEMP);
     unitRegister(UNIT::HUM);
 }
+#endif
 
 void Sensors::onSensorError(const char *msg) {
     DEBUG(msg);
@@ -1342,14 +1364,14 @@ void Sensors::sps30DeviceInfo() {
 
 void Sensors::am2320Init() {
     sensorAnnounce(SENSORS::SAM232X);
-    #ifdef ESP32
+    #ifndef Wife1
+    if (!am2320.begin()) return;
+    #else
     am2320 = AM232X(&Wire);
     if (!am2320.begin()) {
         am2320 = AM232X(&Wire1);
         if (!am2320.begin()) return;
     }
-    #else
-    if (!am2320.begin()) return;
     #endif
     am2320.wakeUp();
     sensorRegister(SENSORS::SAM232X);
@@ -1358,36 +1380,36 @@ void Sensors::am2320Init() {
 void Sensors::sht31Init() {
     sensorAnnounce(SENSORS::SSHT31);
     sht31 = Adafruit_SHT31();
-    #ifdef ESP32
+    #ifndef Wire1
+    if (!sht31.begin()) return;
+    #else
     if (!sht31.begin()) {
         sht31 = Adafruit_SHT31(&Wire1);
         if (!sht31.begin()) return; 
     }
-    #else
-    if (!sht31.begin()) return;
     #endif
     sensorRegister(SENSORS::SSHT31);
 }
 
 void Sensors::bme280Init() {
     sensorAnnounce(SENSORS::SBME280);
-    #ifdef ESP32
-    if (!bme280.begin() && !bme280.begin(BME280_ADDRESS,&Wire1)) return; 
-    #else
+    #ifndef Wire1
     if (!bme280.begin()) return;
+    #else
+    if (!bme280.begin() && !bme280.begin(BME280_ADDRESS,&Wire1)) return; 
     #endif
     sensorRegister(SENSORS::SBME280);
 }
 
 void Sensors::bmp280Init() {
     sensorAnnounce(SENSORS::SBMP280);
-    #ifdef ESP32
+    #ifndef Wire1
+    if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return; 
+    #else
     if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) {
         bmp280 = Adafruit_BMP280(&Wire1);
         if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return;
     }
-    #else
-    if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return;
     #endif
     bmp280.setSampling(Adafruit_BMP280::MODE_NORMAL,      // Operating Mode.
                        Adafruit_BMP280::SAMPLING_X2,      // Temp. oversampling
@@ -1427,10 +1449,10 @@ void Sensors::aht10Init() {
 
 void Sensors::CO2scd30Init() {
     sensorAnnounce(SENSORS::SSCD30);
-    #ifdef ESP32
-    if (!scd30.begin() && !scd30.begin(SCD30_I2CADDR_DEFAULT, &Wire1, SCD30_CHIP_ID)) return;
-    #else
+    #ifndef Wire1
     if (!scd30.begin()) return;
+    #else
+    if (!scd30.begin() && !scd30.begin(SCD30_I2CADDR_DEFAULT, &Wire1, SCD30_CHIP_ID)) return;
     #endif
     delay(10);
 
@@ -1518,17 +1540,12 @@ void Sensors::setSCD4xAltitudeOffset(float offset) {
 
 void Sensors::GCJA5Init() {
     sensorAnnounce(SENSORS::SGCJA5);
-    #ifdef ESP32
-    if (!pmGCJA5.begin() && !pmGCJA5.begin(Wire1)) return;
-    #else
+    #ifndef Wire1
     if (!pmGCJA5.begin()) return;
+    #else
+    if (!pmGCJA5.begin() && !pmGCJA5.begin(Wire1)) return;
     #endif
     sensorRegister(SENSORS::SGCJA5);
-}
-
-void Sensors::dhtInit() {
-    sensorAnnounce(SENSORS::SDHTX);
-    dhtRead();
 }
 
 // Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
@@ -1598,8 +1615,11 @@ void Sensors::startI2C() {
 #ifdef M5ATOM
     enableWire1();
 #endif
-#if not defined(M5STICKCPLUS) && not defined(M5COREINK) && not defined(M5ATOM)
+#if not defined(M5STICKCPLUS) && not defined(M5COREINK) && not defined(M5ATOM) && not defined(ESP32C3)
     Wire.begin();
+#endif
+#ifdef ESP32C3
+    Wire.begin(19,18);
 #endif
 }
 
@@ -1672,7 +1692,7 @@ bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, i
             Serial1.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx, false);
             _serial = &Serial1;
             break;
-
+#ifdef Serial2
         case SERIALPORT2:
             DEBUG("-->[SLIB] UART COMM port \t: Serial2");
             if (pms_type == SENSORS::SSPS30)
@@ -1681,6 +1701,10 @@ bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, i
                 Serial2.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx, false);
             _serial = &Serial2;
             break;
+#else
+            DEBUG("-->[SLIB] UART COMM port \t: Undefined");
+            return false;
+#endif  // Serial2
 #endif
         default:
 
