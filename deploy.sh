@@ -57,12 +57,31 @@ validate_branch () {
 clean () {
   rm -rf .pio
   rm -rf examples/advanced_sensirion/.pio
+  rm -rf examples/ttgo_tdisplay_s3/.pio
   rm -f $OUTPUT
 }
 
+runtest () {  
+  current_dir=`pwd`
+  echo ""
+  echo "***********************************************"
+  echo "** TESTING: $2"
+  echo "***********************************************"
+  echo ""
+  cd $1
+  pio run -s 
+  echo ""
+  echo "***********************************************"
+  echo "** TEST DONE ON: $2"
+  echo "***********************************************"
+  echo ""
+  cd $current_dir
+} 
+
 runtests () {
-   pio run
-   cd examples/advanced_sensirion && pio run
+   runtest "examples/advanced_sensirion" "Advanced Sensirion"
+   runtest "examples/ttgo_tdisplay_s3" "TTGO T-Display S3"
+   runtest "./" "All architectures"
 }
 
 build () {
@@ -82,6 +101,7 @@ build () {
   echo "***********************************************"
   echo ""
   md5sum $OUTPUT
+  du -hs $OUTPUT
   echo ""
 }
 
