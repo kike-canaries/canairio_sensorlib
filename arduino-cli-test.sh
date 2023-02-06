@@ -26,18 +26,20 @@ arduino-cli lib install --git-url https://github.com/enjoyneering/AHTxx.git
 arduino-cli lib install --git-url https://github.com/hpsaturn/DHT_nonblocking.git
 arduino-cli lib install --git-url https://github.com/jcomas/CM1106_UART.git
 arduino-cli lib install --git-url https://github.com/paulvha/SN-GCJA5.git
-# target:
-arduino-cli lib install --git-url https://github.com/kike-canaries/canairio_sensorlib.git
+# target tag:
+arduino-cli lib install --git-url https://github.com/kike-canaries/canairio_sensorlib.git#v0.6.4
+
+arduino-cli config set board_manager.additional_urls\
+  https://arduino.esp8266.com/stable/package_esp8266com_index.json\
+  https://dl.espressif.com/dl/package_esp32_index.json
+
+arduino-cli core update-index
 
 # esp8266 test
-arduino-cli config set board_manager.additional_urls https://arduino.esp8266.com/stable/package_esp8266com_index.json
-arduino-cli core update-index
 arduino-cli core install esp8266:esp8266
 arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 --build-property "build.extra_flags=-DCORE_DEBUG_LEVEL=0" examples/basic
 
 # esp32 test
-arduino-cli config set board_manager.additional_urls https://dl.espressif.com/dl/package_esp32_index.json
-arduino-cli core update-index
-arduino-cli core install esp32:esp32
-arduino-cli compile --fqbn esp32:esp32:ttgo-t7-v14-mini32 --build-property "build.extra_flags=-DCORE_DEBUG_LEVEL=0" examples/basic
+#arduino-cli core install esp32:esp32
+#arduino-cli compile --fqbn esp32:esp32:ttgo-t7-v14-mini32 --build-property "build.extra_flags=-DCORE_DEBUG_LEVEL=0" examples/basic
 
