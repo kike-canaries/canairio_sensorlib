@@ -21,7 +21,7 @@
 #include <dht_nonblocking.h> 
 #endif
 
-#define CSL_VERSION "0.6.5"
+#define CSL_VERSION "0.6.6"
 #define CSL_REVISION 373
 
 /***************************************************************

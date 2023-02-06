@@ -599,7 +599,7 @@ bool Sensors::pmGenericRead() {
     String txtMsg = hwSerialRead(lenght_buffer);
     if (txtMsg[0] == 66) {
         if (txtMsg[1] == 77) {
-            DEBUG("-->[SLIB] UART PMGENERIC read \t\t: done!");
+            DEBUG("-->[SLIB] UART PMGENERIC read!\t: :D");
             pm25 = txtMsg[6] * 256 + (char)(txtMsg[7]);
             pm10 = txtMsg[8] * 256 + (char)(txtMsg[9]);
 
@@ -1650,7 +1650,7 @@ void Sensors::disableWire1() {
 }
 
 bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx) {
-    if(devmode)Serial.printf("-->[SLIB] UART init with speed\t: %lu RX:%i TX:%i\n", speed_baud, pms_rx, pms_tx);
+    if(devmode)Serial.printf("-->[SLIB] UART init with speed\t: %lu TX:%i RX:%i\n", speed_baud, pms_tx, pms_rx);
     switch (SENSOR_COMMS) {
         case SERIALPORT:
             Serial.begin(speed_baud);
@@ -1692,8 +1692,8 @@ bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, i
             Serial1.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx, false);
             _serial = &Serial1;
             break;
-#ifdef Serial2
         case SERIALPORT2:
+        #if SOC_UART_NUM > 2
             DEBUG("-->[SLIB] UART COMM port \t: Serial2");
             if (pms_type == SENSORS::SSPS30)
                 Serial2.begin(speed_baud);
@@ -1701,10 +1701,11 @@ bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, i
                 Serial2.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx, false);
             _serial = &Serial2;
             break;
-#else
-            DEBUG("-->[SLIB] UART COMM port \t: Undefined");
-            return false;
-#endif  // Serial2
+        #else
+            DEBUG("-->[SLIB] Force UART port \t: Serial1");
+            Serial1.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx);
+            _serial = &Serial1;
+        #endif
 #endif
         default:
 
