@@ -51,7 +51,7 @@ void Sensors::loop() {
 }
 
 void Sensors::printHumTemp() {
-    Serial.printf("-->[SLIB] sensorlib \t\t: T:%02.1f, H:%02.1f\n", humi, temp);
+    Serial.printf("-->[SLIB] sensorlib \t\t: T:%02.1f, H:%02.1f\r\n", humi, temp);
 }
 
 /**
@@ -102,14 +102,14 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     if (CORE_DEBUG_LEVEL >= 3) devmode = true;
 #endif
     if (devmode) {
-        Serial.printf("-->[SLIB] CanAirIO SensorsLib\t: v%sr%d\n", CSL_VERSION, CSL_REVISION);
-        Serial.printf("-->[SLIB] sensorslib devmod\t: %s\n", devmode ? "true" : "false");
+        Serial.printf("-->[SLIB] CanAirIO SensorsLib\t: v%sr%d\r\n", CSL_VERSION, CSL_REVISION);
+        Serial.printf("-->[SLIB] sensorslib devmod\t: %s\r\n", devmode ? "true" : "false");
     }
  
     Serial.println("-->[SLIB] temperature offset\t: " + String(toffset));
     Serial.println("-->[SLIB] altitude offset   \t: " + String(altoffset));
     Serial.println("-->[SLIB] sea level pressure\t: " + String(sealevel) + " hPa");
-    Serial.printf("-->[SLIB] only i2c sensors  \t: %s\n", i2conly ? "true" : "false");
+    Serial.printf("-->[SLIB] only i2c sensors  \t: %s\r\n", i2conly ? "true" : "false");
 
     if (!i2conly && !sensorSerialInit(pms_type, pms_rx, pms_tx)) {
         DEBUG("-->[SLIB] UART sensors detected\t:", "0");
@@ -174,7 +174,7 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue) {
         scd4x.stopPeriodicMeasurement();
         delay(510);
         error = scd4x.performForcedRecalibration(ppmValue, frcCorrection);
-        if (error) Serial.printf("-->[SLIB] SCD4X recalibration\t: error frc:%d\n",frcCorrection);
+        if (error) Serial.printf("-->[SLIB] SCD4X recalibration\t: error frc:%d\r\n",frcCorrection);
         delay(50);
         scd4x.startPeriodicMeasurement();
     }
@@ -575,7 +575,7 @@ void Sensors::printSensorsRegistered(bool debug) {
 /// Print preview of the current variables detected by the sensors
 void Sensors::printValues() {
     if (!devmode) return;
-    Serial.print("-->[SLIB] Preview sensors values\t: ");
+    Serial.print("-->[SLIB] Preview sensors values: ");
     for (u_int i = 0; i < UCOUNT; i++) {
         if (units_registered[i] != 0) {
             Serial.print(getUnitName((UNIT)units_registered[i]));
@@ -1224,21 +1224,21 @@ bool Sensors::senseAirS8Init() {
 
     Serial.println("-->[SLIB] UART sensor detected \t: SenseAir S8");
     if (devmode) {
-        Serial.printf("-->[SLIB] S8 Software version\t: %s\n", s8sensor.firm_version);
-        Serial.printf("-->[SLIB] S8 Sensor type\t: 0x%08x\n", s8->get_sensor_type_ID());
-        Serial.printf("-->[SLIB] S8 Sensor ID\t: %08x\n", s8->get_sensor_ID());
-        Serial.printf("-->[SLIB] S8 Memory ver\t: 0x%04x\n", s8->get_memory_map_version());
-        Serial.printf("-->[SLIB] S8 ABC period\t: %d hours\n", s8->get_ABC_period());
+        Serial.printf("-->[SLIB] S8 Software version\t: %s\r\n", s8sensor.firm_version);
+        Serial.printf("-->[SLIB] S8 Sensor type\t: 0x%08x\r\n", s8->get_sensor_type_ID());
+        Serial.printf("-->[SLIB] S8 Sensor ID\t: %08x\r\n", s8->get_sensor_ID());
+        Serial.printf("-->[SLIB] S8 Memory ver\t: 0x%04x\r\n", s8->get_memory_map_version());
+        Serial.printf("-->[SLIB] S8 ABC period\t: %d hours\r\n", s8->get_ABC_period());
     }
     DEBUG("-->[SLIB] S8 Disabling ABC period");
     s8->set_ABC_period(0);
     delay(100);
-    if (devmode) Serial.printf("-->[SLIB] S8 ABC period\t: %d hours\n", s8->get_ABC_period());
+    if (devmode) Serial.printf("-->[SLIB] S8 ABC period\t: %d hours\r\n", s8->get_ABC_period());
 
     DEBUG("-->[SLIB] S8 ABC period \t: 180 hours");
     s8->set_ABC_period(180);
     delay(100);
-    if (devmode) Serial.printf("-->[SLIB] S8 ABC period\t: %d hours\n", s8->get_ABC_period());
+    if (devmode) Serial.printf("-->[SLIB] S8 ABC period\t: %d hours\r\n", s8->get_ABC_period());
 
     s8->get_meter_status();
     s8->get_alarm_status();
@@ -1289,7 +1289,7 @@ bool Sensors::sps30I2CInit() {
     // start measurement
     if (sps30.start()) {
         DEBUG("-->[SLIB] SPS30 Measurement OK");
-        if (sps30.I2C_expect() == 4) DEBUG("[W][SLIB] SPS30 setup message\t: I2C buffersize only PM values  \n");
+        if (sps30.I2C_expect() == 4) DEBUG("[W][SLIB] SPS30 setup message\t: I2C buffersize only PM values  \r\n");
         sensorRegister(SENSORS::SSPS30);
         return true;
     }
@@ -1570,7 +1570,7 @@ void Sensors::sensorAnnounce(SENSORS sensor) {
 
 void Sensors::sensorRegister(SENSORS sensor) {
     if (isSensorRegistered(sensor)) return;
-    Serial.printf("-->[SLIB] sensor registered\t: %s  \t:D\n", getSensorName(sensor).c_str());
+    Serial.printf("-->[SLIB] sensor registered\t: %s  \t:D\r\n", getSensorName(sensor).c_str());
     sensors_registered[sensors_registered_count++] = sensor;
 }
 
@@ -1650,7 +1650,7 @@ void Sensors::disableWire1() {
 }
 
 bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx) {
-    if(devmode)Serial.printf("-->[SLIB] UART init with speed\t: %lu TX:%i RX:%i\n", speed_baud, pms_tx, pms_rx);
+    if(devmode)Serial.printf("-->[SLIB] UART init with speed\t: %lu TX:%i RX:%i\r\n", speed_baud, pms_tx, pms_rx);
     switch (SENSOR_COMMS) {
         case SERIALPORT:
             Serial.begin(speed_baud);
@@ -1732,7 +1732,7 @@ bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, i
                     swSerial.begin(speed_baud, SWSERIAL_8N1, pms_rx, pms_tx, false);
                 _serial = &swSerial;
 #else
-                DEBUG("-->[SLIB] SoftWareSerial not enabled");
+                DEBUG("-->[SLIB] UART SoftwareSerial \t: disable"); 
                 return (false);
 #endif  //INCLUDE_SOFTWARE_SERIAL
             }
