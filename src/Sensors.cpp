@@ -563,7 +563,7 @@ void Sensors::printUnitsRegistered(bool debug) {
  */
 void Sensors::printSensorsRegistered(bool debug) { 
     if (!debug) return;
-    Serial.printf("-->[SLIB] Sensors devices count\t: %i (", sensors_registered_count);
+    Serial.printf("-->[SLIB] Sensors i2c count \t: %i (", sensors_registered_count);
     int i = 0;
     while (sensors_registered[i++] != 0) {
         Serial.print(sensors_device_names[sensors_registered[i-1]]);
@@ -575,7 +575,7 @@ void Sensors::printSensorsRegistered(bool debug) {
 /// Print preview of the current variables detected by the sensors
 void Sensors::printValues() {
     if (!devmode) return;
-    Serial.print("-->[SLIB] Preview sensors values: ");
+    Serial.print("-->[SLIB] Sensors values  \t: ");
     for (u_int i = 0; i < UCOUNT; i++) {
         if (units_registered[i] != 0) {
             Serial.print(getUnitName((UNIT)units_registered[i]));
