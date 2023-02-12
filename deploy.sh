@@ -111,8 +111,12 @@ publish_release () {
   echo "********** Publishing release *****************" 
   echo "***********************************************"
   echo ""
+  echo "Publishing release: v${SRC_VER} rev${SRC_REV}" 
+  echo "uploading: ${OUTPUT}"
   COMMIT_LOG=`git log -1 --format='%ci %H %s'`
-  github-release upload --owner kike-canaries --repo canairio_sensorlib --tag "v${SRC_VER}" --release-name "v${SRC_VER} rev${SRC_REV}" --body "${COMMIT_LOG}" $OUTPUT
+  git tag -a "v${SRC_VER}" -m "release v${SRC_VER} rev${SRC_REV}"
+  git push origin "v${SRC_VER}"
+  git log -n 10 --pretty=format:"%h %s" | gh release create "v${SRC_VER}" -F - -t "v${SRC_VER} rev${SRC_REV}" -p ${OUTPUT} 
   echo ""
   echo "***********************************************"
   echo "*************     done    *********************" 
