@@ -119,9 +119,9 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     sps30I2CInit();
     GCJA5Init();
     CO2scd4xInit();
-    bme680Init();
     bmp280Init();
     bme280Init();
+    bme680Init();
     am2320Init();
     sht31Init();
     aht10Init();
@@ -881,9 +881,7 @@ void Sensors::bmp280Read() {
 }
 
 void Sensors::bme680Read() {
-    unsigned long endTime = bme680.beginReading();
-    if (endTime == 0) return;
-    if (!bme680.endReading()) return;
+    if (!bme680.performReading()) return;
     float temp1 = bme680.temperature;
     temp = temp1 - toffset;
     humi = bme680.humidity;
