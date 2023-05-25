@@ -17,9 +17,10 @@
 #include <s8_uart.h>
 #include <sps30.h>
 #include <drivers/pm1006.h>
+#include <drivers/DFRobot_MultiGasSensor.h>
 
-#define CSL_VERSION "0.5.9"
-#define CSL_REVISION 366
+#define CSL_VERSION "0.5.9.1"
+#define CSL_REVISION 366.1
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -98,8 +99,11 @@
     X(CO2HUM, "%", "CO2H")     \
     X(PRESS, "hPa", "P")       \
     X(ALT, "m", "Alt")         \
-    X(GAS, "Ohm", "Gas")       \
+    X(NH3, "ppm", "NH3")       \
+    X(CO, "ppm", "CO")         \
     X(UCOUNT, "COUNT", "UCOUNT")
+
+     // X(GAS, "Ohm", "Gas")       \           // COlisiona con DFRobot Multigas
 
 #define X(unit, symbol, name) unit,
 typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
@@ -123,6 +127,7 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
     X(SAHT10, "AHT10", 3)   \
     X(SAM232X, "AM232X", 3) \
     X(SDHTX, "DHTX", 3)     \
+    X(SMULTIGAS, "MULTIGAS", 2) \
     X(SCOUNT, "SCOUNT", 3)
 
 #define X(utype, uname, umaintype) utype,
@@ -204,8 +209,11 @@ class Sensors {
     // SCD4x sensor
     SensirionI2CScd4x scd4x;
 
-    // IKA Vindriktn sensor
+    // IKEA Vindriktn sensor
     PM1006 *pm1006;
+
+    // DFRobot gravity Gas sensor
+    DFRobot_GAS_I2C gas;
 
     void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
@@ -251,13 +259,14 @@ class Sensors {
 
     float getAltitude();
 
-    float getGas();
+    // float getGas();    // Posible colision con DFRobot Multigas
 
     void setTempOffset(float offset);
 
     void setCO2AltitudeOffset(float altitude);
 
     void setSeaLevelPressure(float hpa);
+    
 
     String getFormatTemp();
 
@@ -265,7 +274,7 @@ class Sensors {
 
     String getFormatHum();
 
-    String getFormatGas();
+    // String getFormatGas(); // Posible colision con DFRobot Multigas
 
     String getFormatAlt();
 
@@ -354,11 +363,14 @@ class Sensors {
     float temp = 0.0;  // Temperature (°C)
     float pres = 0.0;  // Pressure
     float alt = 0.0;
-    float gas = 0.0;
+   // float gas = 0.0;   // Colisiona con DFRobot Multigas
 
     uint16_t CO2Val;      // CO2 in ppm
     float CO2humi = 0.0;  // humidity of CO2 sensor
     float CO2temp = 0.0;  // temperature of CO2 sensor
+
+    uint16_t NH3;         // Amonium in ppm
+    uint16_t CO;          // Carbon monoxide
 
     void am2320Init();
     void am2320Read();
@@ -396,6 +408,9 @@ class Sensors {
     void dhtInit();
     void dhtRead();
     bool dhtIsReady(float *temperature, float *humidity);
+
+    void DFRobotgravityInit();
+    void DFRobotGravityRead();
 
     // UART sensors methods:
 
