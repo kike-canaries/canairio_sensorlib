@@ -260,6 +260,10 @@ class Sensors {
     float getAltitude();
 
     // float getGas();    // Posible colision con DFRobot Multigas
+    
+    float getNH3();
+    
+    float getCO();
 
     void setTempOffset(float offset);
 
@@ -364,14 +368,16 @@ class Sensors {
     float pres = 0.0;  // Pressure
     float alt = 0.0;
    // float gas = 0.0;   // Colisiona con DFRobot Multigas
-
+    
     uint16_t CO2Val;      // CO2 in ppm
     float CO2humi = 0.0;  // humidity of CO2 sensor
     float CO2temp = 0.0;  // temperature of CO2 sensor
 
     uint16_t NH3;         // Amonium in ppm
     uint16_t CO;          // Carbon monoxide
-
+    float NH3 = 0.0;
+    float CO = 0.0;
+    
     void am2320Init();
     void am2320Read();
 
