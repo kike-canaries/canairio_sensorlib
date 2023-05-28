@@ -27,16 +27,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -U platformio
           pio pkg update
-      - name: Submitted library code test
+      - name: Basic Arduino IDE example test
         run: |
-          pio run
-      - name: PlatformIO registry test (M5CoreInk example)
+          cd examples/advanced_sensirion
+          pio run -s
+      - name: PlatformIO registry test (M5CoreInk project)
         run: |
           git clone https://github.com/hpsaturn/co2_m5coreink.git
           cd co2_m5coreink
-          pio run
-      - name: Arduino IDE example test
+          pio run -s 
+      - name: All archictures tests
         run: |
-          cd examples/advanced_sensirion
           pio run
-      
+ 

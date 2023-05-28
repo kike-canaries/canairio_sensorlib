@@ -1,6 +1,6 @@
 {
   "name": "CanAirIO Air Quality Sensors Library",
-  "version": "0.5.9",
+  "version": "0.6.7",
   "homepage":"https://canair.io",
   "keywords": 
   [ 
@@ -43,7 +43,7 @@
   "frameworks": ["espidf", "freertos", "arduino"],
   "platforms":
   [
-    "teensy",
+    "atmelsam",
     "espressif32",
     "espressif8266"
   ],
@@ -75,22 +75,23 @@
   "license": "GPL-3.0-only",
   "dependencies":
   [
-    {"name":"Adafruit Unified Sensor", "owner":"adafruit", "version":"1.1.5"},
+    {"name":"Adafruit Unified Sensor", "owner":"adafruit", "version":"1.1.9"},
     {"name":"Adafruit BME280 Library", "owner":"adafruit","version":"2.2.2"},
-    {"name":"Adafruit BMP280 Library", "owner":"adafruit","version":"2.6.2"},
+    {"name":"Adafruit BMP280 Library", "owner":"adafruit","version":"2.6.6"},
     {"name":"Adafruit BME680 Library","owner":"adafruit","version":"2.0.2"},
-    {"name":"Adafruit SHT31 Library", "owner":"adafruit","version":"2.1.0"},
-    {"name":"Adafruit SCD30", "owner":"adafruit","version":"1.0.8"},
-    {"name":"Adafruit BusIO", "owner":"adafruit","version":"1.11.6"},
-    {"name":"AM232X", "owner":"robtillaart", "version":"0.4.1"},
-    {"name":"AHT10", "owner":"enjoyneering","version":"1.1.0"},
-    {"name":"sps30", "owner":"paulvha","version":"1.4.12"},
-    {"name":"MH-Z19", "owner":"wifwaf", "version":"1.5.3"},
-    {"name":"Sensirion Core","owner":"sensirion","version":"0.5.3"},
-    {"name":"Sensirion I2C SCD4x","owner":"sensirion","version":"0.3.1"},
+    {"name":"Adafruit SHT31 Library", "owner":"adafruit","version":"2.2.0"},
+    {"name":"Adafruit SCD30", "owner":"adafruit","version":"1.0.9"},
+    {"name":"Adafruit BusIO", "owner":"adafruit","version":"1.14.1"},
+    {"name":"AM232X", "owner":"robtillaart", "version":"0.4.5"},
+    {"name":"sps30", "owner":"paulvha","version":"1.4.16"},
+    {"name":"MH-Z19", "owner":"wifwaf", "version":"1.5.4"},
+    {"name":"S8_UART", "owner":"jcomas", "version":"1.0.1"},
+    {"name":"Sensirion Core","owner":"sensirion","version":"0.6.0"},
+    {"name":"Sensirion I2C SCD4x","owner":"sensirion","version":"0.4.0"},
+
     {"name":"DHT_nonblocking", "version":"https://github.com/hpsaturn/DHT_nonblocking.git#ec6e5b9"},
-    {"name":"SN-GCJA5", "version":"https://github.com/paulvha/SN-GCJA5.git"},
-    {"name":"S8_UART", "version":"https://github.com/jcomas/S8_UART.git"},
-    {"name":"CM1106_UART", "version":"https://github.com/jcomas/CM1106_UART.git"}
+    {"name":"AHTxx", "version":"https://github.com/enjoyneering/AHTxx.git#eb21571"},
+    {"name":"SN-GCJA5", "version":"https://github.com/paulvha/SN-GCJA5.git#f261968"},
+    {"name":"CM1106_UART", "version":"https://github.com/jcomas/CM1106_UART.git#da0eb4e"}
   ]
 }

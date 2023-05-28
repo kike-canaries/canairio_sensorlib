@@ -1,6 +1,5 @@
 #include "Sensors.hpp"
 
-DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
 
 // Units and sensors registers
 
@@ -46,7 +45,13 @@ void Sensors::loop() {
             _onErrorCb("[W][SLIB] Sensorslib error msg\t: No data from any sensor!"); 
     }
 
+    #ifdef DHT11_ENABLED
     dhtRead();  // DHT2x sensors need check fastest
+    #endif
+}
+
+void Sensors::printHumTemp() {
+    Serial.printf("-->[SLIB] sensorlib \t\t: T:%02.1f, H:%02.1f\r\n", humi, temp);
 }
 
 /**
@@ -66,12 +71,15 @@ bool Sensors::readAllSensors() {
     CO2scd4xRead();
     am2320Read();
     sht31Read();
-    aht10Read();
     bme280Read();
     bmp280Read();
     bme680Read();
-    dhtRead();
+    aht10Read();
     DFRobotGravityRead();
+    #ifdef DHT11_ENABLED
+    dhtRead();
+    #endif
+  
     disableWire1();
 
     printValues();
@@ -88,20 +96,20 @@ bool Sensors::readAllSensors() {
  * @param pms_rx (optional) UART PMS RX pin.
  * @param pms_tx (optional) UART PMS TX pin.
  */
-void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
+void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
 // override with debug INFO level (>=3)
 #ifdef CORE_DEBUG_LEVEL
     if (CORE_DEBUG_LEVEL >= 3) devmode = true;
 #endif
     if (devmode) {
-        Serial.printf("-->[SLIB] CanAirIO SensorsLib\t: v%sr%d\n", CSL_VERSION, CSL_REVISION);
-        Serial.printf("-->[SLIB] sensorslib devmod\t: %s\n", devmode ? "true" : "false");
+        Serial.printf("-->[SLIB] CanAirIO SensorsLib\t: v%sr%d\r\n", CSL_VERSION, CSL_REVISION);
+        Serial.printf("-->[SLIB] sensorslib devmod\t: %s\r\n", devmode ? "true" : "false");
     }
  
     Serial.println("-->[SLIB] temperature offset\t: " + String(toffset));
     Serial.println("-->[SLIB] altitude offset   \t: " + String(altoffset));
     Serial.println("-->[SLIB] sea level pressure\t: " + String(sealevel) + " hPa");
-    Serial.printf("-->[SLIB] only i2c sensors  \t: %s\n", i2conly ? "true" : "false");
+    Serial.printf("-->[SLIB] only i2c sensors  \t: %s\r\n", i2conly ? "true" : "false");
 
     if (!i2conly && !sensorSerialInit(pms_type, pms_rx, pms_tx)) {
         DEBUG("-->[SLIB] UART sensors detected\t:", "0");
@@ -111,21 +119,25 @@ void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
     sps30I2CInit();
     GCJA5Init();
     CO2scd4xInit();
-    bme680Init();
     bmp280Init();
     bme280Init();
+    bme680Init();
     am2320Init();
     sht31Init();
     aht10Init();
-    dhtInit();
     DFRobotgravityInit();
+  
+    #ifdef DHT11_ENABLED
+    dhtInit();
+    #endif
+
     printSensorsRegistered(true);
 }
 
 /// set loop time interval for each sensor sample
 void Sensors::setSampleTime(int seconds) {
     sample_time = seconds;
-    Serial.println("-->[SLIB] new sample time\t: " + String(seconds));
+    if(devmode) Serial.println("-->[SLIB] new sample time\t: " + String(seconds));
     if(isSensorRegistered(SENSORS::SSCD30)) {
         scd30.setMeasurementInterval(seconds);
         if (devmode) Serial.println("-->[SLIB] SCD30 interval time\t: " + String(seconds));
@@ -163,7 +175,7 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue) {
         scd4x.stopPeriodicMeasurement();
         delay(510);
         error = scd4x.performForcedRecalibration(ppmValue, frcCorrection);
-        if (error) Serial.printf("-->[SLIB] SCD4X recalibration\t: error frc:%d\n",frcCorrection);
+        if (error) Serial.printf("-->[SLIB] SCD4X recalibration\t: error frc:%d\r\n",frcCorrection);
         delay(50);
         scd4x.startPeriodicMeasurement();
     }
@@ -242,23 +254,9 @@ uint16_t Sensors::getPM1() {
     return pm1;
 }
 
-/// @deprecated get PM1.0 ug/m3 formated value
-String Sensors::getStringPM1() {
-    char output[5];
-    sprintf(output, "%03d", getPM1());
-    return String(output);
-}
-
 /// get PM2.5 ug/m3 value
 uint16_t Sensors::getPM25() {
     return pm25;
-}
-
-/// @deprecated get PM2.5 ug/m3 formated value
-String Sensors::getStringPM25() {
-    char output[5];
-    sprintf(output, "%03d", getPM25());
-    return String(output);
 }
 
 /// get PM4 ug/m3 value
@@ -266,35 +264,14 @@ uint16_t Sensors::getPM4() {
     return pm4;
 }
 
-/// @deprecated get PM4 ug/m3 formated value
-String Sensors::getStringPM4() {
-    char output[5];
-    sprintf(output, "%03d", getPM4());
-    return String(output);
-}
-
 /// get PM10 ug/m3 value
 uint16_t Sensors::getPM10() {
     return pm10;
 }
 
-/// @deprecated get PM10 ug/m3 formated value
-String Sensors::getStringPM10() {
-    char output[5];
-    sprintf(output, "%03d", getPM10());
-    return String(output);
-}
-
 /// get CO2 ppm value
 uint16_t Sensors::getCO2() {
     return CO2Val;
-}
-
-/// @deprecated get CO2 ppm formated value
-String Sensors::getStringCO2() {
-    char output[5];
-    sprintf(output, "%04d", getCO2());
-    return String(output);
 }
 
 /// get humidity % value of CO2 sensor device
@@ -387,7 +364,7 @@ uint8_t Sensors::getSensorsRegisteredCount() {
  * @return True if the sensor is registered, false otherwise.
  */
 bool Sensors::isSensorRegistered(SENSORS sensor) {
-    for (int i = 0; i < SCOUNT; i++) {
+    for (u_int i = 0; i < SCOUNT; i++) {
         if (sensors_registered[i] == sensor) return true;
     }
     return false;
@@ -435,7 +412,7 @@ uint8_t * Sensors::getSensorsRegistered() {
  */
 bool Sensors::isUnitRegistered(UNIT unit) {
     if (unit == UNIT::NUNIT) return false;
-    for (int i = 0; i < UCOUNT; i++) {
+    for (u_int i = 0; i < UCOUNT; i++) {
         if (units_registered[i] == unit) return true;
     }
     return false;
@@ -481,7 +458,7 @@ String Sensors::getUnitSymbol(UNIT unit) {
  * @return UNIT enum value.
  */
 UNIT Sensors::getNextUnit() {
-    for (int i = current_unit; i < UCOUNT; i++) {
+    for (u_int i = current_unit; i < UCOUNT; i++) {
         if (units_registered[i] != 0) {
             current_unit = i + 1;
             return (UNIT) units_registered[i];
@@ -499,7 +476,7 @@ UNIT Sensors::getNextUnit() {
  */
 void Sensors::resetUnitsRegister() {
     units_registered_count = 0;
-    for (int i = 0; i < UCOUNT; i++) {
+    for (u_int i = 0; i < UCOUNT; i++) {
         units_registered[i] = 0;
     }
 }
@@ -512,7 +489,7 @@ void Sensors::resetUnitsRegister() {
  */
 void Sensors::resetSensorsRegister() {
     sensors_registered_count = 0;
-    for (int i = 0; i < SCOUNT; i++) {
+    for (u_int i = 0; i < SCOUNT; i++) {
         sensors_registered[i] = 0;
     }
 }
@@ -591,7 +568,7 @@ void Sensors::printUnitsRegistered(bool debug) {
  */
 void Sensors::printSensorsRegistered(bool debug) { 
     if (!debug) return;
-    Serial.printf("-->[SLIB] Sensors devices count\t: %i (", sensors_registered_count);
+    Serial.printf("-->[SLIB] Sensors i2c count \t: %i (", sensors_registered_count);
     int i = 0;
     while (sensors_registered[i++] != 0) {
         Serial.print(sensors_device_names[sensors_registered[i-1]]);
@@ -603,8 +580,8 @@ void Sensors::printSensorsRegistered(bool debug) {
 /// Print preview of the current variables detected by the sensors
 void Sensors::printValues() {
     if (!devmode) return;
-    Serial.print("-->[SLIB] Preview sensors values\t: ");
-    for (int i = 0; i < UCOUNT; i++) {
+    Serial.print("-->[SLIB] Sensors values  \t: ");
+    for (u_int i = 0; i < UCOUNT; i++) {
         if (units_registered[i] != 0) {
             Serial.print(getUnitName((UNIT)units_registered[i]));
             Serial.print(":");
@@ -627,7 +604,7 @@ bool Sensors::pmGenericRead() {
     String txtMsg = hwSerialRead(lenght_buffer);
     if (txtMsg[0] == 66) {
         if (txtMsg[1] == 77) {
-            DEBUG("-->[SLIB] UART PMGENERIC read \t\t: done!");
+            DEBUG("-->[SLIB] UART PMGENERIC read!\t: :D");
             pm25 = txtMsg[6] * 256 + (char)(txtMsg[7]);
             pm10 = txtMsg[8] * 256 + (char)(txtMsg[9]);
 
@@ -746,17 +723,17 @@ bool Sensors::sps30Read() {
     
     do {
         ret = sps30.GetValues(&val);
-        if (ret == ERR_DATALENGTH) {
+        if (ret == SPS30_ERR_DATALENGTH) {
             if (error_cnt++ > 3) {
                 DEBUG("[W][SLIB] SPS30 setup message \t: error on values\t: ", String(ret).c_str());
                 return false;
             }
             delay(500);
-        } else if (ret != ERR_OK) {
+        } else if (ret != SPS30_ERR_OK) {
             sps30ErrToMess((char *)"[W][SLIB] SPS30 setup message \t: error on values\t: ", ret);
             return false;
         }
-    } while (ret != ERR_OK);
+    } while (ret != SPS30_ERR_OK);
 
     DEBUG("-->[SLIB] SPS30 read \t\t: done!");
 
@@ -909,9 +886,7 @@ void Sensors::bmp280Read() {
 }
 
 void Sensors::bme680Read() {
-    unsigned long endTime = bme680.beginReading();
-    if (endTime == 0) return;
-    if (!bme680.endReading()) return;
+    if (!bme680.performReading()) return;
     float temp1 = bme680.temperature;
     temp = temp1 - toffset;
     humi = bme680.humidity;
@@ -928,10 +903,10 @@ void Sensors::bme680Read() {
 }
 
 void Sensors::aht10Read() {
-    float humi1 = aht10.readHumidity();
     float temp1 = aht10.readTemperature();
-    if (humi1 != 255) humi = humi1;
-    if (temp1 != 255) {
+    if (temp1 != AHTXX_ERROR) { 
+        float humi1 = aht10.readHumidity();
+        if (humi1 != AHTXX_ERROR) humi = humi1;
         temp = temp1-toffset;
         dataReady = true;
         DEBUG("-->[SLIB] AHT10 read\t\t: done!");
@@ -1000,6 +975,7 @@ void Sensors::GCJA5Read() {
     unitRegister(UNIT::PM10);
 }
 
+
 void Sensors::DFRobotGravityRead() {
      String gastype = gas.queryGasType();
   /**
@@ -1018,6 +994,12 @@ void Sensors::DFRobotGravityRead() {
   Serial.println();
 }
 
+
+#ifdef DHT11_ENABLED
+DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
+/**
+ * @deprecated Please don't use this sensor anymore
+ */
 bool Sensors::dhtIsReady(float *temperature, float *humidity) {
     static unsigned long measurement_timestamp = millis();
     if (millis() - measurement_timestamp > sample_time * (uint32_t)1000) {
@@ -1029,10 +1011,17 @@ bool Sensors::dhtIsReady(float *temperature, float *humidity) {
     return (false);
 }
 
-void Sensors::setDHTparameters(int dht_sensor_pin, int dht_sensor_type) {
-    DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
+/**
+ * @deprecated Please don't use this sensor anymore
+ */
+void Sensors::dhtInit() {
+    sensorAnnounce(SENSORS::SDHTX);
+    dhtRead();
 }
 
+/**
+ * @deprecated Please don't use this sensor anymore
+ */
 void Sensors::dhtRead() {
     if (dhtIsReady(&dhttemp, &dhthumi) != true) return;
     temp = dhttemp - toffset;
@@ -1043,6 +1032,7 @@ void Sensors::dhtRead() {
     unitRegister(UNIT::TEMP);
     unitRegister(UNIT::HUM);
 }
+#endif
 
 void Sensors::onSensorError(const char *msg) {
     DEBUG(msg);
@@ -1072,7 +1062,7 @@ void Sensors::sps30Errorloop(char *mess, uint8_t r) {
  * @param pms_rx PMS RX pin.
  * @param pms_tx PMS TX pin.
  **/
-bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
+bool Sensors::sensorSerialInit(u_int pms_type, int pms_rx, int pms_tx) {
     // set UART for autodetection sensors (Honeywell, Plantower)
     if (pms_type == Auto) {
         DEBUG("-->[SLIB] UART detecting type\t: Auto");
@@ -1121,7 +1111,7 @@ bool Sensors::sensorSerialInit(int pms_type, int pms_rx, int pms_tx) {
  * In order UART config, this method looking up for
  * special header on Serial stream
  **/
-bool Sensors::pmSensorAutoDetect(int pms_type) {
+bool Sensors::pmSensorAutoDetect(u_int pms_type) {
     delay(1000);  // sync serial
 
     if (pms_type == SENSORS::SSPS30) {
@@ -1257,21 +1247,21 @@ bool Sensors::senseAirS8Init() {
 
     Serial.println("-->[SLIB] UART sensor detected \t: SenseAir S8");
     if (devmode) {
-        Serial.printf("-->[SLIB] S8 Software version\t: %s\n", s8sensor.firm_version);
-        Serial.printf("-->[SLIB] S8 Sensor type\t: 0x%08x\n", s8->get_sensor_type_ID());
-        Serial.printf("-->[SLIB] S8 Sensor ID\t: %08x\n", s8->get_sensor_ID());
-        Serial.printf("-->[SLIB] S8 Memory ver\t: 0x%04x\n", s8->get_memory_map_version());
-        Serial.printf("-->[SLIB] S8 ABC period\t: %d hours\n", s8->get_ABC_period());
+        Serial.printf("-->[SLIB] S8 Software version\t: %s\r\n", s8sensor.firm_version);
+        Serial.printf("-->[SLIB] S8 Sensor type\t: 0x%08x\r\n", s8->get_sensor_type_ID());
+        Serial.printf("-->[SLIB] S8 Sensor ID\t: %08x\r\n", s8->get_sensor_ID());
+        Serial.printf("-->[SLIB] S8 Memory ver\t: 0x%04x\r\n", s8->get_memory_map_version());
+        Serial.printf("-->[SLIB] S8 ABC period\t: %d hours\r\n", s8->get_ABC_period());
     }
     DEBUG("-->[SLIB] S8 Disabling ABC period");
     s8->set_ABC_period(0);
     delay(100);
-    if (devmode) Serial.printf("-->[SLIB] S8 ABC period\t: %d hours\n", s8->get_ABC_period());
+    if (devmode) Serial.printf("-->[SLIB] S8 ABC period\t: %d hours\r\n", s8->get_ABC_period());
 
     DEBUG("-->[SLIB] S8 ABC period \t: 180 hours");
     s8->set_ABC_period(180);
     delay(100);
-    if (devmode) Serial.printf("-->[SLIB] S8 ABC period\t: %d hours\n", s8->get_ABC_period());
+    if (devmode) Serial.printf("-->[SLIB] S8 ABC period\t: %d hours\r\n", s8->get_ABC_period());
 
     s8->get_meter_status();
     s8->get_alarm_status();
@@ -1322,7 +1312,7 @@ bool Sensors::sps30I2CInit() {
     // start measurement
     if (sps30.start()) {
         DEBUG("-->[SLIB] SPS30 Measurement OK");
-        if (sps30.I2C_expect() == 4) DEBUG("[W][SLIB] SPS30 setup message\t: I2C buffersize only PM values  \n");
+        if (sps30.I2C_expect() == 4) DEBUG("[W][SLIB] SPS30 setup message\t: I2C buffersize only PM values  \r\n");
         sensorRegister(SENSORS::SSPS30);
         return true;
     }
@@ -1358,7 +1348,7 @@ void Sensors::sps30DeviceInfo() {
 
     //try to read serial number
     ret = sps30.GetSerialNumber(buf, 32);
-    if (ret == ERR_OK) {
+    if (ret == SPS30_ERR_OK) {
         if (strlen(buf) > 0)
             DEBUG("-->[SLIB] SPS30 Serial number\t: ", buf);
         else
@@ -1368,7 +1358,7 @@ void Sensors::sps30DeviceInfo() {
 
     // try to get product name
     ret = sps30.GetProductName(buf, 32);
-    if (ret == ERR_OK) {
+    if (ret == SPS30_ERR_OK) {
         if (strlen(buf) > 0)
             DEBUG("-->[SLIB] SPS30 product name\t: ", buf);
         else
@@ -1378,7 +1368,7 @@ void Sensors::sps30DeviceInfo() {
 
     // try to get version info
     ret = sps30.GetVersion(&v);
-    if (ret != ERR_OK) {
+    if (ret != SPS30_ERR_OK) {
         DEBUG("[SLIB] SPS30 can not read version info");
         return;
     }
@@ -1397,14 +1387,14 @@ void Sensors::sps30DeviceInfo() {
 
 void Sensors::am2320Init() {
     sensorAnnounce(SENSORS::SAM232X);
-    #ifdef ESP32
+    #ifndef Wife1
+    if (!am2320.begin()) return;
+    #else
     am2320 = AM232X(&Wire);
     if (!am2320.begin()) {
         am2320 = AM232X(&Wire1);
         if (!am2320.begin()) return;
     }
-    #else
-    if (!am2320.begin()) return;
     #endif
     am2320.wakeUp();
     sensorRegister(SENSORS::SAM232X);
@@ -1413,36 +1403,36 @@ void Sensors::am2320Init() {
 void Sensors::sht31Init() {
     sensorAnnounce(SENSORS::SSHT31);
     sht31 = Adafruit_SHT31();
-    #ifdef ESP32
+    #ifndef Wire1
+    if (!sht31.begin()) return;
+    #else
     if (!sht31.begin()) {
         sht31 = Adafruit_SHT31(&Wire1);
         if (!sht31.begin()) return; 
     }
-    #else
-    if (!sht31.begin()) return;
     #endif
     sensorRegister(SENSORS::SSHT31);
 }
 
 void Sensors::bme280Init() {
     sensorAnnounce(SENSORS::SBME280);
-    #ifdef ESP32
-    if (!bme280.begin() && !bme280.begin(BME280_ADDRESS,&Wire1)) return; 
-    #else
+    #ifndef Wire1
     if (!bme280.begin()) return;
+    #else
+    if (!bme280.begin() && !bme280.begin(BME280_ADDRESS,&Wire1)) return; 
     #endif
     sensorRegister(SENSORS::SBME280);
 }
 
 void Sensors::bmp280Init() {
     sensorAnnounce(SENSORS::SBMP280);
-    #ifdef ESP32
+    #ifndef Wire1
+    if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return; 
+    #else
     if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) {
         bmp280 = Adafruit_BMP280(&Wire1);
         if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return;
     }
-    #else
-    if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return;
     #endif
     bmp280.setSampling(Adafruit_BMP280::MODE_NORMAL,      // Operating Mode.
                        Adafruit_BMP280::SAMPLING_X2,      // Temp. oversampling
@@ -1470,18 +1460,22 @@ void Sensors::bme680Init() {
 }
 
 void Sensors::aht10Init() {
-    sensorAnnounce(SENSORS::SAHT10);
-    aht10 = AHT10(AHT10_ADDRESS_0X38);
+    sensorAnnounce(SENSORS::SAHTXX);
+    aht10 = AHTxx(AHTXX_ADDRESS_X38, AHT1x_SENSOR);
+    #ifdef M5STICKCPLUS // issue: https://github.com/enjoyneering/AHTxx/issues/11
+    if(!aht10.begin(EXT_I2C_SDA, EXT_I2C_SCL, 100000, 50000)) return;
+    #else
     if (!aht10.begin()) return; 
-    sensorRegister(SENSORS::SAHT10);
+    #endif
+    sensorRegister(SENSORS::SAHTXX);
 }
 
 void Sensors::CO2scd30Init() {
     sensorAnnounce(SENSORS::SSCD30);
-    #ifdef ESP32
-    if (!scd30.begin() && !scd30.begin(SCD30_I2CADDR_DEFAULT, &Wire1, SCD30_CHIP_ID)) return;
-    #else
+    #ifndef Wire1
     if (!scd30.begin()) return;
+    #else
+    if (!scd30.begin() && !scd30.begin(SCD30_I2CADDR_DEFAULT, &Wire1, SCD30_CHIP_ID)) return;
     #endif
     delay(10);
 
@@ -1569,18 +1563,15 @@ void Sensors::setSCD4xAltitudeOffset(float offset) {
 
 void Sensors::GCJA5Init() {
     sensorAnnounce(SENSORS::SGCJA5);
-    #ifdef ESP32
-    if (!pmGCJA5.begin() && !pmGCJA5.begin(Wire1)) return;
-    #else
+    #ifndef Wire1
     if (!pmGCJA5.begin()) return;
+    #else
+    if (!pmGCJA5.begin() && !pmGCJA5.begin(Wire1)) return;
     #endif
     sensorRegister(SENSORS::SGCJA5);
 }
 
-void Sensors::dhtInit() {
-    sensorAnnounce(SENSORS::SDHTX);
-    dhtRead();
-}
+
 
 void Sensors::DFRobotgravityInit() {
     sensorAnnounce(SENSORS::MULTIGAS);
@@ -1626,7 +1617,7 @@ void Sensors::sensorAnnounce(SENSORS sensor) {
 
 void Sensors::sensorRegister(SENSORS sensor) {
     if (isSensorRegistered(sensor)) return;
-    Serial.printf("-->[SLIB] sensor registered\t: %s  \t:D\n", getSensorName(sensor).c_str());
+    Serial.printf("-->[SLIB] sensor registered\t: %s  \t:D\r\n", getSensorName(sensor).c_str());
     sensors_registered[sensors_registered_count++] = sensor;
 }
 
@@ -1667,21 +1658,24 @@ void Sensors::DEBUG(const char *text, const char *textb) {
 
 void Sensors::startI2C() {
 #if defined(M5STICKCPLUS) || defined(M5COREINK) 
-    Wire.begin(32,33);   // M5CoreInk Ext port (default for all sensors)
+    Wire.begin(EXT_I2C_SDA, EXT_I2C_SCL);   // M5CoreInk Ext port (default for all sensors)
     enableWire1();
 #endif
 #ifdef M5ATOM
     enableWire1();
 #endif
-#if not defined(M5STICKCPLUS) && not defined(M5COREINK) && not defined(M5ATOM)
+#if not defined(M5STICKCPLUS) && not defined(M5COREINK) && not defined(M5ATOM) && not defined(ESP32C3)
     Wire.begin();
+#endif
+#ifdef ESP32C3
+    Wire.begin(19,18);
 #endif
 }
 
 void Sensors::enableWire1() {
 #ifdef M5STICKCPLUS
     Wire1.flush();
-    Wire1.begin(0,26);   // M5CoreInk hat pines (header on top)
+    Wire1.begin(HAT_I2C_SDA, HAT_I2C_SCL);   // M5CoreInk hat pines (header on top)
 #endif
 #ifdef M5COREINK
     Wire1.flush();
@@ -1704,8 +1698,8 @@ void Sensors::disableWire1() {
 #endif
 }
 
-bool Sensors::serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx) {
-    if(devmode)Serial.printf("-->[SLIB] UART init with speed\t: %lu RX:%i TX:%i\n", speed_baud, pms_rx, pms_tx);
+bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx) {
+    if(devmode)Serial.printf("-->[SLIB] UART init with speed\t: %lu TX:%i RX:%i\r\n", speed_baud, pms_tx, pms_rx);
     switch (SENSOR_COMMS) {
         case SERIALPORT:
             Serial.begin(speed_baud);
@@ -1747,8 +1741,8 @@ bool Sensors::serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int
             Serial1.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx, false);
             _serial = &Serial1;
             break;
-
         case SERIALPORT2:
+        #if SOC_UART_NUM > 2
             DEBUG("-->[SLIB] UART COMM port \t: Serial2");
             if (pms_type == SENSORS::SSPS30)
                 Serial2.begin(speed_baud);
@@ -1756,6 +1750,11 @@ bool Sensors::serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int
                 Serial2.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx, false);
             _serial = &Serial2;
             break;
+        #else
+            DEBUG("-->[SLIB] Force UART port \t: Serial1");
+            Serial1.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx);
+            _serial = &Serial1;
+        #endif
 #endif
         default:
 
@@ -1782,7 +1781,7 @@ bool Sensors::serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int
                     swSerial.begin(speed_baud, SWSERIAL_8N1, pms_rx, pms_tx, false);
                 _serial = &swSerial;
 #else
-                DEBUG("-->[SLIB] SoftWareSerial not enabled");
+                DEBUG("-->[SLIB] UART SoftwareSerial \t: disable"); 
                 return (false);
 #endif  //INCLUDE_SOFTWARE_SERIAL
             }
