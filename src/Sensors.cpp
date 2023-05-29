@@ -536,12 +536,12 @@ float Sensors::getUnitValue(UNIT unit) {
             return pres;
         case ALT:
             return alt;
-       // case GAS:
-        //    return gas;
-        case DFRobot_GAS::NH3:
-            return NH3;
-        case DFRobot_GAS::CO:
-            return CO;
+        case GAS:
+           return gas;
+        case NH3:
+            return nh3;
+        case CO:
+            return co;
         default:
             return 0.0;
     }
@@ -977,7 +977,7 @@ void Sensors::GCJA5Read() {
 
 
 void Sensors::DFRobotGravityRead() {
-     String gastype = gas.queryGasType();
+     String gastype = dfr_gas.queryGasType();
   /**
    *Fill in the parameter readGasConcentration() with the type of gas to be obtained and print
    *The current gas concentration
@@ -986,7 +986,7 @@ void Sensors::DFRobotGravityRead() {
   Serial.print("Ambient ");
   Serial.print(gastype);
   Serial.print(" concentration is: ");
-  Serial.print(gas.readGasConcentrationPPM());
+  Serial.print(dfr_gas.readGasConcentrationPPM());
   if (gastype == "O2")
     Serial.println(" %vol");
   else
@@ -1574,7 +1574,7 @@ void Sensors::GCJA5Init() {
 
 
 void Sensors::DFRobotgravityInit() {
-    sensorAnnounce(SENSORS::MULTIGAS);
+    sensorAnnounce(SENSORS::SMULTIGAS);
      DFRobot_GAS_I2C gas(&Wire ,0x77);
       while(!gas.begin())
   {
@@ -1592,7 +1592,7 @@ void Sensors::DFRobotgravityInit() {
    *             gas.OFF：turn off
    */
   gas.setTempCompensation(gas.ON);
-    sensorRegister(SENSORS::MULTIGAS);
+    sensorRegister(SENSORS::SMULTIGAS);
 }
 
 // Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
@@ -1639,8 +1639,8 @@ void Sensors::resetAllVariables() {
     alt = 0.0;
     gas = 0.0;
     pres = 0.0;
-    NH3 = 0.0;
-    CO = 0.0;
+    nh3 = 0.0;
+    co = 0.0;
 }
 
 void Sensors::DEBUG(const char *text, const char *textb) {

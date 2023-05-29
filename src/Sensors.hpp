@@ -16,7 +16,7 @@
 #include <s8_uart.h>
 #include <sps30.h>
 #include <drivers/pm1006.h>
-#include <drivers/DFRobot_MultiGasSensor.h>
+#include <DFRobot_MultiGasSensor.h>
 
 #ifdef DHT11_ENABLED
 #include <dht_nonblocking.h> 
@@ -96,11 +96,11 @@
     X(CO2HUM, "%", "CO2H")     \
     X(PRESS, "hPa", "P")       \
     X(ALT, "m", "Alt")         \
+    X(GAS, "Ohm", "Gas")       \
     X(NH3, "ppm", "NH3")       \
     X(CO, "ppm", "CO")         \
     X(UCOUNT, "COUNT", "UCOUNT")
 
-     // X(GAS, "Ohm", "Gas")       \           // COlisiona con DFRobot Multigas
 
 #define X(unit, symbol, name) unit,
 typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
@@ -213,7 +213,8 @@ class Sensors {
     PM1006 *pm1006;
 
     // DFRobot gravity Gas sensor
-    DFRobot_GAS_I2C gas;
+    DFRobot_GAS_I2C dfr_gas;
+
 
     void init(u_int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
@@ -257,7 +258,7 @@ class Sensors {
 
     float getAltitude();
 
-    // float getGas();    // Posible colision con DFRobot Multigas
+    float getGas();
     
     float getNH3();
     
@@ -345,16 +346,14 @@ class Sensors {
     float temp = 0.0;  // Temperature (°C)
     float pres = 0.0;  // Pressure
     float alt = 0.0;
-   // float gas = 0.0;   // Colisiona con DFRobot Multigas
+    float gas = 0.0;   // Colisiona con DFRobot Multigas
     
     uint16_t CO2Val;      // CO2 in ppm
     float CO2humi = 0.0;  // humidity of CO2 sensor
     float CO2temp = 0.0;  // temperature of CO2 sensor
 
-    uint16_t NH3;         // Amonium in ppm
-    uint16_t CO;          // Carbon monoxide
-    float NH3 = 0.0;
-    float CO = 0.0;
+    float nh3;         // Amonium in ppm
+    float co;          // Carbon monoxide
     
     void am2320Init();
     void am2320Read();
