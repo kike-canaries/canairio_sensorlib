@@ -75,11 +75,11 @@ bool Sensors::readAllSensors() {
     bmp280Read();
     bme680Read();
     aht10Read();
-
+    DFRobotGravityRead();
     #ifdef DHT11_ENABLED
     dhtRead();
     #endif
-
+  
     disableWire1();
 
     printValues();
@@ -125,7 +125,8 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     am2320Init();
     sht31Init();
     aht10Init();
-
+    DFRobotgravityInit();
+  
     #ifdef DHT11_ENABLED
     dhtInit();
     #endif
@@ -535,8 +536,12 @@ float Sensors::getUnitValue(UNIT unit) {
             return pres;
         case ALT:
             return alt;
-        case GAS:
-            return gas;
+       // case GAS:
+        //    return gas;
+        case DFRobot_GAS::NH3:
+            return NH3;
+        case DFRobot_GAS::CO:
+            return CO;
         default:
             return 0.0;
     }
@@ -969,6 +974,26 @@ void Sensors::GCJA5Read() {
     unitRegister(UNIT::PM25);
     unitRegister(UNIT::PM10);
 }
+
+
+void Sensors::DFRobotGravityRead() {
+     String gastype = gas.queryGasType();
+  /**
+   *Fill in the parameter readGasConcentration() with the type of gas to be obtained and print
+   *The current gas concentration
+   *Print with 1s delay each time
+   */
+  Serial.print("Ambient ");
+  Serial.print(gastype);
+  Serial.print(" concentration is: ");
+  Serial.print(gas.readGasConcentrationPPM());
+  if (gastype == "O2")
+    Serial.println(" %vol");
+  else
+    Serial.println(" PPM");
+  Serial.println();
+}
+
 
 #ifdef DHT11_ENABLED
 DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
@@ -1546,6 +1571,30 @@ void Sensors::GCJA5Init() {
     sensorRegister(SENSORS::SGCJA5);
 }
 
+
+
+void Sensors::DFRobotgravityInit() {
+    sensorAnnounce(SENSORS::MULTIGAS);
+     DFRobot_GAS_I2C gas(&Wire ,0x77);
+      while(!gas.begin())
+  {
+    Serial.println("NO Deivces !");
+    delay(1000);
+  }
+  Serial.println("The device is connected successfully!");
+
+  //Mode of obtaining data: the main controller needs to request the sensor for data
+  gas.changeAcquireMode(gas.PASSIVITY);
+  delay(1000);
+
+  /**
+   *Turn on temperature compensation: gas.ON : turn on
+   *             gas.OFF：turn off
+   */
+  gas.setTempCompensation(gas.ON);
+    sensorRegister(SENSORS::MULTIGAS);
+}
+
 // Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
 
 void Sensors::CO2correctionAlt() {
@@ -1590,6 +1639,8 @@ void Sensors::resetAllVariables() {
     alt = 0.0;
     gas = 0.0;
     pres = 0.0;
+    NH3 = 0.0;
+    CO = 0.0;
 }
 
 void Sensors::DEBUG(const char *text, const char *textb) {
