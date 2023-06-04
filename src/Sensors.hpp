@@ -352,8 +352,10 @@ class Sensors {
     float CO2humi = 0.0;  // humidity of CO2 sensor
     float CO2temp = 0.0;  // temperature of CO2 sensor
 
-    float nh3;         // Amonium in ppm
-    float co;          // Carbon monoxide
+    uint16_t NH3;         // Amonium in ppm
+    uint16_t CO;          // Carbon monoxide
+    //float NH3 = 0.0;
+    //float CO = 0.0;
     
     void am2320Init();
     void am2320Read();
