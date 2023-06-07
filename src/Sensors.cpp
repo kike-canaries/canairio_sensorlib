@@ -64,7 +64,7 @@ bool Sensors::readAllSensors() {
         dataReady = pmSensorRead();
         DEBUG("-->[SLIB] UART data ready \t:", dataReady ? "true" : "false");
     }
-    //enableWire1();
+    enableWire1();
     CO2scd30Read();
     GCJA5Read();
     sps30Read();
@@ -80,7 +80,7 @@ bool Sensors::readAllSensors() {
     dhtRead();
     #endif
   
-   // disableWire1();
+    disableWire1();
 
     printValues();
     printSensorsRegistered(devmode);
@@ -115,7 +115,7 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
         DEBUG("-->[SLIB] UART sensors detected\t:", "0");
     }
     
-   // startI2C();
+    startI2C();
     CO2scd30Init();
     sps30I2CInit();
     GCJA5Init();
@@ -1007,12 +1007,12 @@ void Sensors::DFRobotGravityRead() {
   Serial.println();
 
  //   String gastype = dfr_co.queryGasType();
-  /**
+  /*
    *Fill in the parameter readGasConcentration() with the type of gas to be obtained and print
    *The current gas concentration
    *Print with 1s delay each time
    */
-    float CO = dfr_co.readGasConcentrationPPM();
+ /* float CO = dfr_co.readGasConcentrationPPM();
     dataReady = true;
     DEBUG("-->[SLIB] CO read\t\t: done!");
     unitRegister(UNIT::CO);
@@ -1023,7 +1023,7 @@ void Sensors::DFRobotGravityRead() {
   Serial.print(dfr_co.readGasConcentrationPPM());
   Serial.println(" PPM");
   Serial.println();
-   
+ */  
 }
 
 
@@ -1622,7 +1622,7 @@ void Sensors::DFRobotgravityInit() {
         dfr_nh3.setTempCompensation(dfr_nh3.ON);
         Serial.println("The device nh3  0x77 is connected successfully!");
    
-    DFRobot_GAS_I2C dfr_co(&Wire,0x74);
+ /*   DFRobot_GAS_I2C dfr_co(&Wire,0x74);
    //dfr_co.begin();
      while(!dfr_co.begin())
     {
@@ -1634,7 +1634,7 @@ void Sensors::DFRobotgravityInit() {
         delay(1000);
         dfr_co.setTempCompensation(dfr_co.ON);
         Serial.println("The device CO  0x74 is connected successfully!");
-    
+ */   
     sensorRegister(SENSORS::SMULTIGAS);
 }
 
