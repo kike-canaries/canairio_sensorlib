@@ -64,7 +64,7 @@ bool Sensors::readAllSensors() {
         dataReady = pmSensorRead();
         DEBUG("-->[SLIB] UART data ready \t:", dataReady ? "true" : "false");
     }
-    /*enableWire1();
+    enableWire1();
     CO2scd30Read();
     GCJA5Read();
     sps30Read();
@@ -74,7 +74,7 @@ bool Sensors::readAllSensors() {
     bme280Read();
     bmp280Read();
     bme680Read();
-    aht10Read(); */
+    aht10Read(); 
     DFRobotGravityRead();
     #ifdef DHT11_ENABLED
     dhtRead();
@@ -115,7 +115,7 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
         DEBUG("-->[SLIB] UART sensors detected\t:", "0");
     }
     
-    /*startI2C();
+    startI2C();
     CO2scd30Init();
     sps30I2CInit();
     GCJA5Init();
@@ -125,7 +125,7 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     bme680Init();
     am2320Init();
     sht31Init();
-    aht10Init(); */
+    aht10Init(); 
     DFRobotgravityInit();
   
     #ifdef DHT11_ENABLED
@@ -988,7 +988,34 @@ void Sensors::GCJA5Read() {
 
 
 void Sensors::DFRobotGravityRead() {
-   //  String gastypenh3 = dfr_nh3.queryGasType();
+   
+ DFRobot_GAS_I2C dfr_co(&Wire,0x74); {
+    String gastype = dfr_co.queryGasType();
+    dfr_co.begin();
+  /**
+   *Fill in the parameter readGasConcentration() with the type of gas to be obtained and print
+   *The current gas concentration
+   *Print with 1s delay each time
+   */
+
+  float _co = dfr_co.readGasConcentrationPPM();
+  co = _co;
+    dataReady = true;
+    DEBUG("-->[SLIB] CO read\t\t: done!");
+    unitRegister(UNIT::CO);
+
+  Serial.print("Ambient ");
+  Serial.print(gastype);
+  Serial.print(" concentration is: ");
+  Serial.print(dfr_co.readGasConcentrationPPM());
+  Serial.println(" PPM");
+  Serial.println();
+ }
+
+ DFRobot_GAS_I2C dfr_nh3(&Wire,0x77);
+    {
+  dfr_nh3.begin();
+    String gastypenh3 = dfr_nh3.queryGasType();
   /**
    *Fill in the parameter readGasConcentration() with the type of gas to be obtained and print
    *The current gas concentration
@@ -997,35 +1024,17 @@ void Sensors::DFRobotGravityRead() {
     float _nh3 = dfr_nh3.readGasConcentrationPPM();
     nh3 = _nh3;
    dataReady = true;
+    
     DEBUG("-->[SLIB] NH3 read\t\t: done!");
     unitRegister(UNIT::NH3);
 
   Serial.print("Ambient ");
- // Serial.print(gastypenh3);
+  Serial.print(gastypenh3);
   Serial.print(" concentration is: ");
   Serial.print(dfr_nh3.readGasConcentrationPPM());
   Serial.println(" PPM");
   Serial.println();
-
- //   String gastype = dfr_co.queryGasType();
-  /**
-   *Fill in the parameter readGasConcentration() with the type of gas to be obtained and print
-   *The current gas concentration
-   *Print with 1s delay each time
-   */
-  float _co = dfr_co.readGasConcentrationPPM();
-  co = _co;
-    dataReady = true;
-    DEBUG("-->[SLIB] CO read\t\t: done!");
-    unitRegister(UNIT::CO);
-
-  Serial.print("Ambient ");
-  //Serial.print(gastype);
-  Serial.print(" concentration is: ");
-  Serial.print(dfr_co.readGasConcentrationPPM());
-  Serial.println(" PPM");
-  Serial.println();
-   
+    }
 }
 
 
