@@ -75,8 +75,8 @@ bool Sensors::readAllSensors() {
     bmp280Read();
     bme680Read();
     aht10Read();
-    DFRobotCORead();
-    // DFRobotNH3Read();
+    // DFRobotCORead();
+    DFRobotNH3Read();
     #ifdef DHT11_ENABLED
     dhtRead();
     #endif
@@ -127,8 +127,8 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     am2320Init();
     sht31Init();
     aht10Init();
-    DFRobotCOInit();
-    // DFRobotNH3Init();
+    // DFRobotCOInit();
+    DFRobotNH3Init();
   
     #ifdef DHT11_ENABLED
     dhtInit();
@@ -989,7 +989,7 @@ void Sensors::GCJA5Read() {
 }
 
 void Sensors::DFRobotNH3Read() {
-    if (!dfrNH3.dataIsAvailable()) return;
+    if (!dfrNH3.begin()) return;
     String gastype = dfrNH3.queryGasType();
     nh3 = dfrNH3.readGasConcentrationPPM();
     unitRegister(UNIT::NH3);
@@ -1594,7 +1594,7 @@ void Sensors::DFRobotNH3Init() {
   dfrNH3 = DFRobot_GAS_I2C(&Wire, 0x77);
   if (!dfrNH3.begin()) return;
   //Mode of obtaining data: the main controller needs to request the sensor for data
-  dfrNH3.changeAcquireMode(dfrNH3.PASSIVITY);
+//   dfrNH3.changeAcquireMode(dfrNH3.PASSIVITY);
   delay(1000);  // TODO: we need validate if we need that
 
   //Turn on temperature compensation: gas.ON : turn on
