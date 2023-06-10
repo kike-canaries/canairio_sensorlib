@@ -73,7 +73,7 @@ bool Sensors::readAllSensors() {
     sht31Read();
     bme280Read();
     bmp280Read();
-    //bme680Read(); 
+    bme680Read(); 
     aht10Read(); 
     DFRobotCORead();
     DFRobotNH3Read();
@@ -123,7 +123,7 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     CO2scd4xInit();
     bmp280Init();
     bme280Init();
-    //bme680Init();
+    bme680Init();
     am2320Init(); 
     sht31Init(); 
     aht10Init(); 
@@ -1595,7 +1595,7 @@ void Sensors::DFRobotCOInit() {
 
 void Sensors::DFRobotNH3Init() {
   sensorAnnounce(SENSORS::SDFRNH3);
-  dfrNH3 = DFRobot_GAS_I2C(&Wire, 0x77);
+  dfrNH3 = DFRobot_GAS_I2C(&Wire, 0x76); // 0x77 y 0x75 used by bme680
   if (!dfrNH3.begin()) return;
   //Mode of obtaining data: the main controller needs to request the sensor for data
   dfrNH3.changeAcquireMode(dfrNH3.PASSIVITY);
