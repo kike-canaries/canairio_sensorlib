@@ -22,8 +22,8 @@
 #include <dht_nonblocking.h> 
 #endif
 
-#define CSL_VERSION "0.6.7"
-#define CSL_REVISION 374
+#define CSL_VERSION "0.6.8"
+#define CSL_REVISION 375
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
