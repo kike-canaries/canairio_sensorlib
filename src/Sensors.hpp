@@ -149,7 +149,7 @@ class Sensors {
     bool devmode;
 
     // Initial sample time for all sensors
-    int sample_time = 5;
+    int sample_time = 10;
 
     // temperature offset (for final temp output)
     float toffset = 0.0;
@@ -213,8 +213,9 @@ class Sensors {
     PM1006 *pm1006;
 
     // DFRobot gravity Gas sensor
-    DFRobot_GAS_I2C dfr_gas;
-
+    //DFRobot_GAS_I2C dfr_gas;
+    DFRobot_GAS_I2C dfr_nh3;
+    DFRobot_GAS_I2C dfr_co;
 
     void init(u_int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
@@ -346,7 +347,7 @@ class Sensors {
     float temp = 0.0;  // Temperature (°C)
     float pres = 0.0;  // Pressure
     float alt = 0.0;
-    float gas = 0.0;   // Colisiona con DFRobot Multigas
+    float gas = 0.0;   // 
     
     uint16_t CO2Val;      // CO2 in ppm
     float CO2humi = 0.0;  // humidity of CO2 sensor
@@ -354,7 +355,7 @@ class Sensors {
 
     float nh3;         // Amonium in ppm
     float co;          // Carbon monoxide
-    
+        
     void am2320Init();
     void am2320Read();
 

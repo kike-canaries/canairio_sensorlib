@@ -74,7 +74,7 @@ bool Sensors::readAllSensors() {
     bme280Read();
     bmp280Read();
     bme680Read();
-    aht10Read();
+    aht10Read(); 
     DFRobotGravityRead();
     #ifdef DHT11_ENABLED
     dhtRead();
@@ -114,6 +114,7 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     if (!i2conly && !sensorSerialInit(pms_type, pms_rx, pms_tx)) {
         DEBUG("-->[SLIB] UART sensors detected\t:", "0");
     }
+    
     startI2C();
     CO2scd30Init();
     sps30I2CInit();
@@ -124,7 +125,7 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     bme680Init();
     am2320Init();
     sht31Init();
-    aht10Init();
+    aht10Init(); 
     DFRobotgravityInit();
   
     #ifdef DHT11_ENABLED
@@ -320,6 +321,16 @@ float Sensors::getAltitude() {
 float Sensors::getPressure() {
     return pres;
 }
+
+float Sensors::getNH3() {
+    return nh3;
+}
+
+float Sensors::getCO() {
+    return co;
+}
+
+
 
 /**
  * @brief UART only: check if the UART sensor is registered
@@ -977,21 +988,53 @@ void Sensors::GCJA5Read() {
 
 
 void Sensors::DFRobotGravityRead() {
-     String gastype = dfr_gas.queryGasType();
+   
+ DFRobot_GAS_I2C dfr_co(&Wire,0x74); {
+    String gastype = dfr_co.queryGasType();
+    dfr_co.begin();
   /**
    *Fill in the parameter readGasConcentration() with the type of gas to be obtained and print
    *The current gas concentration
    *Print with 1s delay each time
    */
+
+  float _co = dfr_co.readGasConcentrationPPM();
+  co = _co;
+    dataReady = true;
+    DEBUG("-->[SLIB] CO read\t\t: done!");
+    unitRegister(UNIT::CO);
+
   Serial.print("Ambient ");
   Serial.print(gastype);
   Serial.print(" concentration is: ");
-  Serial.print(dfr_gas.readGasConcentrationPPM());
-  if (gastype == "O2")
-    Serial.println(" %vol");
-  else
-    Serial.println(" PPM");
+  Serial.print(dfr_co.readGasConcentrationPPM());
+  Serial.println(" PPM");
   Serial.println();
+ }
+
+ DFRobot_GAS_I2C dfr_nh3(&Wire,0x77);
+    {
+  dfr_nh3.begin();
+    String gastypenh3 = dfr_nh3.queryGasType();
+  /**
+   *Fill in the parameter readGasConcentration() with the type of gas to be obtained and print
+   *The current gas concentration
+   *Print with 1s delay each time
+   */
+    float _nh3 = dfr_nh3.readGasConcentrationPPM();
+    nh3 = _nh3;
+   dataReady = true;
+    
+    DEBUG("-->[SLIB] NH3 read\t\t: done!");
+    unitRegister(UNIT::NH3);
+
+  Serial.print("Ambient ");
+  Serial.print(gastypenh3);
+  Serial.print(" concentration is: ");
+  Serial.print(dfr_nh3.readGasConcentrationPPM());
+  Serial.println(" PPM");
+  Serial.println();
+    }
 }
 
 
@@ -1575,23 +1618,34 @@ void Sensors::GCJA5Init() {
 
 void Sensors::DFRobotgravityInit() {
     sensorAnnounce(SENSORS::SMULTIGAS);
-     DFRobot_GAS_I2C gas(&Wire ,0x77);
-      while(!gas.begin())
-  {
-    Serial.println("NO Deivces !");
-    delay(1000);
-  }
-  Serial.println("The device is connected successfully!");
+    DFRobot_GAS_I2C dfr_nh3(&Wire,0x77);
+   
+   //dfr_nh3.begin();
+   while(!dfr_nh3.begin())
+     {
+        Serial.println("NO Devices NH3 !");
+        delay(1000);
+    }
+   
+//Mode of obtaining data: the main controller needs to request the sensor for data
+        dfr_nh3.changeAcquireMode(dfr_nh3.PASSIVITY);
+        delay(1000);
+       dfr_nh3.setTempCompensation(dfr_nh3.ON);
+        Serial.println("The device nh3  0x77 is connected successfully!");
+   
+   DFRobot_GAS_I2C dfr_co(&Wire,0x74);
+   //dfr_co.begin();
+     while(!dfr_co.begin())
+    {
+        Serial.println("No Devices CO !");
+        delay(1000);
+    }
 
-  //Mode of obtaining data: the main controller needs to request the sensor for data
-  gas.changeAcquireMode(gas.PASSIVITY);
-  delay(1000);
-
-  /**
-   *Turn on temperature compensation: gas.ON : turn on
-   *             gas.OFF：turn off
-   */
-  gas.setTempCompensation(gas.ON);
+        dfr_co.changeAcquireMode(dfr_co.PASSIVITY);
+        delay(1000);
+        dfr_co.setTempCompensation(dfr_co.ON);
+        Serial.println("The device CO  0x74 is connected successfully!");
+    
     sensorRegister(SENSORS::SMULTIGAS);
 }
 
@@ -1639,8 +1693,8 @@ void Sensors::resetAllVariables() {
     alt = 0.0;
     gas = 0.0;
     pres = 0.0;
-    nh3 = 0.0;
-    co = 0.0;
+    dfr_nh3 = 0;
+    dfr_co = 0;
 }
 
 void Sensors::DEBUG(const char *text, const char *textb) {
