@@ -76,7 +76,7 @@ bool Sensors::readAllSensors() {
     bme680Read();
     aht10Read();
     DFRobotCORead();
-    DFRobotNH3Read();
+    // DFRobotNH3Read();
     #ifdef DHT11_ENABLED
     dhtRead();
     #endif
@@ -128,7 +128,7 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     sht31Init();
     aht10Init();
     DFRobotCOInit();
-    DFRobotNH3Init();
+    // DFRobotNH3Init();
   
     #ifdef DHT11_ENABLED
     dhtInit();
@@ -996,7 +996,7 @@ void Sensors::DFRobotNH3Read() {
 }
 
 void Sensors::DFRobotCORead() {
-    if (!dfrCO.dataIsAvailable()) return;
+    if (!dfrCO.begin()) return;
     String gastype = dfrCO.queryGasType();
     co = dfrCO.readGasConcentrationPPM();
     unitRegister(UNIT::CO);
