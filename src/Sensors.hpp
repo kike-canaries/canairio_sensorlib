@@ -124,7 +124,8 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
     X(SAHTXX, "AHTXX", 3)   \
     X(SAM232X, "AM232X", 3) \
     X(SDHTX, "DHTX", 3)     \
-    X(SMULTIGAS, "MULTIGAS", 2) \
+    X(SDFRCO, "DFRCO", 2) \
+    X(SDFRNH3, "DFRNH3", 2) \
     X(SCOUNT, "SCOUNT", 3)
 
 #define X(utype, uname, umaintype) utype,
@@ -212,10 +213,11 @@ class Sensors {
     // IKEA Vindriktn sensor
     PM1006 *pm1006;
 
-    // DFRobot gravity Gas sensor
-    //DFRobot_GAS_I2C dfr_gas;
-    DFRobot_GAS_I2C dfr_nh3;
-    DFRobot_GAS_I2C dfr_co;
+    // DFRobot gravity NH3 sensor addr 0x74
+    DFRobot_GAS_I2C dfrCO;
+
+    // DFRobot gravity NH3 sensor addr 0x77
+    DFRobot_GAS_I2C dfrNH3;
 
     void init(u_int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
@@ -395,8 +397,10 @@ class Sensors {
     bool dhtIsReady(float *temperature, float *humidity);
     #endif
 
-    void DFRobotgravityInit();
-    void DFRobotGravityRead();
+    void DFRobotNH3Init();
+    void DFRobotNH3Read();
+    void DFRobotCOInit();
+    void DFRobotCORead();
 
     // UART sensors methods:
 

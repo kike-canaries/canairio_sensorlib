@@ -74,8 +74,9 @@ bool Sensors::readAllSensors() {
     bme280Read();
     bmp280Read();
     bme680Read();
-    aht10Read(); 
-    DFRobotGravityRead();
+    aht10Read();
+    DFRobotCORead();
+    DFRobotNH3Read();
     #ifdef DHT11_ENABLED
     dhtRead();
     #endif
@@ -125,8 +126,9 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     bme680Init();
     am2320Init();
     sht31Init();
-    aht10Init(); 
-    DFRobotgravityInit();
+    aht10Init();
+    DFRobotCOInit();
+    DFRobotNH3Init();
   
     #ifdef DHT11_ENABLED
     dhtInit();
@@ -579,7 +581,7 @@ void Sensors::printUnitsRegistered(bool debug) {
  */
 void Sensors::printSensorsRegistered(bool debug) { 
     if (!debug) return;
-    Serial.printf("-->[SLIB] Sensors i2c count \t: %i (", sensors_registered_count);
+    Serial.printf("-->[SLIB] Sensors count  \t: %i (", sensors_registered_count);
     int i = 0;
     while (sensors_registered[i++] != 0) {
         Serial.print(sensors_device_names[sensors_registered[i-1]]);
@@ -986,57 +988,19 @@ void Sensors::GCJA5Read() {
     unitRegister(UNIT::PM10);
 }
 
-
-void Sensors::DFRobotGravityRead() {
-   
- DFRobot_GAS_I2C dfr_co(&Wire,0x74); {
-    String gastype = dfr_co.queryGasType();
-    dfr_co.begin();
-  /**
-   *Fill in the parameter readGasConcentration() with the type of gas to be obtained and print
-   *The current gas concentration
-   *Print with 1s delay each time
-   */
-
-  float _co = dfr_co.readGasConcentrationPPM();
-  co = _co;
-    dataReady = true;
-    DEBUG("-->[SLIB] CO read\t\t: done!");
-    unitRegister(UNIT::CO);
-
-  Serial.print("Ambient ");
-  Serial.print(gastype);
-  Serial.print(" concentration is: ");
-  Serial.print(dfr_co.readGasConcentrationPPM());
-  Serial.println(" PPM");
-  Serial.println();
- }
-
- DFRobot_GAS_I2C dfr_nh3(&Wire,0x77);
-    {
-  dfr_nh3.begin();
-    String gastypenh3 = dfr_nh3.queryGasType();
-  /**
-   *Fill in the parameter readGasConcentration() with the type of gas to be obtained and print
-   *The current gas concentration
-   *Print with 1s delay each time
-   */
-    float _nh3 = dfr_nh3.readGasConcentrationPPM();
-    nh3 = _nh3;
-   dataReady = true;
-    
-    DEBUG("-->[SLIB] NH3 read\t\t: done!");
+void Sensors::DFRobotNH3Read() {
+    if (!dfrNH3.dataIsAvailable()) return;
+    String gastype = dfrNH3.queryGasType();
+    nh3 = dfrNH3.readGasConcentrationPPM();
     unitRegister(UNIT::NH3);
-
-  Serial.print("Ambient ");
-  Serial.print(gastypenh3);
-  Serial.print(" concentration is: ");
-  Serial.print(dfr_nh3.readGasConcentrationPPM());
-  Serial.println(" PPM");
-  Serial.println();
-    }
 }
 
+void Sensors::DFRobotCORead() {
+    if (!dfrCO.dataIsAvailable()) return;
+    String gastype = dfrCO.queryGasType();
+    co = dfrCO.readGasConcentrationPPM();
+    unitRegister(UNIT::CO);
+}
 
 #ifdef DHT11_ENABLED
 DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
@@ -1614,39 +1578,28 @@ void Sensors::GCJA5Init() {
     sensorRegister(SENSORS::SGCJA5);
 }
 
+void Sensors::DFRobotCOInit() {
+  sensorAnnounce(SENSORS::SDFRCO);
+  dfrCO = DFRobot_GAS_I2C(&Wire, 0x74);
+  if (!dfrCO.begin()) return;
+  //Mode of obtaining data: the main controller needs to request the sensor for data
+  delay(1000);  // TODO: we need validate if we need that
+  //Turn on temperature compensation: gas.ON : turn on
+  dfrNH3.setTempCompensation(dfrCO.ON);
+  sensorRegister(SENSORS::SDFRCO);
+}
 
+void Sensors::DFRobotNH3Init() {
+  sensorAnnounce(SENSORS::SDFRNH3);
+  dfrNH3 = DFRobot_GAS_I2C(&Wire, 0x77);
+  if (!dfrNH3.begin()) return;
+  //Mode of obtaining data: the main controller needs to request the sensor for data
+  dfrNH3.changeAcquireMode(dfrNH3.PASSIVITY);
+  delay(1000);  // TODO: we need validate if we need that
 
-void Sensors::DFRobotgravityInit() {
-    sensorAnnounce(SENSORS::SMULTIGAS);
-    DFRobot_GAS_I2C dfr_nh3(&Wire,0x77);
-   
-   //dfr_nh3.begin();
-   while(!dfr_nh3.begin())
-     {
-        Serial.println("NO Devices NH3 !");
-        delay(1000);
-    }
-   
-//Mode of obtaining data: the main controller needs to request the sensor for data
-        dfr_nh3.changeAcquireMode(dfr_nh3.PASSIVITY);
-        delay(1000);
-       dfr_nh3.setTempCompensation(dfr_nh3.ON);
-        Serial.println("The device nh3  0x77 is connected successfully!");
-   
-   DFRobot_GAS_I2C dfr_co(&Wire,0x74);
-   //dfr_co.begin();
-     while(!dfr_co.begin())
-    {
-        Serial.println("No Devices CO !");
-        delay(1000);
-    }
-
-        dfr_co.changeAcquireMode(dfr_co.PASSIVITY);
-        delay(1000);
-        dfr_co.setTempCompensation(dfr_co.ON);
-        Serial.println("The device CO  0x74 is connected successfully!");
-    
-    sensorRegister(SENSORS::SMULTIGAS);
+  //Turn on temperature compensation: gas.ON : turn on
+  dfrNH3.setTempCompensation(dfrNH3.ON);
+  sensorRegister(SENSORS::SDFRNH3);
 }
 
 // Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
@@ -1693,8 +1646,8 @@ void Sensors::resetAllVariables() {
     alt = 0.0;
     gas = 0.0;
     pres = 0.0;
-    dfr_nh3 = 0;
-    dfr_co = 0;
+    nh3 = 0;
+    co = 0;
 }
 
 void Sensors::DEBUG(const char *text, const char *textb) {
