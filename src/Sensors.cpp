@@ -990,7 +990,6 @@ void Sensors::GCJA5Read() {
 
 void Sensors::DFRobotNH3Read() {
     if (!dfrNH3.begin()) return;
-    String gastype = dfrNH3.queryGasType();
     nh3 = dfrNH3.readGasConcentrationPPM();
     unitRegister(UNIT::NH3);
    
@@ -998,7 +997,6 @@ void Sensors::DFRobotNH3Read() {
 
 void Sensors::DFRobotCORead() {
     if (!dfrCO.begin()) return;
-    String gastype = dfrCO.queryGasType();
     co = dfrCO.readGasConcentrationPPM();
     unitRegister(UNIT::CO);
    
@@ -1584,12 +1582,10 @@ void Sensors::DFRobotCOInit() {
   sensorAnnounce(SENSORS::SDFRCO);
   dfrCO = DFRobot_GAS_I2C(&Wire, 0x74);
   if (!dfrCO.begin()) return;
-  dfrCO.changeAcquireMode(dfrCO.PASSIVITY);
   //Mode of obtaining data: the main controller needs to request the sensor for data
-  delay(1000);  // TODO: we need validate if we need that
-  //Turn on temperature compensation: gas.ON : turn on
+  dfrCO.changeAcquireMode(dfrCO.PASSIVITY);
+   //Turn on temperature compensation: gas.ON : turn on
   dfrNH3.setTempCompensation(dfrCO.ON);
-  delay(1000);
   sensorRegister(SENSORS::SDFRCO);
 }
 
@@ -1599,10 +1595,8 @@ void Sensors::DFRobotNH3Init() {
   if (!dfrNH3.begin()) return;
   //Mode of obtaining data: the main controller needs to request the sensor for data
   dfrNH3.changeAcquireMode(dfrNH3.PASSIVITY);
-  delay(1000);  // TODO: we need validate if we need that
   //Turn on temperature compensation: gas.ON : turn on
   dfrNH3.setTempCompensation(dfrNH3.ON);
-  delay(1000);
   sensorRegister(SENSORS::SDFRNH3);
 }
 
