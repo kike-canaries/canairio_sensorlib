@@ -64,18 +64,18 @@ bool Sensors::readAllSensors() {
         dataReady = pmSensorRead();
         DEBUG("-->[SLIB] UART data ready \t:", dataReady ? "true" : "false");
     }
-    enableWire1();
+    enableWire1(); 
     CO2scd30Read();
     GCJA5Read();
     sps30Read();
     CO2scd4xRead();
-    am2320Read();
+    am2320Read(); 
     sht31Read();
     bme280Read();
     bmp280Read();
-    bme680Read();
-    aht10Read();
-    // DFRobotCORead();
+    //bme680Read(); 
+    aht10Read(); 
+    DFRobotCORead();
     DFRobotNH3Read();
     #ifdef DHT11_ENABLED
     dhtRead();
@@ -116,18 +116,18 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
         DEBUG("-->[SLIB] UART sensors detected\t:", "0");
     }
     
-    startI2C();
+    startI2C(); 
     CO2scd30Init();
     sps30I2CInit();
     GCJA5Init();
     CO2scd4xInit();
     bmp280Init();
     bme280Init();
-    bme680Init();
-    am2320Init();
-    sht31Init();
-    aht10Init();
-    // DFRobotCOInit();
+    //bme680Init();
+    am2320Init(); 
+    sht31Init(); 
+    aht10Init(); 
+    DFRobotCOInit();
     DFRobotNH3Init();
   
     #ifdef DHT11_ENABLED
@@ -993,6 +993,7 @@ void Sensors::DFRobotNH3Read() {
     String gastype = dfrNH3.queryGasType();
     nh3 = dfrNH3.readGasConcentrationPPM();
     unitRegister(UNIT::NH3);
+   
 }
 
 void Sensors::DFRobotCORead() {
@@ -1000,6 +1001,7 @@ void Sensors::DFRobotCORead() {
     String gastype = dfrCO.queryGasType();
     co = dfrCO.readGasConcentrationPPM();
     unitRegister(UNIT::CO);
+   
 }
 
 #ifdef DHT11_ENABLED
@@ -1582,10 +1584,12 @@ void Sensors::DFRobotCOInit() {
   sensorAnnounce(SENSORS::SDFRCO);
   dfrCO = DFRobot_GAS_I2C(&Wire, 0x74);
   if (!dfrCO.begin()) return;
+  dfrCO.changeAcquireMode(dfrCO.PASSIVITY);
   //Mode of obtaining data: the main controller needs to request the sensor for data
   delay(1000);  // TODO: we need validate if we need that
   //Turn on temperature compensation: gas.ON : turn on
   dfrNH3.setTempCompensation(dfrCO.ON);
+  delay(1000);
   sensorRegister(SENSORS::SDFRCO);
 }
 
@@ -1594,11 +1598,11 @@ void Sensors::DFRobotNH3Init() {
   dfrNH3 = DFRobot_GAS_I2C(&Wire, 0x77);
   if (!dfrNH3.begin()) return;
   //Mode of obtaining data: the main controller needs to request the sensor for data
-//   dfrNH3.changeAcquireMode(dfrNH3.PASSIVITY);
+  dfrNH3.changeAcquireMode(dfrNH3.PASSIVITY);
   delay(1000);  // TODO: we need validate if we need that
-
   //Turn on temperature compensation: gas.ON : turn on
   dfrNH3.setTempCompensation(dfrNH3.ON);
+  delay(1000);
   sensorRegister(SENSORS::SDFRNH3);
 }
 
