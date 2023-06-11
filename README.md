@@ -52,8 +52,8 @@ NOTE: Panasonic via UART in ESP8266 maybe needs select in detection
 | BMP280      | i2c |  Auto | TESTING |
 | BME680      | i2c |  Auto | STABLE |
 | DHTxx       | TwoWire |  Auto | DISABLED |
-| DfRobot SEN0469 NH3  | i2c | Yes | TESTING | 
-| DFRobot SEN0466 CO | i2c | Yes | TESTING | 
+| DfRobot SEN0469 NH3  | i2c | Auto | TESTING | 
+| DFRobot SEN0466 CO | i2c | Auto | TESTING | 
 
 NOTE: DHT22 is supported but is not recommended. Please see the documentation.
 
