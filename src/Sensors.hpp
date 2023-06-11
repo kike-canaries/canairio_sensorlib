@@ -124,8 +124,8 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
     X(SAHTXX, "AHTXX", 3)   \
     X(SAM232X, "AM232X", 3) \
     X(SDHTX, "DHTX", 3)     \
-    X(SDFRCO, "DFRCO", 2) \
-    X(SDFRNH3, "DFRNH3", 2) \
+    X(SDFRCO, "DFRCO", 3) \
+    X(SDFRNH3, "DFRNH3", 3) \
     X(SCOUNT, "SCOUNT", 3)
 
 #define X(utype, uname, umaintype) utype,
