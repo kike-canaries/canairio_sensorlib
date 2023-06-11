@@ -16,13 +16,14 @@
 #include <s8_uart.h>
 #include <sps30.h>
 #include <drivers/pm1006.h>
+#include <DFRobot_MultiGasSensor.h>
 
 #ifdef DHT11_ENABLED
 #include <dht_nonblocking.h> 
 #endif
 
-#define CSL_VERSION "0.6.7"
-#define CSL_REVISION 374
+#define CSL_VERSION "0.6.8"
+#define CSL_REVISION 375
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -96,7 +97,10 @@
     X(PRESS, "hPa", "P")       \
     X(ALT, "m", "Alt")         \
     X(GAS, "Ohm", "Gas")       \
+    X(NH3, "ppm", "NH3")       \
+    X(CO, "ppm", "CO")         \
     X(UCOUNT, "COUNT", "UCOUNT")
+
 
 #define X(unit, symbol, name) unit,
 typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
@@ -120,6 +124,8 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
     X(SAHTXX, "AHTXX", 3)   \
     X(SAM232X, "AM232X", 3) \
     X(SDHTX, "DHTX", 3)     \
+    X(SDFRCO, "DFRCO", 3) \
+    X(SDFRNH3, "DFRNH3", 3) \
     X(SCOUNT, "SCOUNT", 3)
 
 #define X(utype, uname, umaintype) utype,
@@ -144,7 +150,7 @@ class Sensors {
     bool devmode;
 
     // Initial sample time for all sensors
-    int sample_time = 5;
+    int sample_time = 10;
 
     // temperature offset (for final temp output)
     float toffset = 0.0;
@@ -204,8 +210,14 @@ class Sensors {
     // SCD4x sensor
     SensirionI2CScd4x scd4x;
 
-    // IKA Vindriktn sensor
+    // IKEA Vindriktn sensor
     PM1006 *pm1006;
+
+    // DFRobot gravity NH3 sensor addr 0x74
+    DFRobot_GAS_I2C dfrCO;
+
+    // DFRobot gravity NH3 sensor addr 0x77
+    DFRobot_GAS_I2C dfrNH3;
 
     void init(u_int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
@@ -250,13 +262,17 @@ class Sensors {
     float getAltitude();
 
     float getGas();
+    
+    float getNH3();
+    
+    float getCO();
 
     void setTempOffset(float offset);
 
     void setCO2AltitudeOffset(float altitude);
 
     void setSeaLevelPressure(float hpa);
-
+    
     void setCO2RecalibrationFactor(int ppmValue);
 
     void detectI2COnly(bool enable);
@@ -333,12 +349,15 @@ class Sensors {
     float temp = 0.0;  // Temperature (°C)
     float pres = 0.0;  // Pressure
     float alt = 0.0;
-    float gas = 0.0;
-
+    float gas = 0.0;   // 
+    
     uint16_t CO2Val;      // CO2 in ppm
     float CO2humi = 0.0;  // humidity of CO2 sensor
     float CO2temp = 0.0;  // temperature of CO2 sensor
 
+    float nh3;         // Amonium in ppm
+    float co;          // Carbon monoxide
+        
     void am2320Init();
     void am2320Read();
 
@@ -377,6 +396,11 @@ class Sensors {
     void dhtRead();
     bool dhtIsReady(float *temperature, float *humidity);
     #endif
+
+    void DFRobotNH3Init();
+    void DFRobotNH3Read();
+    void DFRobotCOInit();
+    void DFRobotCORead();
 
     // UART sensors methods:
 
