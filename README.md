@@ -3,7 +3,7 @@
 
 # Air Quality Sensors Library
 
-Generic sensor manager, abstractions and bindings of multiple sensors [libraries](https://github.com/kike-canaries/canairio_sensorlib/blob/master/platformio.ini#L18-L34): Honeywell, Plantower, Panasonic, Sensirion, etc. and CO2 sensors. Also it's handling others environment sensors. This library is for general purpose, but also is the sensors library base of [CanAirIO project](https://canair.io/docs).
+Generic sensor manager, abstractions and bindings of multiple sensors [libraries](https://github.com/kike-canaries/canairio_sensorlib/blob/master/unified-lib-deps.ini): Honeywell, Plantower, Panasonic, Sensirion, etc. and CO2 sensors. Also it's handling others environment sensors. This library is for general purpose, but also is the sensors library base of [CanAirIO project](https://canair.io/docs).
 
 For developers also you can check the complete library documentation [here](http://hpsaturn.com/canairio_sensorlib_doc/html/index.html)
 
@@ -25,7 +25,7 @@ For developers also you can check the complete library documentation [here](http
 | Panasonic SN-GCJA5L | Yes | Yes | Auto | STABLE |
 | Plantower models    | Yes | --- | Auto | STABLE |
 | Nova SDS011         | Yes | --- | Auto | STABLE |
-| IKEA Vindriktning   | Yes | --- | Select | TESTING|
+| IKEA Vindriktning   | Yes | --- | Select | STABLE |
 | Sensirion SPS30     | Yes | Yes | Select / Auto | STABLE |
 
 NOTE: Panasonic via UART in ESP8266 maybe needs select in detection
@@ -49,11 +49,11 @@ NOTE: Panasonic via UART in ESP8266 maybe needs select in detection
 | SHT31       | i2c |  Auto | STABLE |
 | AHT10       | i2c |  Auto | STABLE |
 | BME280      | i2c |  Auto | STABLE |
-| BMP280      | i2c |  Auto | TESTING |
+| BMP280      | i2c |  Auto | STABLE |
 | BME680      | i2c |  Auto | STABLE |
+| DfRobot SEN0469 NH3  | i2c |  Auto | TESTING |
+| DFRobot SEN0466 CO | i2c |  Auto | TESTING |
 | DHTxx       | TwoWire |  Auto | DISABLED |
-| DfRobot SEN0469 NH3  | --- | Yes | Auto | TESTING |
-| DFRobot SEN0466 CO | --- | Yes | Auto | TESTING |
 
 NOTE: DHT22 is supported but is not recommended. Please see the documentation.
 
@@ -62,8 +62,8 @@ NOTE: DHT22 is supported but is not recommended. Please see the documentation.
 | Platform  | Variants  | Notes | Status |  
 |:----------------------- |:-----:|:-------:|:----------:|
 | ESP32  | WROVER* | ESP32Devkit and similar (recommended) | STABLE  |
-| ESP32S3  | LilyGo TDisplay | In testing | UNSTABLE |
-| ESP32C3  | Devkit v3 | In testing | UNSTABLE |
+| ESP32S3  | LilyGo TDisplay | In testing | STABLE |
+| ESP32C3  | Devkit v3 | In testing | STABLE |
 | ESP8266  | 12 |  D1MINI tested and similar (old) | STABLE |
 | Atmelsam  | seeed_wio_terminal | Only works via i2c on left port | STABLE |
 | Arduino | Atmel  | Some third party libraries fails | IN PROGRESS |
@@ -74,9 +74,9 @@ NOTE: DHT22 is supported but is not recommended. Please see the documentation.
 
 - Unified variables and getters for all sensors 
 - Auto UART port selection (Hw, Sw, UART1, UART2, etc)
-- Multiple i2c reads and one UART sensor read support
+- Multiple i2c sensors and one UART sensor supported at the same time
 - Two I2C channel supported (Wire and Wire1)
-- Real time registry of sensors unit registered (see multivariable)
+- Real time registry of sensor units (see multivariable)
 - Get vendor names of all devices detected
 - Preselected main stream UART pins from popular boards
 - Auto config UART port for Plantower, Honeywell and Panasonic sensors
@@ -87,9 +87,8 @@ NOTE: DHT22 is supported but is not recommended. Please see the documentation.
 - Get unit symbol and name and each sub-sensor
 - Get the main group type: NONE, PM, CO2 and ENV.
 - Basic debug mode support toggle in execution
-- Basic power saving management with sample time > 30s on SPS30  
 
-Full list of all sub libraries supported [here](https://github.com/kike-canaries/canairio_sensorlib/blob/master/library.json#L72-L89)
+Full list of all sub libraries supported [here](https://github.com/kike-canaries/canairio_sensorlib/blob/master/unified-lib-deps.ini)
 
 # Quick implementation
 
@@ -172,7 +171,6 @@ In this [demo](https://www.youtube.com/watch?v=uxlmP905-FE) on a simple sketch y
 
 [![CanAirIO Sensors Lib DEMO with M5CoreInk](https://img.youtube.com/vi/i15iEF47CbY/0.jpg)](https://youtu.be/i15iEF47CbY)
 
-
 ## Multivariable alternative implementation
 
 The last version added new getters to have the current status of each unit of each sensor connected to the device in real time. Also you can retrieve the list of device names and other stuff:  
@@ -233,15 +231,13 @@ void setup() {
 void loop() {
     sensors.loop();  // read sensor data and showed it
 }
-``` 
+```
 
-
-## UART detection demo 
+## UART detection demo
 
 [![CanAirIO auto configuration demo](https://img.youtube.com/vi/hmukAmG5Eec/0.jpg)](https://www.youtube.com/watch?v=hmukAmG5Eec)
 
 CanAirIO sensorlib auto configuration demo on [Youtube](https://www.youtube.com/watch?v=hmukAmG5Eec)
-
 
 # Wiring
 
@@ -253,20 +249,20 @@ The current version of library supports 3 kinds of wiring connection, UART, i2c 
 
 The library has [pre-defined some UART pin configs](https://github.com/kike-canaries/canairio_sensorlib/blob/master/src/Sensors.hpp#L19-L52), these are selected on compiling time. Maybe you don't need change anything with your board, and maybe the nexts alternatives works for you:
 
-| Board model    |  TX   | RX  |      Notes 
+| Board model    |  TX   | RX  |      Notes |
 |:---------------|:---:|:---:|:------------------:|
 | ESP32GENERIC   | 1  | 3  | ESP32 Pio defaults
 | TTGOT7 / ESP32DEVKIT / D1MINI / NODEFINED | 16 | 17 | CanAirIO devices **
 | TTGO_TDISPLAY  | 12 | 13 | |
 | M5COREINK      | 14 | 13 | |
 | TTGO TQ        | 18 | 13 | |
-| HELTEC         | 18 | 17 | | 
+| HELTEC         | 18 | 17 | |
 | WEMOSOLED      | 15 | 13 | |
 | ESP32PICOD4    | 3  | 1  | |
   
 ** This pines are when you compile your project without specific any build variable or you board isn't in the list.  
 
-### Custom UART:
+### Custom UART
 
 Also you could define a custom UART pins in the init() method and select specific sensors model, like this:
 
@@ -282,26 +278,21 @@ We are using the default pins for each board, some times it's pins are 21,22, pl
 
 For now we are using it only for DHT sensors in PIN 23. For more info please review the next lines [here](https://github.com/kike-canaries/canairio_sensorlib/blob/master/src/Sensors.hpp#L19-L52).
 
-
 # Examples
 
 ### PlatformIO (recommended)
 
-#### Compiling and Installing
-
 We recommended PlatformIO because is more easy than Arduino IDE. For this, please install first [PlatformIO](http://platformio.org/) and its command line tools (Windows, MacOs and Linux), **pio** command, then connect your compatible board to the USB and run the next command:
 
 ```python
-pio run --target upload
+pio run -e esp32 --target upload
 ```
 
 ### Arduino IDE
 
-Only import the `ino` file of the sample and install the libraries listed on `library.json` and this library.
+Only import the `ino` file of the sample and install the libraries listed on `library.json` and this library. Complete list of libraries used [here](https://github.com/kike-canaries/canairio_sensorlib/blob/master/unified-lib-deps.ini)
 
 ### Arduino CLI
-
-#### Prerequisites
 
 For run the examples, you first need to  install **arduino-cli** or the **Arduino IDE** with the libraries referenced in **lib_deps** on the file [platformio.ini](https://github.com/kike-canaries/canairio_sensorlib/blob/master/platformio.ini), becuase **Arduino don't install it automatically** like PlatformIO. Then put CanAirIO sensor library in your library directory, you can download it from [releases](https://github.com/kike-canaries/canairio_sensorlib/releases) section.
 
@@ -318,9 +309,7 @@ board_manager:
   additional_urls:
     - https://arduino.esp8266.com/stable/package_esp8266com_index.json
     - https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
-``` 
-
-#### Compiling and Installing
+```
 
 From `arduino-cli` you can run the basic example in a ESP32 board following these steps:
 
@@ -354,7 +343,6 @@ Also you can make a donation, be a patreon or buy a device:
 - **Buy a device**: [CanAirIO Bike in Tindie](https://www.tindie.com/products/hpsaturn/canairio-bike/)
 - [Inviting us **a coffee**](https://www.buymeacoffee.com/hpsaturn) 
 
-
 # TODO
 
 - [x] Auto detection for UART sensors (Honeywell, Panasonic and Plantower)
@@ -372,6 +360,7 @@ Also you can make a donation, be a patreon or buy a device:
 - [x] SenseAir S8 via UART support
 - [x] Multivariable selection (getNextUnit(),getUnitName(),etc)
 - [x] Two I2C channel supported for M5Stack Devices (M5StickC tested)
+- [x] Added CO and NH3 sensors
 - [ ] Sea level setting for Pressure sensors and others
 - [ ] Support to second UART port
 
