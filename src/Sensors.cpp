@@ -1580,7 +1580,7 @@ void Sensors::GCJA5Init() {
 
 void Sensors::DFRobotCOInit() {
   sensorAnnounce(SENSORS::SDFRCO);
-  dfrCO = DFRobot_GAS_I2C(&Wire, 0x74);
+  dfrCO = DFRobot_GAS_I2C(&Wire, 0x78);
   if (!dfrCO.begin()) return;
   //Mode of obtaining data: the main controller needs to request the sensor for data
   dfrCO.changeAcquireMode(dfrCO.PASSIVITY);
@@ -1591,7 +1591,7 @@ void Sensors::DFRobotCOInit() {
 
 void Sensors::DFRobotNH3Init() {
   sensorAnnounce(SENSORS::SDFRNH3);
-  dfrNH3 = DFRobot_GAS_I2C(&Wire, 0x76); // 0x77 y 0x75 used by bme680
+  dfrNH3 = DFRobot_GAS_I2C(&Wire, 0x7A); // 0x77 y 0x75 used by bme680
   if (!dfrNH3.begin()) return;
   //Mode of obtaining data: the main controller needs to request the sensor for data
   dfrNH3.changeAcquireMode(dfrNH3.PASSIVITY);
