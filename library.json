@@ -1,6 +1,6 @@
 {
   "name": "CanAirIO Air Quality Sensors Library",
-  "version": "0.6.7",
+  "version": "0.6.8",
   "homepage":"https://canair.io",
   "keywords": 
   [ 
@@ -88,6 +88,7 @@
     {"name":"S8_UART", "owner":"jcomas", "version":"1.0.1"},
     {"name":"Sensirion Core","owner":"sensirion","version":"0.6.0"},
     {"name":"Sensirion I2C SCD4x","owner":"sensirion","version":"0.4.0"},
+    {"name":"DFRobot_MultiGasSensor","owner":"phzi","version":"2.0.0"},
 
     {"name":"DHT_nonblocking", "version":"https://github.com/hpsaturn/DHT_nonblocking.git#ec6e5b9"},
     {"name":"AHTxx", "version":"https://github.com/enjoyneering/AHTxx.git#eb21571"},

@@ -64,22 +64,23 @@ bool Sensors::readAllSensors() {
         dataReady = pmSensorRead();
         DEBUG("-->[SLIB] UART data ready \t:", dataReady ? "true" : "false");
     }
-    enableWire1();
+    enableWire1(); 
     CO2scd30Read();
     GCJA5Read();
     sps30Read();
     CO2scd4xRead();
-    am2320Read();
+    am2320Read(); 
     sht31Read();
     bme280Read();
     bmp280Read();
-    bme680Read();
-    aht10Read();
-
+    bme680Read(); 
+    aht10Read(); 
+    DFRobotCORead();
+    DFRobotNH3Read();
     #ifdef DHT11_ENABLED
     dhtRead();
     #endif
-
+  
     disableWire1();
 
     printValues();
@@ -114,7 +115,8 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     if (!i2conly && !sensorSerialInit(pms_type, pms_rx, pms_tx)) {
         DEBUG("-->[SLIB] UART sensors detected\t:", "0");
     }
-    startI2C();
+    
+    startI2C(); 
     CO2scd30Init();
     sps30I2CInit();
     GCJA5Init();
@@ -122,10 +124,12 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     bmp280Init();
     bme280Init();
     bme680Init();
-    am2320Init();
-    sht31Init();
-    aht10Init();
-
+    am2320Init(); 
+    sht31Init(); 
+    aht10Init(); 
+    DFRobotCOInit();
+    DFRobotNH3Init();
+  
     #ifdef DHT11_ENABLED
     dhtInit();
     #endif
@@ -319,6 +323,16 @@ float Sensors::getAltitude() {
 float Sensors::getPressure() {
     return pres;
 }
+
+float Sensors::getNH3() {
+    return nh3;
+}
+
+float Sensors::getCO() {
+    return co;
+}
+
+
 
 /**
  * @brief UART only: check if the UART sensor is registered
@@ -536,7 +550,11 @@ float Sensors::getUnitValue(UNIT unit) {
         case ALT:
             return alt;
         case GAS:
-            return gas;
+           return gas;
+        case NH3:
+            return nh3;
+        case CO:
+            return co;
         default:
             return 0.0;
     }
@@ -563,7 +581,7 @@ void Sensors::printUnitsRegistered(bool debug) {
  */
 void Sensors::printSensorsRegistered(bool debug) { 
     if (!debug) return;
-    Serial.printf("-->[SLIB] Sensors i2c count \t: %i (", sensors_registered_count);
+    Serial.printf("-->[SLIB] Sensors count  \t: %i (", sensors_registered_count);
     int i = 0;
     while (sensors_registered[i++] != 0) {
         Serial.print(sensors_device_names[sensors_registered[i-1]]);
@@ -968,6 +986,20 @@ void Sensors::GCJA5Read() {
     unitRegister(UNIT::PM1);
     unitRegister(UNIT::PM25);
     unitRegister(UNIT::PM10);
+}
+
+void Sensors::DFRobotNH3Read() {
+    if (!dfrNH3.begin()) return;
+    nh3 = dfrNH3.readGasConcentrationPPM();
+    unitRegister(UNIT::NH3);
+   
+}
+
+void Sensors::DFRobotCORead() {
+    if (!dfrCO.begin()) return;
+    co = dfrCO.readGasConcentrationPPM();
+    unitRegister(UNIT::CO);
+   
 }
 
 #ifdef DHT11_ENABLED
@@ -1546,6 +1578,28 @@ void Sensors::GCJA5Init() {
     sensorRegister(SENSORS::SGCJA5);
 }
 
+void Sensors::DFRobotCOInit() {
+  sensorAnnounce(SENSORS::SDFRCO);
+  dfrCO = DFRobot_GAS_I2C(&Wire, 0x78); // Be sure that your group of i2c address is 7
+  if (!dfrCO.begin()) return;
+  //Mode of obtaining data: the main controller needs to request the sensor for data
+  dfrCO.changeAcquireMode(dfrCO.PASSIVITY);
+   //Turn on temperature compensation: gas.ON : turn on
+  dfrNH3.setTempCompensation(dfrCO.ON);
+  sensorRegister(SENSORS::SDFRCO);
+}
+
+void Sensors::DFRobotNH3Init() {
+  sensorAnnounce(SENSORS::SDFRNH3);
+  dfrNH3 = DFRobot_GAS_I2C(&Wire, 0x7A); // 0x77 y 0x75 used by bme680. Be sure that your group of i2c address is 7
+  if (!dfrNH3.begin()) return;
+  //Mode of obtaining data: the main controller needs to request the sensor for data
+  dfrNH3.changeAcquireMode(dfrNH3.PASSIVITY);
+  //Turn on temperature compensation: gas.ON : turn on
+  dfrNH3.setTempCompensation(dfrNH3.ON);
+  sensorRegister(SENSORS::SDFRNH3);
+}
+
 // Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
 
 void Sensors::CO2correctionAlt() {
@@ -1590,6 +1644,8 @@ void Sensors::resetAllVariables() {
     alt = 0.0;
     gas = 0.0;
     pres = 0.0;
+    nh3 = 0;
+    co = 0;
 }
 
 void Sensors::DEBUG(const char *text, const char *textb) {
