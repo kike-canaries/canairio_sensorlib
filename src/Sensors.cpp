@@ -28,10 +28,8 @@ uint8_t sensors_registered [SCOUNT];
 
 #ifdef CAJOE_GEIGER
 
-#ifdef ESP32
     hw_timer_t* geiger_timer = NULL;
     portMUX_TYPE* geiger_timerMux = NULL;
-#endif
 
     float uSvh = 0.0f;
     uint32_t tics_cpm = 0U; // tics in last 60s
@@ -1847,33 +1845,21 @@ Sensors sensors;
 // WARNING! the ISR is actually called on both the rising and the falling edge even if configure for FALLING or RISING
 
 #ifdef CAJOE_GEIGER
-
-#ifdef ESP32
     void IRAM_ATTR GeigerTicISR() {
-#else
-   IRAM_ATTR static void GeigerTicISR() {
-#endif
 
-#ifdef ESP32
        portENTER_CRITICAL_ISR(geiger_timerMux);
-#endif
 
        tics_cnt++; // tics in 1000ms
        tics_tot++; // total tics since boot
 
-#ifdef ESP32
        portEXIT_CRITICAL_ISR(geiger_timerMux);
-#endif
 }
-
 #endif
 
 // #########################################################################
 // Interrupt timer routine called every 1000 ms
 
 #ifdef CAJOE_GEIGER
-#ifdef ESP32
-
 void IRAM_ATTR onGeigerTimer() {
     
     portENTER_CRITICAL_ISR(geiger_timerMux);
@@ -1881,8 +1867,6 @@ void IRAM_ATTR onGeigerTimer() {
     tics_cnt = 0;
     portEXIT_CRITICAL_ISR(geiger_timerMux);
 }
-
-#endif
 #endif
 
 // #########################################################################
@@ -1891,7 +1875,6 @@ void IRAM_ATTR onGeigerTimer() {
 #ifdef CAJOE_GEIGER
 
 float Sensors::CPM2uSvh(uint32_t cpm) {
-
    return float(cpm) * J305_CONV_FACTOR;
 }
 
@@ -1907,10 +1890,8 @@ void Sensors::geigerInit() {
    tics_cnt = 0U; // tics in 1000ms
    tics_tot = 0U; // total tics since boot
    
-#ifdef ESP32
    geiger_timer = NULL;
    geiger_timerMux = new portMUX_TYPE(portMUX_INITIALIZER_UNLOCKED);
-#endif
 
 // moving sum for CAJOE Geiger Counter, configured for 60 samples (1 sample every 1s * 60 samples = 60s)
    cajoe_fms = new MovingSum<uint16_t, uint32_t>(GEIGER_BUFSIZE);
@@ -1921,8 +1902,6 @@ void Sensors::geigerInit() {
    unitRegister(UNIT::CPM);
    unitRegister(UNIT::RAD);
 
-#ifdef ESP32
-
 // attach interrupt routine to the GPI connected to the Geiger counter module
    pinMode(GEIGER_PINTIC, INPUT);
    attachInterrupt(digitalPinToInterrupt(GEIGER_PINTIC), GeigerTicISR, FALLING);
@@ -1932,14 +1911,6 @@ void Sensors::geigerInit() {
    timerAttachInterrupt(geiger_timer, &onGeigerTimer, true);
    timerAlarmWrite(geiger_timer, 1000000, true); // 1000 ms
    timerAlarmEnable(geiger_timer);
-
-#else
-
-   pinMode(GEIGER_PINTIC, INPUT);
-
-   attachInterrupt(digitalPinToInterrupt(GEIGER_PINTIC), GeigerTicISR, FALLING);
-
-#endif
 
    Serial.println("-->[SLIB] Geiger counter ready");
 }
@@ -1958,48 +1929,10 @@ void Sensors::geigerEvaluate() {
    bool ready;
    uint32_t tics_len;
 
-#ifdef ESP32
-
    portENTER_CRITICAL(geiger_timerMux);
    tics_cpm = cajoe_fms->getCurrentSum();
    tics_len = cajoe_fms->getCurrentFilterLength();
    portEXIT_CRITICAL(geiger_timerMux);
-
-#else
-
-   unsigned long int second;
-   unsigned long int secidx_curr;
-   static unsigned long int secidx_prev = 0;
-
-   second = millis() / 1000;
-   secidx_curr = second % 60;
-
-   Serial.print("-->[SLIB] sPREV: "); Serial.println(secidx_prev);
-   Serial.print("-->[SLIB] sCURR: "); Serial.println(secidx_curr);
-
-// exit in case we are called twice (or more) in a second...
-   if (secidx_curr == secidx_prev) return;
-
-// evaluate the number of missing samples in case geigerEvaluate() is not called every seconds...
-// WARNING! we still expects to be called at least once a minute...
-   int delta = (secidx_prev < secidx_curr) ? secidx_curr-secidx_prev : 60-secidx_prev+secidx_curr;
-
-// zeroes the missing samples... if any...
-   for(int i=1; i<delta; i++){
-      Serial.print("-->[SLIB] add 0 @"); Serial.println((secidx_prev+i)%60);
-      cajoe_fms->add(0);
-      }
-
-// add last sample
-   Serial.print("-->[SLIB] add "); Serial.print(tics_cnt); Serial.print(" @"); Serial.println(secidx_curr);
-   cajoe_fms->add(tics_cnt);
-   secidx_prev = secidx_curr;
-   tics_cnt = 0;
-
-   tics_cpm = cajoe_fms->getCurrentSum();
-   tics_len = cajoe_fms->getCurrentFilterLength();
-
-#endif
 
 // check whether the moving sum is full 
    ready = (tics_len == cajoe_fms->getFilterLength());

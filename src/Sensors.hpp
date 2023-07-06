@@ -18,8 +18,6 @@
 #include <drivers/pm1006.h>
 #include <DFRobot_MultiGasSensor.h>
 
-#define CAJOE_GEIGER
-
 #ifdef CAJOE_GEIGER
 #include "MovingSum.h"
 #endif
