@@ -18,6 +18,8 @@
 #include <Arduino.h>
 #include <Sensors.hpp>
 
+#define PIN_POWER_ON 15  // T-Display S3 Power pin
+
 void printSensorsDetected() {
     uint16_t sensors_count =  sensors.getSensorsRegisteredCount();
     uint16_t units_count   =  sensors.getUnitsRegisteredCount();
@@ -57,17 +59,22 @@ void onSensorDataError(const char * msg){
 ******************************************************************************/
 
 void setup() {
+    pinMode(PIN_POWER_ON, OUTPUT);
+    digitalWrite(PIN_POWER_ON, HIGH);
+    delay(1000);                                     // Wait on T-Display S3 power on 
     Serial.begin(115200);
-    delay(200);
+    delay(5000);                                     // Wait on T-Display S3 power on 
     Serial.println("\n== Sensor test setup ==\n");
     Serial.println("-->[SETUP] Detecting sensors..");
+
+    Wire.begin(43,44);                               // enable i2c for T-Display S3 board
     
-    sensors.setSampleTime(10);                        // config sensors sample time interval
+    sensors.setSampleTime(5);                        // config sensors sample time interval
     sensors.setOnDataCallBack(&onSensorDataOk);      // all data read callback
     sensors.setDebugMode(true);                     // [optional] debug mode
-    sensors.detectI2COnly(false);                    // disable force to only i2c sensors
+    sensors.detectI2COnly(true);                     // disable force to only i2c sensors
     sensors.init();                                  // Auto detection to UART and i2c sensors
-    delay(1000);
+    delay(500);
 }
 
 void loop() {
