@@ -16,11 +16,8 @@
 #include <s8_uart.h>
 #include <sps30.h>
 #include <drivers/pm1006.h>
+#include <drivers/geiger.h>
 #include <DFRobot_MultiGasSensor.h>
-
-#ifdef CAJOE_GEIGER
-#include "MovingSum.h"
-#endif
 
 #ifdef DHT11_ENABLED
 #include <dht_nonblocking.h> 
@@ -28,21 +25,6 @@
 
 #define CSL_VERSION "0.6.8"
 #define CSL_REVISION 375
-
-/**************************************************************
- *                          GEIGER
- * ************************************************************/
-
-#ifdef CAJOE_GEIGER
-#ifdef ESP32
-#define GEIGER_TIMER        1               // timer0 is already used (at least on TTGO-TDisplay) somewhere ???
-#define GEIGER_PINTIC       26              // GPIO27 is busy (used as sensor(s) enable)
-#else
-#define GEIGER_PINTIC 		D5			    // tested on ESP8266 NodeMCU
-#endif        
-#define GEIGER_BUFSIZE      60              // moving sum buffer size (1 sample every 1s * 60 samples = 60s)
-#define J305_CONV_FACTOR    0.008120370     // conversion factor used for conversion from CPM to uSv/h units (J305 tube)
-#endif        
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -243,6 +225,9 @@ class Sensors {
     // DFRobot gravity NH3 sensor addr 0x77
     DFRobot_GAS_I2C dfrNH3;
 
+    // Geiger CAJOE sensor
+    GEIGER rad;
+
     void init(u_int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
     void loop();
@@ -291,10 +276,11 @@ class Sensors {
     
     float getCO();
 
-#ifdef CAJOE_GEIGER
+    void enableGeigerSensor(int gpio);
+
     uint32_t getGeigerCPM(void);
+
     float getGeigerMicroSievertHour(void);
-#endif
 
     void setTempOffset(float offset);
 
@@ -431,14 +417,6 @@ class Sensors {
     void DFRobotCOInit();
     void DFRobotCORead();
 
-   // Geiger methods:
-
-#ifdef CAJOE_GEIGER
-    void geigerInit();
-    void geigerEvaluate();
-    float CPM2uSvh(uint32_t cpm);
-#endif
-
     // UART sensors methods:
 
     bool sensorSerialInit(u_int pms_type, int rx, int tx);
@@ -464,6 +442,8 @@ class Sensors {
     void sps30ErrToMess(char *mess, uint8_t r);
     void sps30Errorloop(char *mess, uint8_t r);
     void sps30DeviceInfo();
+
+    void geigerRead();
 
     void onSensorError(const char *msg);
 

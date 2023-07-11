@@ -23,22 +23,6 @@ int sensors_device_types[] = { SENSORS_TYPES };
 
 uint8_t sensors_registered [SCOUNT];
 
-// #########################################################################
-// variables shared between main code and interrupt code
-
-#ifdef CAJOE_GEIGER
-
-    hw_timer_t* geiger_timer = NULL;
-    portMUX_TYPE* geiger_timerMux = NULL;
-
-    float uSvh = 0.0f;
-    uint32_t tics_cpm = 0U; // tics in last 60s
-    uint16_t tics_cnt = 0U; // tics in 1000ms
-    uint32_t tics_tot = 0U; // total tics since boot
-    MovingSum<uint16_t, uint32_t>* cajoe_fms;
-
-#endif
-
 /***********************************************************************************
  *  P U B L I C   M E T H O D S
  * *********************************************************************************/
@@ -93,15 +77,13 @@ bool Sensors::readAllSensors() {
     aht10Read(); 
     DFRobotCORead();
     DFRobotNH3Read();
+    geigerRead();
+
     #ifdef DHT11_ENABLED
     dhtRead();
     #endif
   
     disableWire1();
-
-#ifdef CAJOE_GEIGER
-    geigerEvaluate();
-#endif
 
     printValues();
     printSensorsRegistered(devmode);
@@ -153,11 +135,7 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     #ifdef DHT11_ENABLED
     dhtInit();
     #endif
-
-    #ifdef CAJOE_GEIGER
-    geigerInit();
-    #endif
-
+    
     printSensorsRegistered(true);
 }
 
@@ -355,8 +333,6 @@ float Sensors::getNH3() {
 float Sensors::getCO() {
     return co;
 }
-
-
 
 /**
  * @brief UART only: check if the UART sensor is registered
@@ -575,14 +551,10 @@ float Sensors::getUnitValue(UNIT unit) {
             return alt;
         case GAS:
             return gas;
-
-#ifdef CAJOE_GEIGER
         case CPM:
-            return tics_cpm;
+            rad.tics_cpm;
         case RAD:
-            return uSvh;
-#endif
-
+            rad.uSvh;
         case NH3:
             return nh3;
         case CO:
@@ -1633,7 +1605,6 @@ void Sensors::DFRobotNH3Init() {
 }
 
 // Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
-
 void Sensors::CO2correctionAlt() {
     DEBUG("-->[SLIB] CO2 altitud original\t:", String(CO2Val).c_str());
     float CO2cor = (0.016 * ((1013.25 - hpa) /10 ) * (CO2Val - 400)) + CO2Val;       // Increment of 1.6% for every hpa of difference at sea level
@@ -1676,16 +1647,39 @@ void Sensors::resetAllVariables() {
     alt = 0.0;
     gas = 0.0;
     pres = 0.0;
-
-#ifdef CAJOE_GEIGER
-    if (cajoe_fms != NULL) cajoe_fms->clear();
-    tics_cpm = 0;
-    uSvh = 0.0;
-#endif
-
     nh3 = 0;
     co = 0;
+    rad.clear();
 }
+
+// #########################################################################
+
+void Sensors::geigerRead(){
+  if(rad.read()){
+    unitRegister(UNIT::CPM);
+    unitRegister(UNIT::RAD);
+  }
+}
+/**
+ * @brief Enable Geiger sensor on specific pin
+ * @param GPIO pin
+*/
+void Sensors::enableGeigerSensor(int gpio){
+  sensorAnnounce(SENSORS::SCAJOE);
+  if (rad.init(gpio,devmode)){
+    sensorRegister(SENSORS::SCAJOE);
+  } 
+}
+
+uint32_t Sensors::getGeigerCPM(void) {
+  return rad.tics_cpm;
+}
+
+float Sensors::getGeigerMicroSievertHour(void) {
+  return rad.uSvh;
+}
+
+// #########################################################################
 
 void Sensors::DEBUG(const char *text, const char *textb) {
     if (devmode) {
@@ -1838,139 +1832,4 @@ bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, i
 
 #if !defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_SENSORSHANDLER)
 Sensors sensors;
-#endif
-
-// #########################################################################
-// Interrupt routine called on each click from the geiger tube
-// WARNING! the ISR is actually called on both the rising and the falling edge even if configure for FALLING or RISING
-
-#ifdef CAJOE_GEIGER
-    void IRAM_ATTR GeigerTicISR() {
-
-       portENTER_CRITICAL_ISR(geiger_timerMux);
-
-       tics_cnt++; // tics in 1000ms
-       tics_tot++; // total tics since boot
-
-       portEXIT_CRITICAL_ISR(geiger_timerMux);
-}
-#endif
-
-// #########################################################################
-// Interrupt timer routine called every 1000 ms
-
-#ifdef CAJOE_GEIGER
-void IRAM_ATTR onGeigerTimer() {
-    
-    portENTER_CRITICAL_ISR(geiger_timerMux);
-    cajoe_fms->add(tics_cnt); 
-    tics_cnt = 0;
-    portEXIT_CRITICAL_ISR(geiger_timerMux);
-}
-#endif
-
-// #########################################################################
-// Converts CPM to uSv/h units (J305 tube)
-
-#ifdef CAJOE_GEIGER
-
-float Sensors::CPM2uSvh(uint32_t cpm) {
-   return float(cpm) * J305_CONV_FACTOR;
-}
-
-#endif
-
-// #########################################################################
-// Initialize Geiger counter
-
-#ifdef CAJOE_GEIGER
-
-void Sensors::geigerInit() {
-
-   tics_cnt = 0U; // tics in 1000ms
-   tics_tot = 0U; // total tics since boot
-   
-   geiger_timer = NULL;
-   geiger_timerMux = new portMUX_TYPE(portMUX_INITIALIZER_UNLOCKED);
-
-// moving sum for CAJOE Geiger Counter, configured for 60 samples (1 sample every 1s * 60 samples = 60s)
-   cajoe_fms = new MovingSum<uint16_t, uint32_t>(GEIGER_BUFSIZE);
-
-   Serial.println("-->[SLIB] Geiger counter startup");
-
-   sensorRegister(SENSORS::SCAJOE);
-   unitRegister(UNIT::CPM);
-   unitRegister(UNIT::RAD);
-
-// attach interrupt routine to the GPI connected to the Geiger counter module
-   pinMode(GEIGER_PINTIC, INPUT);
-   attachInterrupt(digitalPinToInterrupt(GEIGER_PINTIC), GeigerTicISR, FALLING);
-   
-// attach interrupt routine to internal timer, to fire every 1000 ms
-   geiger_timer = timerBegin(GEIGER_TIMER, 80, true);     
-   timerAttachInterrupt(geiger_timer, &onGeigerTimer, true);
-   timerAlarmWrite(geiger_timer, 1000000, true); // 1000 ms
-   timerAlarmEnable(geiger_timer);
-
-   Serial.println("-->[SLIB] Geiger counter ready");
-}
-
-#endif
-
-// #########################################################################
-// Geiger counts evaluation
-// CAJOE kit comes with a Chinese J305 geiger tube
-// Conversion factor used for conversion from CPM to uSv/h is 0.008120370 (J305 tube)
-
-#ifdef CAJOE_GEIGER
-
-void Sensors::geigerEvaluate() {
-
-   bool ready;
-   uint32_t tics_len;
-
-   portENTER_CRITICAL(geiger_timerMux);
-   tics_cpm = cajoe_fms->getCurrentSum();
-   tics_len = cajoe_fms->getCurrentFilterLength();
-   portEXIT_CRITICAL(geiger_timerMux);
-
-// check whether the moving sum is full 
-   ready = (tics_len == cajoe_fms->getFilterLength());
-
-// convert CPM (tics in last minute) to uSv/h and put in display buffer for TFT
-// moving sum buffer size is 60 (1 sample every 1000 ms * 60 samples): the complete sum cover exactly last 60s
-   if (ready){
-      uSvh = CPM2uSvh(tics_cpm); 
-      }else{
-      uSvh = 0.0; 
-      }    
-
-   Serial.print("-->[SLIB] tTOT: "); Serial.println(tics_tot);
-   Serial.print("-->[SLIB] tLEN: "); Serial.print  (tics_len); Serial.println(ready ? " (ready)" : " (not ready)");
-   Serial.print("-->[SLIB] tCPM: "); Serial.println(tics_cpm);
-   Serial.print("-->[SLIB] uSvh: "); Serial.println(uSvh);
-}
-
-#endif
-
-// #########################################################################
-
-#ifdef CAJOE_GEIGER
-
-uint32_t Sensors::getGeigerCPM(void) {
-
-   return tics_cpm;
-}
-
-#endif
-
-// #########################################################################
-
-#ifdef CAJOE_GEIGER
-
-float Sensors::getGeigerMicroSievertHour(void) {
-
-    return uSvh;
-}
-
 #endif
