@@ -1,10 +1,10 @@
 #include "geiger.h"
 
+#ifdef ESP32
 hw_timer_t* geiger_timer = NULL;
 portMUX_TYPE* geiger_timerMux = NULL;
 uint16_t tics_cnt = 0U; // tics in 1000ms
 uint32_t tics_tot = 0U; // total tics since boot
-
 MovingSum<uint16_t, uint32_t>* cajoe_fms;
 
 // #########################################################################
@@ -26,10 +26,12 @@ void IRAM_ATTR onGeigerTimer() {
   tics_cnt = 0;
   portEXIT_CRITICAL_ISR(geiger_timerMux);
 }
+#endif
 
 // #########################################################################
 // Initialize Geiger counter
 bool GEIGER::init(int gpio, bool debug) {
+#ifdef ESP32
   if (gpio < 0) {
     if (debug) Serial.println("[E][SLIB] undefined Geiger pin");
     return false;
@@ -59,6 +61,9 @@ bool GEIGER::init(int gpio, bool debug) {
   Serial.println("-->[SLIB] Geiger counter ready");
 
   return true;
+#else
+  return false; // TODO: We need an alternative to atmelsam
+#endif
 }
 
 // #########################################################################
@@ -66,6 +71,7 @@ bool GEIGER::init(int gpio, bool debug) {
 // CAJOE kit comes with a Chinese J305 geiger tube
 // Conversion factor used for conversion from CPM to uSv/h is 0.008120370 (J305 tube)
 bool GEIGER::read() {
+#ifdef ESP32
   if (geiger_timer == NULL) return false;
   bool ready;
   uint32_t tics_len;
@@ -99,6 +105,9 @@ bool GEIGER::read() {
   Serial.println(uSvh);
 
   return true;
+#else
+  return false;
+#endif
 }
 
 /**
@@ -117,5 +126,7 @@ uint32_t GEIGER::getTics() {
 void GEIGER::clear() {
   tics_cpm = 0;
   uSvh = 0.0;
+#ifdef ESP32
   if (cajoe_fms != NULL) cajoe_fms->clear();
+#endif
 }
