@@ -552,9 +552,9 @@ float Sensors::getUnitValue(UNIT unit) {
         case GAS:
             return gas;
         case CPM:
-            rad.tics_cpm;
+            rad.getTics();
         case RAD:
-            rad.uSvh;
+            rad.getUSvh();
         case NH3:
             return nh3;
         case CO:
