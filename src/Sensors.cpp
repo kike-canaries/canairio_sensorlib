@@ -1672,11 +1672,11 @@ void Sensors::enableGeigerSensor(int gpio){
 }
 
 uint32_t Sensors::getGeigerCPM(void) {
-  return rad.tics_cpm;
+  return rad.getTics();
 }
 
 float Sensors::getGeigerMicroSievertHour(void) {
-  return rad.uSvh;
+  return rad.getUSvh();
 }
 
 // #########################################################################
