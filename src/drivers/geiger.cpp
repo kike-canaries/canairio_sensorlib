@@ -46,7 +46,7 @@ bool GEIGER::init(int gpio, bool debug) {
   // moving sum for CAJOE Geiger Counter, configured for 60 samples (1 sample every 1s * 60 samples = 60s)
   cajoe_fms = new MovingSum<uint16_t, uint32_t>(GEIGER_BUFSIZE);
 
-  Serial.println("-->[SLIB] Geiger counter startup");
+  Serial.printf("-->[SLIB] Geiger startup on pin\t: %i\r\n",gpio);
 
   // attach interrupt routine to the GPI connected to the Geiger counter module
   pinMode(gpio, INPUT);
