@@ -15,7 +15,12 @@ class GEIGER {
  public:
   uint32_t tics_cpm = 0U;  // tics in last 60s
   float uSvh = 0.0f;
-  bool init(int gpio = -1, bool debugEnable = false);
+  /**
+   * @brief Constructor
+   * @param gpio attached pin
+   * @param debug debug mode enable/disable
+  */
+  explicit GEIGER(int gpio = -1, bool debug = false);
   bool read();
   void clear();
   uint32_t getTics();

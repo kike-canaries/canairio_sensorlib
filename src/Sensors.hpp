@@ -226,7 +226,7 @@ class Sensors {
     DFRobot_GAS_I2C dfrNH3;
 
     // Geiger CAJOE sensor
-    GEIGER rad;
+    GEIGER *rad;
 
     void init(u_int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 

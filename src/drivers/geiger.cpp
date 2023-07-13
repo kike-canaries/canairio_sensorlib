@@ -30,11 +30,11 @@ void IRAM_ATTR onGeigerTimer() {
 
 // #########################################################################
 // Initialize Geiger counter
-bool GEIGER::init(int gpio, bool debug) {
+GEIGER::GEIGER(int gpio, bool debug) {
 #ifdef ESP32
   if (gpio < 0) {
     if (debug) Serial.println("[E][SLIB] undefined Geiger pin");
-    return false;
+    return;
   }
   devmode = debug;
   tics_cnt = 0U;  // tics in 1000ms
@@ -59,10 +59,6 @@ bool GEIGER::init(int gpio, bool debug) {
   timerAlarmEnable(geiger_timer);
 
   Serial.println("-->[SLIB] Geiger counter ready");
-
-  return true;
-#else
-  return false; // TODO: We need an alternative to atmelsam
 #endif
 }
 
@@ -114,13 +110,13 @@ bool GEIGER::read() {
  * Converts CPM to uSv/h units (J305 tube)
 */
 float GEIGER::getUSvh() {
-  return float(tics_cpm) * J305_CONV_FACTOR;
+  return float(this->tics_cpm) * J305_CONV_FACTOR;
 }
 /**
  * Returns CPM
 */
 uint32_t GEIGER::getTics() {
-  return tics_cpm;
+  return this->tics_cpm;
 }
 
 void GEIGER::clear() {

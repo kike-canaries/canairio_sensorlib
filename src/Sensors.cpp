@@ -552,9 +552,9 @@ float Sensors::getUnitValue(UNIT unit) {
         case GAS:
             return gas;
         case CPM:
-            rad.getTics();
+            return rad->getTics();
         case RAD:
-            rad.getUSvh();
+            return rad->getUSvh();
         case NH3:
             return nh3;
         case CO:
@@ -1649,13 +1649,13 @@ void Sensors::resetAllVariables() {
     pres = 0.0;
     nh3 = 0;
     co = 0;
-    rad.clear();
+    rad->clear();
 }
 
 // #########################################################################
 
 void Sensors::geigerRead(){
-  if(rad.read()){
+  if(rad->read()){
     unitRegister(UNIT::CPM);
     unitRegister(UNIT::RAD);
   }
@@ -1666,17 +1666,16 @@ void Sensors::geigerRead(){
 */
 void Sensors::enableGeigerSensor(int gpio){
   sensorAnnounce(SENSORS::SCAJOE);
-  if (rad.init(gpio,devmode)){
-    sensorRegister(SENSORS::SCAJOE);
-  } 
+  rad = new GEIGER(gpio,devmode);
+  sensorRegister(SENSORS::SCAJOE);
 }
 
 uint32_t Sensors::getGeigerCPM(void) {
-  return rad.getTics();
+  return rad->getTics();
 }
 
 float Sensors::getGeigerMicroSievertHour(void) {
-  return rad.getUSvh();
+  return rad->getUSvh();
 }
 
 // #########################################################################
