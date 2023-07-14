@@ -23,12 +23,8 @@
 #include <Sensors.hpp>
 
 void onSensorDataOk() {
-    Serial.print(" CO2: " + String(sensors.getCO2()));
-    Serial.print(" CO2humi: " + String(sensors.getCO2humi()));
-    Serial.print(" CO2temp: " + String(sensors.getCO2temp()));
-
-    Serial.print(" H: " + String(sensors.getHumidity()));
-    Serial.println(" T: " + String(sensors.getTemperature()));
+    Serial.print(" CPM: " + String(sensors.getGeigerCPM()));
+    Serial.print(" uSvh: " + String(sensors.getGeigerMicroSievertHour()));
 }
 
 void onSensorDataError(const char* msg) {
@@ -51,6 +47,7 @@ void setup() {
     sensors.setOnErrorCallBack(&onSensorDataError);   // [optional] error callback
     sensors.setDebugMode(true);                       // [optional] debug mode
     sensors.detectI2COnly(true);                      // [optional] skip UART detection
+    sensors.enableGeigerSensor(27);                   // Geiger in sensor pin 27
 
     sensors.init();                                   // forced UAQ sensor. Empty for auto detection
     
