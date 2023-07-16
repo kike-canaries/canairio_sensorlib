@@ -1,7 +1,7 @@
 /**
  * @file main.cpp
- * @author Antonio Vanegas @hpsaturn
- * @date June 2018 - 2022
+ * @authors @roberbike @iw2lsi @hpsaturn 
+ * @date June 2018 - 2023
  * @brief Radiation sensor example
  * @license GPL3
  * 
@@ -10,6 +10,10 @@
  * 
  * Full implementation for WiFi and Bluetooth Air Quality fixed and mobile station:
  * https://github.com/kike-canaries/canairio_firmware#canairio-firmware
+ * 
+ * Main pull requests and discussions:
+ * https://github.com/kike-canaries/canairio_sensorlib/pull/144
+ * https://github.com/kike-canaries/canairio_firmware/pull/226
  * 
  * CanAirIO project:
  * https://canair.io
