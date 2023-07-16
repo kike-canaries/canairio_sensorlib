@@ -53,8 +53,6 @@ GEIGER::GEIGER(int gpio, bool debug) {
   timerAttachInterrupt(geiger_timer, &onGeigerTimer, true);
   timerAlarmWrite(geiger_timer, 1000000, true);  // 1000 ms
   timerAlarmEnable(geiger_timer);
-
-  Serial.println("-->[SLIB] Geiger counter ready");
 #endif
 }
 
@@ -83,19 +81,16 @@ bool GEIGER::read() {
   } else {
     uSvh = 0.0;
   }
-  
-  if (!devmode) return true;
 
-  Serial.print("-->[SLIB] tTOT: ");
-  Serial.println(tics_tot);
-  Serial.print("-->[SLIB] tLEN: ");
-  Serial.print(tics_len);
-  Serial.println(ready ? " (ready)" : " (not ready)");
-  Serial.print("-->[SLIB] tCPM: ");
-  Serial.println(tics_cpm);
-  Serial.print("-->[SLIB] uSvh: ");
-  Serial.println(uSvh);
-
+#ifdef CORE_DEBUG_LEVEL
+  if (CORE_DEBUG_LEVEL >= 3) {
+    Serial.printf("-->[SLIB] tTOT:\t %i\r\n", tics_tot);
+    Serial.printf("-->[SLIB] tLEN:\t %i ", tics_len);
+    Serial.println(ready ? "(ready)" : "(not ready)");
+    Serial.printf("-->[SLIB] tCPM:\t %i\r\n", tics_cpm);
+    Serial.printf("-->[SLIB] uSvh:\t %04.2f\r\n", uSvh);
+  }
+#endif
   return true;
 #else
   return false;
