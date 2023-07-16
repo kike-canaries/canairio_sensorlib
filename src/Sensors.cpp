@@ -1613,9 +1613,9 @@ void Sensors::CO2correctionAlt() {
 }
 
 float Sensors::hpaCalculation(float altitude) {
-    DEBUG("-->[SLIB] Altitude Compensation for CO2 lectures ON\t:", String(altitude).c_str());
+    DEBUG("-->[SLIB] CO2 altitude offset\t:", String(altitude).c_str());
     float hpa = 1012 - 0.118 * altitude + 0.00000473 * altitude * altitude;            // Cuadratic regresion formula obtained PA (hpa) from high above the sea
-    DEBUG("-->[SLIB] Atmospheric pressure calculated in hPa\t:", String(hpa).c_str());
+    DEBUG("-->[SLIB] CO2 pressure (hPa)\t:", String(hpa).c_str());
     return hpa;
 }
 
@@ -1667,7 +1667,7 @@ void Sensors::geigerRead(){
 void Sensors::enableGeigerSensor(int gpio){
   sensorAnnounce(SENSORS::SCAJOE);
   if (gpio < 0) {
-    if (devmode) Serial.printf("[W][SLIB] undefined Geiger pin\t: %i\r\t", gpio);
+    if (devmode) Serial.printf("[W][SLIB] undefined Geiger pin\t: %i\r\n", gpio);
     return;
   }
   rad = new GEIGER(gpio,devmode);
