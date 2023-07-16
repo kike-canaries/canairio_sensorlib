@@ -16,14 +16,15 @@
 #include <s8_uart.h>
 #include <sps30.h>
 #include <drivers/pm1006.h>
+#include <drivers/geiger.h>
 #include <DFRobot_MultiGasSensor.h>
 
 #ifdef DHT11_ENABLED
 #include <dht_nonblocking.h> 
 #endif
 
-#define CSL_VERSION "0.6.8"
-#define CSL_REVISION 375
+#define CSL_VERSION "0.6.9"
+#define CSL_REVISION 376
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -97,6 +98,8 @@
     X(PRESS, "hPa", "P")       \
     X(ALT, "m", "Alt")         \
     X(GAS, "Ohm", "Gas")       \
+    X(CPM, "CPM", "CPM")       \
+    X(RAD, "uSv/h", "RAD") \
     X(NH3, "ppm", "NH3")       \
     X(CO, "ppm", "CO")         \
     X(UCOUNT, "COUNT", "UCOUNT")
@@ -126,6 +129,7 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
     X(SDHTX, "DHTX", 3)     \
     X(SDFRCO, "DFRCO", 3) \
     X(SDFRNH3, "DFRNH3", 3) \
+    X(SCAJOE, "CAJOE", 3)   \
     X(SCOUNT, "SCOUNT", 3)
 
 #define X(utype, uname, umaintype) utype,
@@ -136,7 +140,9 @@ typedef enum SENSORS : size_t { SENSORS_TYPES } SENSORS;  // backward compatibil
 enum class SensorGroup { SENSOR_NONE,
                          SENSOR_PM,
                          SENSOR_CO2,
-                         SENSOR_ENV };
+                         SENSOR_ENV, 
+                         SENSOR_RAD  // CAJOE_GEIGER
+                         };
 
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
@@ -219,6 +225,9 @@ class Sensors {
     // DFRobot gravity NH3 sensor addr 0x77
     DFRobot_GAS_I2C dfrNH3;
 
+    // Geiger CAJOE sensor
+    GEIGER *rad;
+
     void init(u_int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
     void loop();
@@ -266,6 +275,12 @@ class Sensors {
     float getNH3();
     
     float getCO();
+
+    void enableGeigerSensor(int gpio);
+
+    uint32_t getGeigerCPM(void);
+
+    float getGeigerMicroSievertHour(void);
 
     void setTempOffset(float offset);
 
@@ -428,6 +443,8 @@ class Sensors {
     void sps30Errorloop(char *mess, uint8_t r);
     void sps30DeviceInfo();
 
+    void geigerRead();
+
     void onSensorError(const char *msg);
 
     void startI2C();
@@ -469,3 +486,4 @@ extern Sensors sensors;
 #endif
 
 #endif
+    

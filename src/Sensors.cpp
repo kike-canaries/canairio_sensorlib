@@ -77,6 +77,8 @@ bool Sensors::readAllSensors() {
     aht10Read(); 
     DFRobotCORead();
     DFRobotNH3Read();
+    geigerRead();
+
     #ifdef DHT11_ENABLED
     dhtRead();
     #endif
@@ -133,7 +135,7 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     #ifdef DHT11_ENABLED
     dhtInit();
     #endif
-
+    
     printSensorsRegistered(true);
 }
 
@@ -331,8 +333,6 @@ float Sensors::getNH3() {
 float Sensors::getCO() {
     return co;
 }
-
-
 
 /**
  * @brief UART only: check if the UART sensor is registered
@@ -550,7 +550,11 @@ float Sensors::getUnitValue(UNIT unit) {
         case ALT:
             return alt;
         case GAS:
-           return gas;
+            return gas;
+        case CPM:
+            return rad->getTics();
+        case RAD:
+            return rad->getUSvh();
         case NH3:
             return nh3;
         case CO:
@@ -1601,7 +1605,6 @@ void Sensors::DFRobotNH3Init() {
 }
 
 // Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
-
 void Sensors::CO2correctionAlt() {
     DEBUG("-->[SLIB] CO2 altitud original\t:", String(CO2Val).c_str());
     float CO2cor = (0.016 * ((1013.25 - hpa) /10 ) * (CO2Val - 400)) + CO2Val;       // Increment of 1.6% for every hpa of difference at sea level
@@ -1646,7 +1649,36 @@ void Sensors::resetAllVariables() {
     pres = 0.0;
     nh3 = 0;
     co = 0;
+    rad->clear();
 }
+
+// #########################################################################
+
+void Sensors::geigerRead(){
+  if(rad->read()){
+    unitRegister(UNIT::CPM);
+    unitRegister(UNIT::RAD);
+  }
+}
+/**
+ * @brief Enable Geiger sensor on specific pin
+ * @param GPIO pin
+*/
+void Sensors::enableGeigerSensor(int gpio){
+  sensorAnnounce(SENSORS::SCAJOE);
+  rad = new GEIGER(gpio,devmode);
+  sensorRegister(SENSORS::SCAJOE);
+}
+
+uint32_t Sensors::getGeigerCPM(void) {
+  return rad->getTics();
+}
+
+float Sensors::getGeigerMicroSievertHour(void) {
+  return rad->getUSvh();
+}
+
+// #########################################################################
 
 void Sensors::DEBUG(const char *text, const char *textb) {
     if (devmode) {
