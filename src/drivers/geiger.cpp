@@ -31,11 +31,7 @@ void IRAM_ATTR onGeigerTimer() {
 // #########################################################################
 // Initialize Geiger counter
 GEIGER::GEIGER(int gpio, bool debug) {
-#ifdef ESP32
-  if (gpio < 0) {
-    if (debug) Serial.println("[E][SLIB] undefined Geiger pin");
-    return;
-  }
+#ifdef ESP32 
   devmode = debug;
   tics_cnt = 0U;  // tics in 1000ms
   tics_tot = 0U;  // total tics since boot
