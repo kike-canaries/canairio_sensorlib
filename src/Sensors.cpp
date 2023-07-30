@@ -708,6 +708,16 @@ bool Sensors::pm1006Read() {
   return false;
 }
 
+bool Sensors::pmH115C0Read() {
+  uint32_t pm1_0,pm2_5,pm4_0,pm10;
+  if (mH115C0->ReadParticleMeasurement(&pm1_0, &pm2_5, &pm4_0, &pm10)) {
+    Serial.println("PM 1.0: " + String(pm1_0) + " ug/m3");
+    Serial.println("PM 2.5: " + String(pm2_5) + " ug/m3");
+    Serial.println("PM 4.0: " + String(pm4_0) + " ug/m3");
+    Serial.println("PM 10: " + String(pm10) + " ug/m3");
+  }
+}
+
 /**
  * @brief PMSensor Serial read to basic string
  * 
@@ -1196,6 +1206,13 @@ bool Sensors::PM1006Init() {
     pm1006 = new PM1006(*_serial);
     sensorRegister(SENSORS::IKEAVK);
     return pm1006Read();
+}
+
+bool Sensors::PMH115C0Init() {
+    mH115C0 = new HPMA115C0(*_serial);
+    mH115C0->Init();
+    sensorRegister(SENSORS::H115C0);
+    return pmH115C0Read();
 }
 
 bool Sensors::CO2CM1106Init() {
