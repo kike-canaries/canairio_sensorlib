@@ -19,12 +19,8 @@
 #include <Sensors.hpp>
 
 void onSensorDataOk() {
-    Serial.print("-->[MAIN] CO2: " + String(sensors.getStringCO2()));
-    Serial.print(" CO2humi: " + String(sensors.getCO2humi()));
-    Serial.print(" CO2temp: " + String(sensors.getCO2temp()));
-
-    Serial.print(" H: " + String(sensors.getHumidity()));
-    Serial.println(" T: " + String(sensors.getTemperature()));
+    Serial.println("-->[MAIN] NH3: " + String(sensors.getNH3()));
+    Serial.println("-->[MAIN] CO: " + String(sensors.getCO()));
 }
 
 void onSensorDataError(const char* msg) {
@@ -48,10 +44,8 @@ void setup() {
     sensors.setDebugMode(false);                     // [optional] debug mode
     sensors.detectI2COnly(true);                     // force to only i2c sensors
 
-    // sensors.setCO2RecalibrationFactor(400);       // calibration method (in outdoors)
-    // sensors.scd30.setTemperatureOffset(2.0);      // example to set temp offset
-
-    sensors.init();
+    sensors.init(SENSORS::SDFRCO);                         // detect CO sensor
+    sensors.init(SENSORS::SDFRNH3);                        // detect NH3 sensor
 
     delay(500);
 }

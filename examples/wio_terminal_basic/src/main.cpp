@@ -2,7 +2,7 @@
  * @file main.cpp
  * @author Antonio Vanegas @hpsaturn
  * @date June 2018 - 2022
- * @brief CanAirIO Sensorslib tests
+ * @brief Particle meter sensor tests
  * @license GPL3
  * 
  * Full documentation:
@@ -11,7 +11,7 @@
  * Full implementation for WiFi and Bluetooth Air Quality fixed and mobile station:
  * https://github.com/kike-canaries/canairio_firmware#canairio-firmware
  * 
- * CanAirIO project documentation:
+ * CanAirIO project docs:
  * https://canair.io/docs
  */
 
@@ -39,7 +39,7 @@ void printSensorsValues() {
         String uName = sensors.getUnitName(unit);
         float uValue = sensors.getUnitValue(unit);
         String uSymb = sensors.getUnitSymbol(unit);
-        Serial.printf("-->[MAIN] %s:\t%02.1f\t%s\n", uName.c_str(), uValue, uSymb.c_str());
+        Serial.println("-->[MAIN] " + uName + " \t: " + String(uValue) + " " + uSymb);
         unit = sensors.getNextUnit();
     }
 }
@@ -48,10 +48,12 @@ void onSensorDataOk() {
     Serial.println("======= E X A M P L E   T E S T =========");
     printSensorsDetected();
     printSensorsValues(); 
+    Serial.println("=========================================");
 }
 
 void onSensorDataError(const char * msg){ 
 }
+
 /******************************************************************************
 *  M A I N
 ******************************************************************************/
@@ -60,14 +62,15 @@ void setup() {
     Serial.begin(115200);
     delay(200);
     Serial.println("\n== Sensor test setup ==\n");
+
     Serial.println("-->[SETUP] Detecting sensors..");
-    
-    sensors.setSampleTime(10);                       // config sensors sample time interval
-    sensors.setOnDataCallBack(&onSensorDataOk);      // all data read callback
-    sensors.setDebugMode(true);                      // [optional] debug mode
-    sensors.detectI2COnly(false);                    // disable force to only i2c sensors
-    sensors.init();                                  // Auto detection to UART and i2c sensors
-    delay(1000);
+
+    sensors.setSampleTime(5);                       // config sensors sample time interval
+    sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
+    sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
+    sensors.setDebugMode(true);                     // [optional] debug mode
+    sensors.detectI2COnly(true);                    // disable force to only i2c sensors
+    sensors.init();                                 // Auto detection to UART and i2c sensors
 }
 
 void loop() {

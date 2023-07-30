@@ -1,16 +1,18 @@
 #ifndef Sensors_hpp
 #define Sensors_hpp
 
-#include <AHT10.h>
+#include <AHTxx.h>
 #include <AM232X.h>
 #include <Adafruit_BME280.h>
 #include <Adafruit_BME680.h>
 #include <Adafruit_BMP280.h>
 #include <Adafruit_SHT31.h>
+#include <Adafruit_SCD30.h>
 #include <Adafruit_Sensor.h>
 #include <MHZ19.h>
 #include <SensirionI2CScd4x.h>
 #include <SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h>
+<<<<<<< HEAD
 #include <SparkFun_SCD30_Arduino_Library.h>
 #include <dht_nonblocking.h>
 #include <s8_uart.h>
@@ -18,9 +20,21 @@
 #ifdef ESP32
 #include <cm1106_uart.h>
 #endif 
+=======
+#include <cm1106_uart.h>
+#include <s8_uart.h>
+#include <sps30.h>
+#include <drivers/pm1006.h>
+#include <drivers/geiger.h>
+#include <DFRobot_MultiGasSensor.h>
+>>>>>>> f8b4381d156f8423e4b014ab1b6f9b00a5128fd6
 
-#define CSL_VERSION "0.5.2"
-#define CSL_REVISION 355
+#ifdef DHT11_ENABLED
+#include <dht_nonblocking.h> 
+#endif
+
+#define CSL_VERSION "0.6.9"
+#define CSL_REVISION 376
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -29,57 +43,56 @@
 #ifdef WEMOSOLED
 #define PMS_RX 13          // config for Wemos board & TTGO18650
 #define PMS_TX 15          // some old TTGO18650 have PMS_RX 18 & PMS_TX 17
-#define DHT_SENSOR_PIN 23  // default DHT sensor pin
 #elif HELTEC
 #define PMS_RX 17  // config for Heltec board, ESP32Sboard & ESPDUINO-32. Use Uart2
 #define PMS_TX 18  // some old ESP32Sboard have PMS_RX 27 & PMS_TX 25. Jump Uart2 tx from 16 to 18. !6 used by Oled.
-#define DHT_SENSOR_PIN 23
 #elif TTGO_TQ
 #define PMS_RX 13
 #define PMS_TX 18
-#define DHT_SENSOR_PIN 23
 #elif M5COREINK
 #define PMS_RX 13  // config for backward header in M5CoreInk
 #define PMS_TX 14
-#define DHT_SENSOR_PIN 25
 #elif TTGO_TDISPLAY
 #define PMS_RX 13
 #define PMS_TX 12
-#define DHT_SENSOR_PIN 17
 #elif ESP32PICOD4
 #define PMS_RX 19
 #define PMS_TX 18
-#define DHT_SENSOR_PIN 12
 #elif ESP32GENERIC
 #define PMS_RX RX
 #define PMS_TX TX
-#define DHT_SENSOR_PIN 12
 #elif M5STICKCPLUS
-#define PMS_RX 17
-#define PMS_TX 16
-#define DHT_SENSOR_PIN 34
+#define PMS_RX 36   // provisional for M5StickCPlus board for now
+#define PMS_TX 0
 #elif M5COREINK
 #define PMS_RX 13
 #define PMS_TX 14
-#define DHT_SENSOR_PIN 34
 #elif M5ATOM
 #define PMS_RX 23
 #define PMS_TX 33
-#define DHT_SENSOR_PIN 19
+#elif M5PICOD4
+#define PMS_RX 3
+#define PMS_TX 1
+#elif ESP32C3
+#define PMS_RX 20
+#define PMS_TX 21
+
 #else              // **DEFAULT** for legacy CanAirIO devices:
 #define PMS_RX 17  // D1MIN1 / TTGOT7 / ESP32DEVKIT, also for main ESP32 dev boards use it
 #define PMS_TX 16
-#define DHT_SENSOR_PIN 23  // default DHT sensor pin
 #endif
 
-// DHT sensor type
-#define DHT_SENSOR_TYPE DHT_TYPE_22
+// I2C pins for M5COREINK and M5STICKCPLUS
+#define HAT_I2C_SDA 0
+#define HAT_I2C_SCL 26
+#define EXT_I2C_SDA 32
+#define EXT_I2C_SCL 33
 
 // Read UART sensor retry.
 #define SENSOR_RETRY 1000  // Max Serial characters
 
-// Sensirion SPS30 sensor
-#define SENSOR_COMMS SERIALPORT2  // UART OR I2C 
+// UART defualt port
+#define SENSOR_COMMS SERIALPORT2
 
 #define SENSOR_UNITS           \
     X(NUNIT, "NUNIT", "NUNIT") \
@@ -95,7 +108,12 @@
     X(PRESS, "hPa", "P")       \
     X(ALT, "m", "Alt")         \
     X(GAS, "Ohm", "Gas")       \
+    X(CPM, "CPM", "CPM")       \
+    X(RAD, "uSv/h", "RAD") \
+    X(NH3, "ppm", "NH3")       \
+    X(CO, "ppm", "CO")         \
     X(UCOUNT, "COUNT", "UCOUNT")
+
 
 #define X(unit, symbol, name) unit,
 typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
@@ -109,15 +127,19 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
     X(SMHZ19, "MHZ19", 2)   \
     X(SCM1106, "CM1106", 2) \
     X(SAIRS8, "SAIRS8", 2)  \
+    X(IKEAVK, "IKEAVK",1)   \
     X(SSCD30, "SCD30", 2)   \
     X(SSCD4X, "SCD4X", 2)   \
     X(SSHT31, "SHT31", 3)   \
     X(SBME280, "BME280", 3) \
     X(SBMP280, "BMP280", 3) \
     X(SBME680, "BME680", 3) \
-    X(SAHT10, "AHT10", 3)   \
+    X(SAHTXX, "AHTXX", 3)   \
     X(SAM232X, "AM232X", 3) \
     X(SDHTX, "DHTX", 3)     \
+    X(SDFRCO, "DFRCO", 3) \
+    X(SDFRNH3, "DFRNH3", 3) \
+    X(SCAJOE, "CAJOE", 3)   \
     X(SCOUNT, "SCOUNT", 3)
 
 #define X(utype, uname, umaintype) utype,
@@ -128,7 +150,9 @@ typedef enum SENSORS : size_t { SENSORS_TYPES } SENSORS;  // backward compatibil
 enum class SensorGroup { SENSOR_NONE,
                          SENSOR_PM,
                          SENSOR_CO2,
-                         SENSOR_ENV };
+                         SENSOR_ENV, 
+                         SENSOR_RAD  // CAJOE_GEIGER
+                         };
 
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
@@ -142,7 +166,7 @@ class Sensors {
     bool devmode;
 
     // Initial sample time for all sensors
-    int sample_time = 5;
+    int sample_time = 10;
 
     // temperature offset (for final temp output)
     float toffset = 0.0;
@@ -175,15 +199,18 @@ class Sensors {
     // BME680 (Humidity, Gas, IAQ, Pressure, Altitude and Temperature)
     Adafruit_BME680 bme680;
     // AHT10
-    AHT10 aht10;
+    AHTxx aht10;
     // SHT31
     Adafruit_SHT31 sht31;
+
+    #ifdef DHT11_ENABLED
     // DHT sensor
     float dhthumi, dhttemp;
+    #endif
     // Mhz19 sensor
     MHZ19 mhz19;
     // SCD30 sensor
-    SCD30 scd30;
+    Adafruit_SCD30 scd30;
     // CM1106 UART
     #ifdef ESP32
     CM1106_UART *cm1106;
@@ -201,7 +228,19 @@ class Sensors {
     // SCD4x sensor
     SensirionI2CScd4x scd4x;
 
-    void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
+    // IKEA Vindriktn sensor
+    PM1006 *pm1006;
+
+    // DFRobot gravity NH3 sensor addr 0x74
+    DFRobot_GAS_I2C dfrCO;
+
+    // DFRobot gravity NH3 sensor addr 0x77
+    DFRobot_GAS_I2C dfrNH3;
+
+    // Geiger CAJOE sensor
+    GEIGER *rad;
+
+    void init(u_int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
     void loop();
 
@@ -216,8 +255,6 @@ class Sensors {
     void setOnErrorCallBack(errorCbFn cb);
 
     void setDebugMode(bool enable);
-
-    void setDHTparameters(int dht_sensor_pin = DHT_SENSOR_PIN, int dht_sensor_type = DHT_SENSOR_TYPE);
 
     bool isUARTSensorConfigured();
 
@@ -246,35 +283,23 @@ class Sensors {
     float getAltitude();
 
     float getGas();
+    
+    float getNH3();
+    
+    float getCO();
+
+    void enableGeigerSensor(int gpio);
+
+    uint32_t getGeigerCPM(void);
+
+    float getGeigerMicroSievertHour(void);
 
     void setTempOffset(float offset);
 
     void setCO2AltitudeOffset(float altitude);
 
     void setSeaLevelPressure(float hpa);
-
-    String getFormatTemp();
-
-    String getFormatPress();
-
-    String getFormatHum();
-
-    String getFormatGas();
-
-    String getFormatAlt();
-
-    String getStringPM1();
-
-    String getStringPM25();
-
-    String getStringPM4();
-
-    String getStringPM10();
-
-    String getStringCO2();
-
-    String getStringCO2temp();
-
+    
     void setCO2RecalibrationFactor(int ppmValue);
 
     void detectI2COnly(bool enable);
@@ -318,8 +343,11 @@ class Sensors {
     void printSensorsRegistered(bool debug = false);
 
    private:
+
+    #ifdef DHT11_ENABLED
     /// DHT library
     uint32_t delayMS;
+    #endif
     /// For UART sensors (autodetected available serial)
     Stream *_serial;
     /// Callback on some sensors error.
@@ -348,12 +376,15 @@ class Sensors {
     float temp = 0.0;  // Temperature (°C)
     float pres = 0.0;  // Pressure
     float alt = 0.0;
-    float gas = 0.0;
-
+    float gas = 0.0;   // 
+    
     uint16_t CO2Val;      // CO2 in ppm
     float CO2humi = 0.0;  // humidity of CO2 sensor
     float CO2temp = 0.0;  // temperature of CO2 sensor
 
+    float nh3;         // Amonium in ppm
+    float co;          // Carbon monoxide
+        
     void am2320Init();
     void am2320Read();
 
@@ -386,19 +417,27 @@ class Sensors {
 
     void GCJA5Init();
     void GCJA5Read();
-
+    
+    #ifdef DHT11_ENABLED
     void dhtInit();
     void dhtRead();
     bool dhtIsReady(float *temperature, float *humidity);
+    #endif
+
+    void DFRobotNH3Init();
+    void DFRobotNH3Read();
+    void DFRobotCOInit();
+    void DFRobotCORead();
 
     // UART sensors methods:
 
-    bool sensorSerialInit(int pms_type, int rx, int tx);
-    bool pmSensorAutoDetect(int pms_type);
+    bool sensorSerialInit(u_int pms_type, int rx, int tx);
+    bool pmSensorAutoDetect(u_int pms_type);
     bool pmSensorRead();
     bool pmGenericRead();
     bool pmGCJA5Read();
     bool pmSDS011Read();
+    bool pm1006Read();
     bool CO2Mhz19Read();
     bool CO2CM1106Read();
     int CO2CM1106val();
@@ -406,6 +445,7 @@ class Sensors {
     bool CO2CM1106Init();
     bool senseAirS8Init();
     bool senseAirS8Read();
+    bool PM1006Init();
 
     bool sps30I2CInit();
     bool sps30UARTInit();
@@ -415,6 +455,8 @@ class Sensors {
     void sps30Errorloop(char *mess, uint8_t r);
     void sps30DeviceInfo();
 
+    void geigerRead();
+
     void onSensorError(const char *msg);
 
     void startI2C();
@@ -423,7 +465,7 @@ class Sensors {
 
     void disableWire1();
 
-    bool serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx);
+    bool serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx);
 
     String hwSerialRead(unsigned int lenght_buffer);
 
@@ -432,6 +474,8 @@ class Sensors {
     void DEBUG(const char *text, const char *textb = "");
 
     void printValues();
+
+    void printHumTemp();
 
     void sensorRegister(SENSORS sensor);
 
@@ -454,3 +498,4 @@ extern Sensors sensors;
 #endif
 
 #endif
+    
