@@ -51,7 +51,7 @@ void Sensors::loop() {
 }
 
 void Sensors::printHumTemp() {
-    Serial.printf("-->[SLIB] sensorlib \t\t: T:%02.1f, H:%02.1f\r\n", humi, temp);
+    // Serial.printf("-->[SLIB] sensorlib \t\t: T:%02.1f, H:%02.1f\r\n", humi, temp);
 }
 
 /**
@@ -99,20 +99,20 @@ bool Sensors::readAllSensors() {
  * @param pms_rx (optional) UART PMS RX pin.
  * @param pms_tx (optional) UART PMS TX pin.
  */
-void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
+void Sensors::init(int pms_type, int pms_rx, int pms_tx) {
 // override with debug INFO level (>=3)
 #ifdef CORE_DEBUG_LEVEL
     if (CORE_DEBUG_LEVEL >= 3) devmode = true;
 #endif
     if (devmode) {
-        Serial.printf("-->[SLIB] CanAirIO SensorsLib\t: v%sr%d\r\n", CSL_VERSION, CSL_REVISION);
-        Serial.printf("-->[SLIB] sensorslib devmod\t: %s\r\n", devmode ? "true" : "false");
+        // Serial.printf("-->[SLIB] CanAirIO SensorsLib\t: v%sr%d\r\n", CSL_VERSION, CSL_REVISION);
+        // Serial.printf("-->[SLIB] sensorslib devmod\t: %s\r\n", devmode ? "true" : "false");
     }
  
     Serial.println("-->[SLIB] temperature offset\t: " + String(toffset));
     Serial.println("-->[SLIB] altitude offset   \t: " + String(altoffset));
     Serial.println("-->[SLIB] sea level pressure\t: " + String(sealevel) + " hPa");
-    Serial.printf("-->[SLIB] only i2c sensors  \t: %s\r\n", i2conly ? "true" : "false");
+    // Serial.printf("-->[SLIB] only i2c sensors  \t: %s\r\n", i2conly ? "true" : "false");
 
     if (!i2conly && !sensorSerialInit(pms_type, pms_rx, pms_tx)) {
         DEBUG("-->[SLIB] UART sensors detected\t:", "0");
@@ -180,7 +180,7 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue) {
         scd4x.stopPeriodicMeasurement();
         delay(510);
         error = scd4x.performForcedRecalibration(ppmValue, frcCorrection);
-        if (error) Serial.printf("-->[SLIB] SCD4X recalibration\t: error frc:%d\r\n",frcCorrection);
+        // if (error) Serial.printf("-->[SLIB] SCD4X recalibration\t: error frc:%d\r\n",frcCorrection);
         delay(50);
         scd4x.startPeriodicMeasurement();
     }
@@ -489,7 +489,7 @@ UNIT Sensors::getNextUnit() {
  */
 void Sensors::resetUnitsRegister() {
     units_registered_count = 0;
-    for (u_int i = 0; i < UCOUNT; i++) {
+    for (int i = 0; i < UCOUNT; i++) {
         units_registered[i] = 0;
     }
 }
@@ -1752,8 +1752,8 @@ void Sensors::disableWire1() {
 #endif
 }
 
-bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx) {
-    if(devmode)Serial.printf("-->[SLIB] UART init with speed\t: %lu TX:%i RX:%i\r\n", speed_baud, pms_tx, pms_rx);
+bool Sensors::serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx) {
+    // if(devmode)Serial.printf("-->[SLIB] UART init with speed\t: %lu TX:%i RX:%i\r\n", speed_baud, pms_tx, pms_rx);
     switch (SENSOR_COMMS) {
         case SERIALPORT:
             Serial.begin(speed_baud);

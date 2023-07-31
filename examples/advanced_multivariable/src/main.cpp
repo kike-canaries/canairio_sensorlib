@@ -39,7 +39,7 @@ void printSensorsValues() {
         String uName = sensors.getUnitName(unit);
         float uValue = sensors.getUnitValue(unit);
         String uSymb = sensors.getUnitSymbol(unit);
-        Serial.printf("-->[MAIN] %s:\t%02.1f\t%s\n", uName.c_str(), uValue, uSymb.c_str());
+        // Serial.printf("-->[MAIN] %s:\t%02.1f\t%s\n", uName.c_str(), uValue, uSymb.c_str());
         unit = sensors.getNextUnit();
     }
 }

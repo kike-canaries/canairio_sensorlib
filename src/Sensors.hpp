@@ -12,22 +12,12 @@
 #include <MHZ19.h>
 #include <SensirionI2CScd4x.h>
 #include <SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h>
-<<<<<<< HEAD
-#include <SparkFun_SCD30_Arduino_Library.h>
-#include <dht_nonblocking.h>
-#include <s8_uart.h>
-#include <sps30.h>
-#ifdef ESP32
-#include <cm1106_uart.h>
-#endif 
-=======
 #include <cm1106_uart.h>
 #include <s8_uart.h>
 #include <sps30.h>
 #include <drivers/pm1006.h>
 #include <drivers/geiger.h>
 #include <DFRobot_MultiGasSensor.h>
->>>>>>> f8b4381d156f8423e4b014ab1b6f9b00a5128fd6
 
 #ifdef DHT11_ENABLED
 #include <dht_nonblocking.h> 
@@ -240,7 +230,7 @@ class Sensors {
     // Geiger CAJOE sensor
     GEIGER *rad;
 
-    void init(u_int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
+    void init(int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
     void loop();
 
@@ -431,8 +421,8 @@ class Sensors {
 
     // UART sensors methods:
 
-    bool sensorSerialInit(u_int pms_type, int rx, int tx);
-    bool pmSensorAutoDetect(u_int pms_type);
+    bool sensorSerialInit(int pms_type, int rx, int tx);
+    bool pmSensorAutoDetect(int pms_type);
     bool pmSensorRead();
     bool pmGenericRead();
     bool pmGCJA5Read();
@@ -465,7 +455,7 @@ class Sensors {
 
     void disableWire1();
 
-    bool serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx);
+    bool serialInit(int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx);
 
     String hwSerialRead(unsigned int lenght_buffer);
 
