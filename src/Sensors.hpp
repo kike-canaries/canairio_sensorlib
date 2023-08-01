@@ -431,6 +431,7 @@ class Sensors {
     bool pmGCJA5Read();
     bool pmSDS011Read();
     bool pm1006Read();
+    bool pmH115C0Read();
     bool CO2Mhz19Read();
     bool CO2CM1106Read();
     int CO2CM1106val();
@@ -439,6 +440,7 @@ class Sensors {
     bool senseAirS8Init();
     bool senseAirS8Read();
     bool PM1006Init();
+    bool PMH115C0Init();
 
     bool sps30I2CInit();
     bool sps30UARTInit();

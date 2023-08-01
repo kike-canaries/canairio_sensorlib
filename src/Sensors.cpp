@@ -715,7 +715,9 @@ bool Sensors::pmH115C0Read() {
     Serial.println("PM 2.5: " + String(pm2_5) + " ug/m3");
     Serial.println("PM 4.0: " + String(pm4_0) + " ug/m3");
     Serial.println("PM 10: " + String(pm10) + " ug/m3");
+    return true;
   }
+  return false;
 }
 
 /**
@@ -842,6 +844,10 @@ bool Sensors::pmSensorRead() {
 
         case IKEAVK:
             return pm1006Read();
+            break;
+        
+        case H115C0:
+            return pmH115C0Read();
             break;
 
         case SMHZ19:
@@ -1111,6 +1117,9 @@ bool Sensors::sensorSerialInit(u_int pms_type, int pms_rx, int pms_tx) {
     } else if (pms_type == SENSORS::IKEAVK) {
         DEBUG("-->[SLIB] UART detecting type\t: SENSEAIRS8");
         if (!serialInit(pms_type, PM1006::BIT_RATE, pms_rx, pms_tx)) return false;
+    } else if (pms_type == SENSORS::H115C0) {
+        DEBUG("-->[SLIB] UART detecting type\t: HPMA115C0");
+        if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     }
 
     // starting auto detection loop
@@ -1152,6 +1161,13 @@ bool Sensors::pmSensorAutoDetect(u_int pms_type) {
     if (pms_type == SENSORS::IKEAVK) {
         if (PM1006Init()) {
             dev_uart_type = SENSORS::IKEAVK;
+            return true;
+        }
+    }
+
+    if (pms_type == SENSORS::H115C0) {
+        if (PMH115C0Init()) {
+            dev_uart_type = SENSORS::H115C0;
             return true;
         }
     }

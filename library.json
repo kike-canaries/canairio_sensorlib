@@ -93,6 +93,7 @@
     {"name":"DHT_nonblocking", "version":"https://github.com/hpsaturn/DHT_nonblocking.git#ec6e5b9"},
     {"name":"AHTxx", "version":"https://github.com/enjoyneering/AHTxx.git#eb21571"},
     {"name":"SN-GCJA5", "version":"https://github.com/paulvha/SN-GCJA5.git#f261968"},
+    {"name":"HPMA115C0", "version":"https://github.com/mitkor2/HPMA115C0.git"},
     {"name":"CM1106_UART", "version":"https://github.com/jcomas/CM1106_UART.git#da0eb4e"}
   ]
 }
