@@ -69,6 +69,7 @@ bool Sensors::readAllSensors() {
     GCJA5Read();
     sps30Read();
     CO2scd4xRead();
+    sen5xRead();
     am2320Read(); 
     sht31Read();
     bme280Read();
@@ -123,6 +124,7 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     sps30I2CInit();
     GCJA5Init();
     CO2scd4xInit();
+    sen5xInit();
     bmp280Init();
     bme280Init();
     bme680Init();
@@ -309,6 +311,7 @@ void Sensors::setTempOffset(float offset){
     toffset = offset;
     setSCD30TempOffset(toffset);
     setSCD4xTempOffset(toffset);
+   // setSEN5xTempOffset(toffset);
 }
 
 /// get Gas resistance value of BMP680 sensor
@@ -975,6 +978,47 @@ void Sensors::CO2scd4xRead() {
     unitRegister(UNIT::CO2HUM);
 }
 
+
+void Sensors::sen5xRead() {
+    uint16_t error;
+    char errorMessage[256];
+    float massConcentrationPm1p0;
+    float massConcentrationPm2p5;
+    float massConcentrationPm4p0;
+    float massConcentrationPm10p0;
+    float ambientHumidity;
+    float ambientTemperature;
+    float vocIndex;
+    float noxIndex;
+    
+    error = sen5x.readMeasuredValues(
+        massConcentrationPm1p0, massConcentrationPm2p5, massConcentrationPm4p0,
+        massConcentrationPm10p0, ambientHumidity, ambientTemperature, vocIndex,
+        noxIndex);
+
+    if (error) {
+        Serial.print("Error trying to execute readMeasuredValues(): ");
+        errorToString(error, errorMessage, 256);
+        Serial.println(errorMessage);
+    }
+  
+   // if (massConcentrationPm1p0 > 1000 || massConcentrationPm2p5 > 1000 || massConcentrationPm4p0 > 1000 || massConcentrationPm10p0 > 1000) return;
+    pm1 = massConcentrationPm1p0;
+    pm25 = massConcentrationPm2p5;
+    pm4 = massConcentrationPm4p0;
+    pm10 = massConcentrationPm4p0;
+    temp = ambientTemperature;
+    humi = ambientHumidity;
+    dataReady = true;
+    DEBUG("-->[SLIB] SEN5x read\t\t: done!");
+    unitRegister(UNIT::PM1);
+    unitRegister(UNIT::PM25);
+    unitRegister(UNIT::PM4);
+    unitRegister(UNIT::PM10);
+    unitRegister(UNIT::TEMP);
+    unitRegister(UNIT::HUM);
+}
+
 void Sensors::GCJA5Read() {
     if (dev_uart_type == SENSORS::SGCJA5) return;
     if (!pmGCJA5.isConnected()) return;
@@ -1572,6 +1616,87 @@ void Sensors::setSCD4xAltitudeOffset(float offset) {
     }
 }
 
+
+void Sensors::sen5xInit() {
+    sensorAnnounce(SENSORS::SSEN5X);
+    Wire.begin();
+    sen5x.begin(Wire);
+    uint16_t error;
+    char errorMessage[256];
+    error = sen5x.deviceReset();
+    if (error) {
+        Serial.print("Error trying to execute deviceReset(): ");
+        errorToString(error, errorMessage, 256);
+        Serial.println(errorMessage);
+    }
+    unsigned char productName[32];
+    uint8_t productNameSize = 32;
+    error = sen5x.getProductName(productName, productNameSize);
+
+    if (error) {
+        Serial.print("Error trying to execute getProductName(): ");
+        errorToString(error, errorMessage, 256);
+        Serial.println(errorMessage);
+    } else {
+       Serial.print("ProductName: ");
+       Serial.println((char*)productName);
+    
+     }
+        uint8_t firmwareMajor;
+        uint8_t firmwareMinor;
+        bool firmwareDebug;
+        uint8_t hardwareMajor;
+        uint8_t hardwareMinor;
+        uint8_t protocolMajor;
+        uint8_t protocolMinor;
+     error = sen5x.getVersion(firmwareMajor, firmwareMinor, firmwareDebug,
+                             hardwareMajor, hardwareMinor, protocolMajor,
+                             protocolMinor);
+    if (error) {
+        Serial.print("Error trying to execute getVersion(): ");
+        errorToString(error, errorMessage, 256);
+        Serial.println(errorMessage);
+    } else {
+        Serial.print("Firmware: ");
+        Serial.print(firmwareMajor);
+        Serial.print(".");
+        Serial.print(firmwareMinor);
+        Serial.print(", ");
+
+        Serial.print("Hardware: ");
+        Serial.print(hardwareMajor);
+        Serial.print(".");
+        Serial.println(hardwareMinor);
+    }
+    
+    unsigned char serialNumber[32];
+    uint8_t serialNumberSize = 32;
+
+    error = sen5x.getSerialNumber(serialNumber, serialNumberSize);
+    if (error) {
+        Serial.print("Error trying to execute getSerialNumber(): ");
+        errorToString(error, errorMessage, 256);
+        Serial.println(errorMessage);
+    } else {
+        Serial.print("SerialNumber:");
+        Serial.println((char*)serialNumber);
+    }
+     
+    sensorRegister(SENSORS::SSEN5X);
+
+}
+
+/*
+void Sensors::setsen5xTempOffset(float offset) {
+    if (isSensorRegistered(SENSORS::SSEN5X)) {
+        Serial.println("-->[SLIB] SEN5x new temperature offset\t: " + String(offset));
+        sen5x.stoptMeasurement();
+        sen5x.setTemperatureOffsetSimple(tempOffset);
+        delay(510);
+        sen5x.startMeasurement();
+    }
+}
+*/
 void Sensors::GCJA5Init() {
     sensorAnnounce(SENSORS::SGCJA5);
     #ifndef Wire1
