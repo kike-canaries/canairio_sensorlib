@@ -15,7 +15,7 @@
 #include <cm1106_uart.h>
 #include <s8_uart.h>
 #include <sps30.h>
-#include <hpma115C0.h>
+#include <HPMA115_Compact.h>
 #include <drivers/pm1006.h>
 #include <drivers/geiger.h>
 #include <DFRobot_MultiGasSensor.h>
@@ -231,7 +231,7 @@ class Sensors {
     GEIGER *rad;
 
     // HPMA115C0
-    HPMA115C0 *mH115C0;
+    HPMA115_Compact *mH115C0;
 
     void init(u_int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
