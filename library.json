@@ -1,6 +1,6 @@
 {
   "name": "CanAirIO Air Quality Sensors Library",
-  "version": "0.6.9",
+  "version": "0.7.0",
   "homepage":"https://canair.io",
   "keywords": 
   [ 
@@ -15,6 +15,7 @@
     "hpma115",
     "IKEA",
     "Vindriktning",
+    "Geiger",
     "PMS7003",
     "PMS5003",
     "AM2320",

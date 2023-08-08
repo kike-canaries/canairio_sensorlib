@@ -28,7 +28,8 @@ For developers also you can check the complete library documentation [here](http
 | IKEA Vindriktning   | Yes | --- | Select | STABLE |
 | Sensirion SPS30     | Yes | Yes | Select / Auto | STABLE |
 
-NOTE: Panasonic via UART in ESP8266 maybe needs select in detection
+NOTE:  
+Panasonic via UART in ESP8266 maybe needs select in detection.  
 
 ### CO2 sensors
 
@@ -39,7 +40,6 @@ NOTE: Panasonic via UART in ESP8266 maybe needs select in detection
 | MHZ19      | Yes | --- | Select | STABLE |
 | CM1106    | Yes | --- | Select | STABLE |
 | SenseAir S8 | Yes | --- | Select | STABLE |
-
 
 ### Environmental sensors
 
@@ -53,9 +53,11 @@ NOTE: Panasonic via UART in ESP8266 maybe needs select in detection
 | BME680      | i2c |  Auto | STABLE |
 | DfRobot SEN0469 NH3  | i2c |  Auto | TESTING |
 | DFRobot SEN0466 CO | i2c |  Auto | TESTING |
-| DHTxx       | TwoWire |  Auto | DISABLED |
+| Geiger CAJOE | GPIO | Select | TESTING |
+| DHTxx       | TwoWire |  Select | DISABLED |
 
-NOTE: DHT22 is supported but is not recommended. Please see the documentation.
+NOTE:  
+DHT22 is supported but is not recommended. Please see the documentation.  
 
 ### Platforms supported
 
@@ -282,11 +284,13 @@ For now we are using it only for DHT sensors in PIN 23. For more info please rev
 
 ### PlatformIO (recommended)
 
-We recommended PlatformIO because is more easy than Arduino IDE. For this, please install first [PlatformIO](http://platformio.org/) and its command line tools (Windows, MacOs and Linux), **pio** command, then connect your compatible board to the USB and run the next command:
+We recommended PlatformIO because is more easy than Arduino IDE. For that, please install first [PlatformIO](http://platformio.org/) and its command line tools (Windows, MacOs and Linux), **pio** command, then connect your compatible board to the USB and run the next command:
 
 ```python
 pio run -e esp32 --target upload
 ```
+
+Also you can see some examples than have `platformio.ini` files for your project.
 
 ### Arduino IDE
 
@@ -361,6 +365,7 @@ Also you can make a donation, be a patreon or buy a device:
 - [x] Multivariable selection (getNextUnit(),getUnitName(),etc)
 - [x] Two I2C channel supported for M5Stack Devices (M5StickC tested)
 - [x] Added CO and NH3 sensors
+- [x] Added Geiger sensor support
 - [ ] Sea level setting for Pressure sensors and others
 - [ ] Support to second UART port
 
