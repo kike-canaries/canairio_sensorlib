@@ -306,7 +306,7 @@ float Sensors::getTempKelvin() {
 
 /// get temperature °K value of environment sensor 
 float Sensors::getTempFahrenheit() {
-    return temp * (9/5) + 32;
+    return temp * 1.8 + 32;
 }
 
 /**
@@ -589,7 +589,7 @@ float Sensors::getUnitValue(UNIT unit) {
         case TEMPK:
             return temp+273.15;
         case TEMPF:
-            return temp*(9/5)+32;
+            return temp*1.8+32;
         case HUM:
             return humi;
         case CO2:
