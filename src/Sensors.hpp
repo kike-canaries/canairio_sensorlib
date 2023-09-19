@@ -24,8 +24,8 @@
 #include <dht_nonblocking.h> 
 #endif
 
-#define CSL_VERSION "0.6.9.1"
-#define CSL_REVISION 376.1
+#define CSL_VERSION "0.7.0"
+#define CSL_REVISION 377
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -99,7 +99,7 @@
     X(PRESS, "hPa", "P")       \
     X(ALT, "m", "Alt")         \
     X(GAS, "Ohm", "Gas")       \
-    X(CPM, "CPM", "CPM")       \
+    X(CPM, "CPM", "RAD")       \
     X(RAD, "uSv/h", "RAD") \
     X(NH3, "ppm", "NH3")       \
     X(CO, "ppm", "CO")         \
@@ -205,31 +205,26 @@ class Sensors {
     Adafruit_SCD30 scd30;
     // CM1106 UART
     CM1106_UART *cm1106;
-
+    // CM1106 UART
     CM1106_sensor cm1106sensor;
-
+    // CM1106 UART
     CM1106_ABC abc;
     // Panasonic SN-GCJA5
     SFE_PARTICLE_SENSOR pmGCJA5;
     // SenseAir S8 CO2 sensor
     S8_UART *s8;
-
+    // SenseAir S8 CO2 sensor
     S8_sensor s8sensor;
     // SCD4x sensor
     SensirionI2CScd4x scd4x;
-
     // SEN5x sensor PM
     SensirionI2CSen5x sen5x;
-
     // IKEA Vindriktn sensor
     PM1006 *pm1006;
-
     // DFRobot gravity NH3 sensor addr 0x74
     DFRobot_GAS_I2C dfrCO;
-
     // DFRobot gravity NH3 sensor addr 0x77
     DFRobot_GAS_I2C dfrNH3;
-
     // Geiger CAJOE sensor
     GEIGER *rad;
 
