@@ -91,9 +91,13 @@
     X(PM4, "ug/m3", "PM4")     \
     X(PM10, "ug/m3", "PM10")   \
     X(TEMP, "C", "T")          \
+    X(TEMPK, "K", "T")          \
+    X(TEMPF, "F", "T")          \
     X(HUM, "%", "H")           \
     X(CO2, "ppm", "CO2")       \
     X(CO2TEMP, "C", "CO2T")    \
+    X(CO2TEMPK, "K", "CO2TK")    \
+    X(CO2TEMPF, "F", "CO2TF")    \
     X(CO2HUM, "%", "CO2H")     \
     X(PRESS, "hPa", "P")       \
     X(ALT, "m", "Alt")         \
@@ -143,6 +147,12 @@ enum class SensorGroup { SENSOR_NONE,
                          SENSOR_ENV, 
                          SENSOR_RAD  // CAJOE_GEIGER
                          };
+// TEMPERATURE UNIT
+enum class TEMPUNIT {
+    CELSIUS,
+    FAHRENHEIT,
+    KELVIN
+};
 
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
@@ -238,6 +248,8 @@ class Sensors {
 
     void setOnErrorCallBack(errorCbFn cb);
 
+    void setTemperatureUnit(TEMPUNIT tunit);
+
     void setDebugMode(bool enable);
 
     bool isUARTSensorConfigured();
@@ -259,6 +271,10 @@ class Sensors {
     float getCO2temp();
 
     float getTemperature();
+
+    float getTempKelvin();
+
+    float getTempFahrenheit();
 
     float getHumidity();
 
@@ -360,7 +376,10 @@ class Sensors {
     float temp = 0.0;  // Temperature (°C)
     float pres = 0.0;  // Pressure
     float alt = 0.0;
-    float gas = 0.0;   // 
+    float gas = 0.0;   //
+
+    // temperature unit (C,K,F)
+    TEMPUNIT temp_unit = TEMPUNIT::CELSIUS; 
     
     uint16_t CO2Val;      // CO2 in ppm
     float CO2humi = 0.0;  // humidity of CO2 sensor
@@ -424,7 +443,7 @@ class Sensors {
     bool pm1006Read();
     bool CO2Mhz19Read();
     bool CO2CM1106Read();
-    int CO2CM1106val();
+    int CO2CM116val();
     bool CO2Mhz19Init();
     bool CO2CM1106Init();
     bool senseAirS8Init();
@@ -460,6 +479,8 @@ class Sensors {
     void printValues();
 
     void printHumTemp();
+
+    void tempRegister(bool isCO2temp);
 
     void sensorRegister(SENSORS sensor);
 

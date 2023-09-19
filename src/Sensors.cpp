@@ -299,6 +299,53 @@ float Sensors::getTemperature() {
     return temp;
 }
 
+/// get temperature °K value of environment sensor 
+float Sensors::getTempKelvin() {
+    return temp + 273.15;
+}
+
+/// get temperature °K value of environment sensor 
+float Sensors::getTempFahrenheit() {
+    return temp * (9/5) + 32;
+}
+
+/**
+ * @brief Temperature unit register (auto)
+ * @param isCO2temp temperature unit register for CO2 sensors
+ * 
+ * This method should register the right unit regarding setTemperatureUnit() method.
+*/
+void Sensors::tempRegister(bool isCO2temp) {
+    switch(temp_unit){
+        case(TEMPUNIT::KELVIN): 
+            if (isCO2temp)
+                unitRegister(UNIT::CO2TEMPK);
+            else
+                unitRegister(UNIT::TEMPK);
+            break;
+        case(TEMPUNIT::FAHRENHEIT):
+            if (isCO2temp)
+                unitRegister(UNIT::CO2TEMPF);
+            else
+                unitRegister(UNIT::TEMPF);
+            break;
+        case(TEMPUNIT::CELSIUS):
+            if (isCO2temp)
+                unitRegister(UNIT::CO2TEMP);
+            else
+                unitRegister(UNIT::TEMP);
+            break;
+    }
+}
+
+/**
+ * @brief set the temperature type unit
+ * @param tunit celciuse, kelvin or fahrenheit
+*/
+void Sensors::setTemperatureUnit(TEMPUNIT tunit){
+    temp_unit = tunit;
+}
+
 /**
  * @brief Set temperature offset for all temperature sensors
  * @param offset temperature offset in °C (default 0). 
@@ -326,10 +373,12 @@ float Sensors::getPressure() {
     return pres;
 }
 
+/// get NH3 value in ppm
 float Sensors::getNH3() {
     return nh3;
 }
 
+/// get CO value in ppm
 float Sensors::getCO() {
     return co;
 }
@@ -537,12 +586,20 @@ float Sensors::getUnitValue(UNIT unit) {
             return pm10;
         case TEMP:
             return temp;
+        case TEMPK:
+            return temp+273.15;
+        case TEMPF:
+            return temp*(9/5)+32;
         case HUM:
             return humi;
         case CO2:
             return CO2Val;
         case CO2TEMP:
             return CO2temp;
+        case CO2TEMPK:
+            return CO2temp+273.15;
+        case CO2TEMPF:
+            return CO2temp*(9/5)+32;
         case CO2HUM:
             return CO2humi;
         case PRESS:
@@ -781,8 +838,8 @@ bool Sensors::CO2Mhz19Read() {
         if(altoffset != 0) CO2correctionAlt();
         dataReady = true;
         DEBUG("-->[SLIB] MHZ14-9 read  \t: done!");
+        tempRegister(true);
         unitRegister(UNIT::CO2);
-        unitRegister(UNIT::CO2TEMP);
         return true;
     }
     return false;
@@ -867,7 +924,7 @@ void Sensors::am2320Read() {
         temp = temp1-toffset;
         dataReady = true;
         DEBUG("-->[SLIB] AM2320 read\t\t: done!");
-        unitRegister(UNIT::TEMP);
+        tempRegister(false);
         unitRegister(UNIT::HUM);
     }
 }
@@ -882,7 +939,7 @@ void Sensors::bme280Read() {
     alt = bme280.readAltitude(sealevel);
     dataReady = true;
     DEBUG("-->[SLIB] BME280 read\t\t: done!");
-    unitRegister(UNIT::TEMP);
+    tempRegister(false);
     unitRegister(UNIT::HUM);
     unitRegister(UNIT::ALT);
 }
@@ -897,7 +954,7 @@ void Sensors::bmp280Read() {
     alt = alt1;
     dataReady = true;
     DEBUG("-->[SLIB] BMP280 read\t\t: done!");
-    unitRegister(UNIT::TEMP);
+    tempRegister(false);
     unitRegister(UNIT::PRESS);
     unitRegister(UNIT::ALT);
 }
@@ -912,7 +969,7 @@ void Sensors::bme680Read() {
     alt = bme680.readAltitude(sealevel);
     dataReady = true;
     DEBUG("-->[SLIB] BME680 read\t\t: done!");
-    unitRegister(UNIT::TEMP);
+    tempRegister(false);
     unitRegister(UNIT::HUM);
     unitRegister(UNIT::PRESS);
     unitRegister(UNIT::GAS);
@@ -927,7 +984,7 @@ void Sensors::aht10Read() {
         temp = temp1-toffset;
         dataReady = true;
         DEBUG("-->[SLIB] AHT10 read\t\t: done!");
-        unitRegister(UNIT::TEMP);
+        tempRegister(false);
         unitRegister(UNIT::HUM);
     }
 }
@@ -940,7 +997,7 @@ void Sensors::sht31Read() {
         temp = temp1-toffset;
         dataReady = true;
         DEBUG("-->[SLIB] SHT31 read\t\t: done!");
-        unitRegister(UNIT::TEMP);
+        tempRegister(false);
         unitRegister(UNIT::HUM);
     }
 }
@@ -954,8 +1011,8 @@ void Sensors::CO2scd30Read() {
         CO2temp = scd30.temperature;
         dataReady = true;
         DEBUG("-->[SLIB] SCD30 read\t\t: done!");
+        tempRegister(true);
         unitRegister(UNIT::CO2);
-        unitRegister(UNIT::CO2TEMP);
         unitRegister(UNIT::CO2HUM);
     }
 }
@@ -970,8 +1027,8 @@ void Sensors::CO2scd4xRead() {
     CO2temp = tCO2temp;
     dataReady = true;
     DEBUG("-->[SLIB] SCD4x read\t\t: done!");
+    tempRegister(true);
     unitRegister(UNIT::CO2);
-    unitRegister(UNIT::CO2TEMP);
     unitRegister(UNIT::CO2HUM);
 }
 
@@ -1040,7 +1097,7 @@ void Sensors::dhtRead() {
     dataReady = true;
     sensorRegister(SENSORS::SDHTX);
     DEBUG("-->[SLIB] DHTXX read\t\t: done!");
-    unitRegister(UNIT::TEMP);
+    tempRegister(false);
     unitRegister(UNIT::HUM);
 }
 #endif
