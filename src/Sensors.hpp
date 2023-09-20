@@ -439,7 +439,6 @@ class Sensors {
     bool pm1006Read();
     bool CO2Mhz19Read();
     bool CO2CM1106Read();
-    int CO2CM116val();
     bool CO2Mhz19Init();
     bool CO2CM1106Init();
     bool senseAirS8Init();
