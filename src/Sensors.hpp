@@ -272,10 +272,6 @@ class Sensors {
 
     float getTemperature();
 
-    float getTempKelvin();
-
-    float getTempFahrenheit();
-
     float getHumidity();
 
     float getPressure();

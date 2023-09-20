@@ -284,29 +284,43 @@ float Sensors::getCO2humi() {
     return CO2humi;
 }
 
-/// get temperature °C value of CO2 sensor device
-float Sensors::getCO2temp() {
-    return CO2temp;
-}
-
 /// get humidity % value of environment sensor 
 float Sensors::getHumidity() {
     return humi;
 }
 
-/// get temperature °C value of environment sensor
+/**
+ * @brief set the temperature type unit
+ * @param tunit celciuse, kelvin or fahrenheit
+*/
+void Sensors::setTemperatureUnit(TEMPUNIT tunit){
+    temp_unit = tunit;
+}
+
+/// get temperature value from the CO2 sensor device
+float Sensors::getCO2temp() {
+  switch (temp_unit) {
+    case TEMPUNIT::CELSIUS:
+      return CO2temp;
+    case TEMPUNIT::KELVIN:
+      return CO2temp + 273.15;
+    case TEMPUNIT::FAHRENHEIT:
+      return CO2temp * 1.8 + 32;
+  }
+  return CO2temp;
+}
+
+/// get temperature value from environment sensor
 float Sensors::getTemperature() {
-    return temp;
-}
-
-/// get temperature °K value of environment sensor 
-float Sensors::getTempKelvin() {
-    return temp + 273.15;
-}
-
-/// get temperature °K value of environment sensor 
-float Sensors::getTempFahrenheit() {
-    return temp * 1.8 + 32;
+  switch (temp_unit) {
+    case TEMPUNIT::CELSIUS:
+      return temp;
+    case TEMPUNIT::KELVIN:
+      return temp + 273.15;
+    case TEMPUNIT::FAHRENHEIT:
+      return temp * 1.8 + 32;
+  }
+  return temp;
 }
 
 /**
@@ -316,34 +330,26 @@ float Sensors::getTempFahrenheit() {
  * This method should register the right unit regarding setTemperatureUnit() method.
 */
 void Sensors::tempRegister(bool isCO2temp) {
-    switch(temp_unit){
-        case(TEMPUNIT::KELVIN): 
-            if (isCO2temp)
-                unitRegister(UNIT::CO2TEMPK);
-            else
-                unitRegister(UNIT::TEMPK);
-            break;
-        case(TEMPUNIT::FAHRENHEIT):
-            if (isCO2temp)
-                unitRegister(UNIT::CO2TEMPF);
-            else
-                unitRegister(UNIT::TEMPF);
-            break;
-        case(TEMPUNIT::CELSIUS):
-            if (isCO2temp)
-                unitRegister(UNIT::CO2TEMP);
-            else
-                unitRegister(UNIT::TEMP);
-            break;
-    }
-}
-
-/**
- * @brief set the temperature type unit
- * @param tunit celciuse, kelvin or fahrenheit
-*/
-void Sensors::setTemperatureUnit(TEMPUNIT tunit){
-    temp_unit = tunit;
+  switch (temp_unit) {
+    case (TEMPUNIT::CELSIUS):
+      if (isCO2temp)
+        unitRegister(UNIT::CO2TEMP);
+      else
+        unitRegister(UNIT::TEMP);
+      break;
+    case (TEMPUNIT::KELVIN):
+      if (isCO2temp)
+        unitRegister(UNIT::CO2TEMPK);
+      else
+        unitRegister(UNIT::TEMPK);
+      break;
+    case (TEMPUNIT::FAHRENHEIT):
+      if (isCO2temp)
+        unitRegister(UNIT::CO2TEMPF);
+      else
+        unitRegister(UNIT::TEMPF);
+      break;
+  }
 }
 
 /**
@@ -589,7 +595,7 @@ float Sensors::getUnitValue(UNIT unit) {
         case TEMPK:
             return temp+273.15;
         case TEMPF:
-            return temp*1.8+32;
+          return temp * 1.8 + 32;
         case HUM:
             return humi;
         case CO2:
@@ -599,7 +605,7 @@ float Sensors::getUnitValue(UNIT unit) {
         case CO2TEMPK:
             return CO2temp+273.15;
         case CO2TEMPF:
-            return CO2temp*(9/5)+32;
+            return CO2temp * 1.8 + 32;
         case CO2HUM:
             return CO2humi;
         case PRESS:
