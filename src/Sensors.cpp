@@ -37,12 +37,12 @@ void Sensors::loop() {
         pmLoopTimeStamp = millis();
         readAllSensors();
 
-        if (!dataReady) DEBUG("-->[SLIB] Any data from sensors\t: ? check your wirings!");
+        if (!dataReady) DEBUG("-->[SLIB] any data from sensors\t: ? check your wirings!");
 
         if (dataReady && (_onDataCb != nullptr)) {
             _onDataCb();  // if any sensor reached any data, dataReady is true.
         } else if (!dataReady && (_onErrorCb != nullptr))
-            _onErrorCb("[W][SLIB] Sensorslib error msg\t: No data from any sensor!"); 
+            _onErrorCb("[W][SLIB] sensorslib error msg\t: No data from any sensor!"); 
     }
 
     #ifdef DHT11_ENABLED
@@ -293,8 +293,21 @@ float Sensors::getHumidity() {
  * @brief set the temperature type unit
  * @param tunit celciuse, kelvin or fahrenheit.
 */
-void Sensors::setTemperatureUnit(TEMPUNIT tunit){
-    temp_unit = tunit;
+void Sensors::setTemperatureUnit(TEMPUNIT tunit) {
+  temp_unit = tunit;
+  String tunit_symbol;
+  switch (temp_unit) {
+    case TEMPUNIT::CELSIUS:
+      tunit_symbol = getUnitSymbol(TEMP);
+      break;
+    case TEMPUNIT::KELVIN:
+      tunit_symbol = getUnitSymbol(TEMPK);
+      break;
+    case TEMPUNIT::FAHRENHEIT:
+      tunit_symbol = getUnitSymbol(TEMPF);
+      break;
+  }
+  Serial.printf("-->[SLIB] temperature unit\t: %s\r\n", tunit_symbol.c_str());
 }
 
 /// get temperature value from the CO2 sensor device
@@ -633,7 +646,7 @@ float Sensors::getUnitValue(UNIT unit) {
  */
 void Sensors::printUnitsRegistered(bool debug) { 
     if (!debug) return;
-    Serial.printf("-->[SLIB] Sensors units count\t: %i (", units_registered_count);
+    Serial.printf("-->[SLIB] sensors units count\t: %i (", units_registered_count);
     int i = 0;
     while (units_registered[i++] != 0) {
         Serial.print(unit_name[units_registered[i-1]]);
@@ -648,7 +661,7 @@ void Sensors::printUnitsRegistered(bool debug) {
  */
 void Sensors::printSensorsRegistered(bool debug) { 
     if (!debug) return;
-    Serial.printf("-->[SLIB] Sensors count  \t: %i (", sensors_registered_count);
+    Serial.printf("-->[SLIB] sensors count  \t: %i (", sensors_registered_count);
     int i = 0;
     while (sensors_registered[i++] != 0) {
         Serial.print(sensors_device_names[sensors_registered[i-1]]);
@@ -660,7 +673,7 @@ void Sensors::printSensorsRegistered(bool debug) {
 /// Print preview of the current variables detected by the sensors
 void Sensors::printValues() {
     if (!devmode) return;
-    Serial.print("-->[SLIB] Sensors values  \t: ");
+    Serial.print("-->[SLIB] sensors values  \t: ");
     for (u_int i = 0; i < UCOUNT; i++) {
         if (units_registered[i] != 0) {
             Serial.print(getUnitName((UNIT)units_registered[i]));
