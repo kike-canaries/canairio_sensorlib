@@ -194,7 +194,7 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue) {
  */
 void Sensors::setCO2AltitudeOffset(float altitude){
     this->altoffset = altitude;
-    this->hpa = hpaCalculation(altitude);       //hPa hectopascal calculation based on altitude
+    this->hpa = hpaCalculation(altitude);       // hPa hectopascal calculation based on altitude
 
     if (isSensorRegistered(SENSORS::SSCD30)) {
         setSCD30AltitudeOffset(altoffset);
@@ -428,10 +428,12 @@ void Sensors::detectI2COnly(bool enable) {
     i2conly = enable;
 }
 
+/// returns the CanAirIO Sensorslib version
 String Sensors::getLibraryVersion() {
     return String(CSL_VERSION);
 }
 
+/// return the current revision code number
 int16_t Sensors::getLibraryRevision() {
     return CSL_REVISION;
 }
@@ -477,10 +479,9 @@ SensorGroup Sensors::getSensorGroup(SENSORS sensor) {
 
 /**
  * @brief get the sensor registry for retrieve the sensor names
- * @return pointer to the sensor registry
- * @link https://bit.ly/3qVQYYy
+ * @return pointer to the sensor registry.
  * 
- * See the multivariable example: https://bit.ly/2XzZ9yw
+ * See the <a href="https://bit.ly/3qVQYYy">Advanced Multivariable example</a> 
  */
 uint8_t * Sensors::getSensorsRegistered() {
     return sensors_registered;
@@ -489,9 +490,8 @@ uint8_t * Sensors::getSensorsRegistered() {
 /**
  * @brief get the sensor unit status on the registry
  * @return True if the sensor unit is available, false otherwise.
- * @link https://bit.ly/3qVQYYy
  * 
- * See the multivariable example: https://bit.ly/2XzZ9yw
+ * See the <a href="https://bit.ly/3qVQYYy">Advanced Multivariable example</a> 
  */
 bool Sensors::isUnitRegistered(UNIT unit) {
     if (unit == UNIT::NUNIT) return false;
@@ -504,9 +504,8 @@ bool Sensors::isUnitRegistered(UNIT unit) {
 /**
  * @brief get the sensor units registry for retrieve the unit name, unit type and symbol. See getNextUnit()
  * @return pointer to the sensor units registry
- * @link https://bit.ly/3qVQYYy
  * 
- * See the multivariable example: https://bit.ly/2XzZ9yw
+ * See the <a href="https://bit.ly/3qVQYYy">Advanced Multivariable example</a> 
  */
 uint8_t * Sensors::getUnitsRegistered() {
     return units_registered;
@@ -1512,6 +1511,7 @@ void Sensors::bme280Init() {
     sensorRegister(SENSORS::SBME280);
 }
 
+/// Environment BMP280 sensor init
 void Sensors::bmp280Init() {
     sensorAnnounce(SENSORS::SBMP280);
     #ifndef Wire1
@@ -1536,6 +1536,7 @@ void Sensors::bmp280Init() {
     sensorRegister(SENSORS::SBMP280);
 }
 
+/// Bosch BME680 sensor init
 void Sensors::bme680Init() {
     sensorAnnounce(SENSORS::SBME680);
     if (!bme680.begin()) return;
@@ -1547,6 +1548,7 @@ void Sensors::bme680Init() {
     sensorRegister(SENSORS::SBME680);
 }
 
+/// AHTXX sensors init
 void Sensors::aht10Init() {
     sensorAnnounce(SENSORS::SAHTXX);
     aht10 = AHTxx(AHTXX_ADDRESS_X38, AHT1x_SENSOR);
@@ -1558,6 +1560,7 @@ void Sensors::aht10Init() {
     sensorRegister(SENSORS::SAHTXX);
 }
 
+/// Sensirion SCD30 CO2/T/H sensor init
 void Sensors::CO2scd30Init() {
     sensorAnnounce(SENSORS::SSCD30);
     #ifndef Wire1
@@ -1599,6 +1602,7 @@ void Sensors::setSCD30AltitudeOffset(float offset) {
     }
 }
 
+/// Sensirion SCD4X CO2 sensor init
 void Sensors::CO2scd4xInit() {
     sensorAnnounce(SENSORS::SSCD4X);
     float tTemperatureOffset, offsetDifference;
@@ -1649,6 +1653,7 @@ void Sensors::setSCD4xAltitudeOffset(float offset) {
     }
 }
 
+/// Panasonic GCJA5 sensor init
 void Sensors::GCJA5Init() {
     sensorAnnounce(SENSORS::SGCJA5);
     #ifndef Wire1
@@ -1659,6 +1664,7 @@ void Sensors::GCJA5Init() {
     sensorRegister(SENSORS::SGCJA5);
 }
 
+/// DFRobot GAS (CO) sensors init
 void Sensors::DFRobotCOInit() {
   sensorAnnounce(SENSORS::SDFRCO);
   dfrCO = DFRobot_GAS_I2C(&Wire, 0x78); // Be sure that your group of i2c address is 7
@@ -1670,6 +1676,7 @@ void Sensors::DFRobotCOInit() {
   sensorRegister(SENSORS::SDFRCO);
 }
 
+/// DFRobot GAS (NH3) sensors init
 void Sensors::DFRobotNH3Init() {
   sensorAnnounce(SENSORS::SDFRNH3);
   dfrNH3 = DFRobot_GAS_I2C(&Wire, 0x7A); // 0x77 y 0x75 used by bme680. Be sure that your group of i2c address is 7
@@ -1689,6 +1696,7 @@ void Sensors::CO2correctionAlt() {
     DEBUG("-->[SLIB] CO2 compensated\t:", String(CO2Val).c_str());
 }
 
+/// hPa hectopascal calculation based on the altitude. See CO2AltitudeOffset setter
 float Sensors::hpaCalculation(float altitude) {
     DEBUG("-->[SLIB] CO2 altitude offset\t:", String(altitude).c_str());
     float hpa = 1012 - 0.118 * altitude + 0.00000473 * altitude * altitude;            // Cuadratic regresion formula obtained PA (hpa) from high above the sea
@@ -1696,22 +1704,38 @@ float Sensors::hpaCalculation(float altitude) {
     return hpa;
 }
 
+/// utility to notify on the debug output a possible sensor.
 void Sensors::sensorAnnounce(SENSORS sensor) {
     DEBUG("-->[SLIB] attempt enable sensor\t:",getSensorName(sensor).c_str());
 }
 
+/**
+ * @brief register the sensor type.
+ * @param receive SENSORS enum param.
+ * 
+ * Each sensor should be registered and also its units. With that we will able to have
+ * dynamic calls of the sensors and its units on the GUI or implementation.
+*/
 void Sensors::sensorRegister(SENSORS sensor) {
     if (isSensorRegistered(sensor)) return;
     Serial.printf("-->[SLIB] sensor registered\t: %s  \t:D\r\n", getSensorName(sensor).c_str());
     sensors_registered[sensors_registered_count++] = sensor;
 }
 
+/**
+ * @brief register the unit type.
+ * @param receive UNIT enum param.
+ *
+ * Each sensor unit should be registered. For temperature sensors
+ * please use tempRegister() method.
+*/
 void Sensors::unitRegister(UNIT unit) {
     if (isUnitRegistered(unit)) return;
     if (unit == UNIT::NUNIT) return;
     units_registered[units_registered_count++] = unit;
 }
 
+/// reset all library variables (generic sensors units)
 void Sensors::resetAllVariables() {
     pm1 = 0;
     pm25 = 0;
@@ -1739,7 +1763,7 @@ void Sensors::geigerRead(){
 }
 /**
  * @brief Enable Geiger sensor on specific pin
- * @param GPIO pin.
+ * @param gpio number or pin.
 */
 void Sensors::enableGeigerSensor(int gpio){
   sensorAnnounce(SENSORS::SCAJOE);
@@ -1751,11 +1775,19 @@ void Sensors::enableGeigerSensor(int gpio){
   sensorRegister(SENSORS::SCAJOE);
 }
 
+/**
+ * @brief get Geiger count. Tics in the last 60secs
+ * @return CPM
+*/
 uint32_t Sensors::getGeigerCPM(void) {
   if (rad == nullptr) return 0;
   else return rad->getTics();
 }
 
+/**
+ * @brief get Geiger count in uSv/h units
+ * @return CPM * J305 conversion factor
+*/
 float Sensors::getGeigerMicroSievertHour(void) {
   if (rad == nullptr) return 0;
   else return rad->getUSvh();
