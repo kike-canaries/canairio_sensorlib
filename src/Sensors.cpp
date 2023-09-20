@@ -306,6 +306,8 @@ void Sensors::setTemperatureUnit(TEMPUNIT tunit) {
     case TEMPUNIT::FAHRENHEIT:
       tunit_symbol = getUnitSymbol(TEMPF);
       break;
+    default:
+      tunit_symbol = getUnitSymbol(TEMP);
   }
   Serial.printf("-->[SLIB] temperature unit\t: %s\r\n", tunit_symbol.c_str());
 }
