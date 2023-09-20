@@ -84,7 +84,7 @@
 // UART defualt port
 #define SENSOR_COMMS SERIALPORT2
 
-/// Sensors units definitions (symbol/name)
+// Sensors units definitions (symbol/name)
 #define SENSOR_UNITS           \
     X(NUNIT, "NUNIT", "NUNIT") \
     X(PM1, "ug/m3", "PM1")     \
@@ -114,7 +114,7 @@
 typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
 #undef X
 
-/// sensors types: 1:PM, 2:CO2, 3:ENV
+// sensors types: 1:PM, 2:CO2, 3:ENV
 #define SENSORS_TYPES       \
     X(Auto, "GENERIC", 1)   \
     X(SGCJA5, "GCJA5", 1)   \
@@ -142,14 +142,14 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
 typedef enum SENSORS : size_t { SENSORS_TYPES } SENSORS;  // backward compatibility
 #undef X
 
-/// MAIN SENSOR GROUPS TYPE
+// MAIN SENSOR GROUPS TYPE
 enum class SensorGroup { SENSOR_NONE,
                          SENSOR_PM,
                          SENSOR_CO2,
                          SENSOR_ENV, 
                          SENSOR_RAD  // CAJOE_GEIGER
                          };
-/// TEMPERATURE UNITS
+// TEMPERATURE UNITS
 enum class TEMPUNIT {
     CELSIUS,
     FAHRENHEIT,
