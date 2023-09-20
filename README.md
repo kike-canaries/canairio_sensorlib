@@ -85,6 +85,7 @@ DHT22 is supported but is not recommended. Please see the documentation.
 - Unified calibration trigger for all CO2 sensors
 - Unified CO2 Altitude compensation
 - Unified temperature offset for CO2 and environment sensors
+- Add support for Kelvin and Fahrenheit on environment and CO2 sensors
 - Public access to main objects of each library (full methods access)
 - Get unit symbol and name and each sub-sensor
 - Get the main group type: NONE, PM, CO2 and ENV.
