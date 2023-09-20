@@ -188,7 +188,7 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue) {
 
 /**
  * @brief set CO2 altitude offset (m)
- * @param altitude (m)
+ * @param altitude (m).
  * 
  * This method is used to compensate the CO2 value with the altitude. Recommended on high altitude.
  */
@@ -210,7 +210,7 @@ void Sensors::setCO2AltitudeOffset(float altitude){
 
 /**
  * @brief set the sea level pressure (hPa)
- * @param hpa (hPa)
+ * @param hpa (hPa).
  * 
  * This method is used to set the sea level pressure for some sensors that need it.
  */
@@ -291,7 +291,7 @@ float Sensors::getHumidity() {
 
 /**
  * @brief set the temperature type unit
- * @param tunit celciuse, kelvin or fahrenheit
+ * @param tunit celciuse, kelvin or fahrenheit.
 */
 void Sensors::setTemperatureUnit(TEMPUNIT tunit){
     temp_unit = tunit;
@@ -325,7 +325,7 @@ float Sensors::getTemperature() {
 
 /**
  * @brief Temperature unit register (auto)
- * @param isCO2temp temperature unit register for CO2 sensors
+ * @param isCO2temp temperature unit register for CO2 sensors.
  * 
  * This method should register the right unit regarding setTemperatureUnit() method.
 */
@@ -406,7 +406,7 @@ int Sensors::getUARTDeviceTypeSelected() {
 }
 
 /**
- * @brief Forced to enable I2C sensors only
+ * @brief Forced to enable I2C sensors only.
  * Recommended to use only if you are using a I2C sensor and improve the performance.
  */
 void Sensors::detectI2COnly(bool enable) {
@@ -537,7 +537,7 @@ UNIT Sensors::getNextUnit() {
 }
 
 /**
- * @brief reset the sensor units registry
+ * @brief reset the sensor units registry.
  * 
  * This function is useful to reset the units registry after a sensor unit is removed.
  * but it is **Not necessary** to call this function.
@@ -549,7 +549,7 @@ void Sensors::resetUnitsRegister() {
     }
 }
 /**
- * @brief reset the sensor registry
+ * @brief reset the sensor registry.
  * 
  * This function is useful to reset the sensors registry after a sensor is removed.
  * It should be called before the initialization of the sensors but
@@ -563,7 +563,7 @@ void Sensors::resetSensorsRegister() {
 }
 
 /**
- * @brief reset the next sensor unit counter
+ * @brief reset the next sensor unit counter.
  * 
  * This function is useful to reset the counter to review the sensor units again.
  * but it is not necessary to call this function.
@@ -575,7 +575,7 @@ void Sensors::resetNextUnit() {
 /**
  * @brief get the sensor unit value (float)
  * @param unit (mandatory) UNIT enum value.
- * @return float value of the each unit (RAW)
+ * @return float value of the each unit (RAW).
  * 
  * Also you can use the specific primitive like getTemperature(), 
  * getHumidity(), getGas(), getAltitude(), getPressure()
@@ -593,7 +593,7 @@ float Sensors::getUnitValue(UNIT unit) {
         case TEMP:
             return temp;
         case TEMPK:
-            return temp+273.15;
+          return temp + 273.15;
         case TEMPF:
           return temp * 1.8 + 32;
         case HUM:
@@ -603,7 +603,7 @@ float Sensors::getUnitValue(UNIT unit) {
         case CO2TEMP:
             return CO2temp;
         case CO2TEMPK:
-            return CO2temp+273.15;
+          return CO2temp + 273.15;
         case CO2TEMPF:
             return CO2temp * 1.8 + 32;
         case CO2HUM:
@@ -629,7 +629,7 @@ float Sensors::getUnitValue(UNIT unit) {
 
 /**
  * @brief print the sensor units names available
- * @param debug optional boolean to set the debug mode flag
+ * @param debug optional boolean to set the debug mode flag.
  */
 void Sensors::printUnitsRegistered(bool debug) { 
     if (!debug) return;
@@ -644,7 +644,7 @@ void Sensors::printUnitsRegistered(bool debug) {
 
 /**
  * @brief print the sensor names detected
- * @param debug optional boolean to set the debug mode flag
+ * @param debug optional boolean to set the debug mode flag.
  */
 void Sensors::printSensorsRegistered(bool debug) { 
     if (!debug) return;
@@ -677,7 +677,7 @@ void Sensors::printValues() {
 
 /**
  *  @brief PMS sensor generic read. Supported: Honeywell & Plantower sensors
- *  @return true if header and sensor data is right
+ *  @return true if header and sensor data is right.
  */
 bool Sensors::pmGenericRead() {
     int lenght_buffer = 32;
@@ -704,7 +704,7 @@ bool Sensors::pmGenericRead() {
 
 /**
  *  @brief Panasonic GCJA5 particulate meter sensor read.
- *  @return true if header and sensor data is right
+ *  @return true if header and sensor data is right.
  */
 bool Sensors::pmGCJA5Read() {
     int lenght_buffer = 32;
@@ -731,7 +731,7 @@ bool Sensors::pmGCJA5Read() {
 
 /**
  *  @brief Nova SDS011 particulate meter sensor read.
- *  @return true if header and sensor data is right
+ *  @return true if header and sensor data is right.
  */
 bool Sensors::pmSDS011Read() {
     int lenght_buffer = 10;
@@ -758,7 +758,7 @@ bool Sensors::pmSDS011Read() {
 
 /**
  *  @brief IKEA Vindriktning particulate meter sensor read.
- *  @return true if header and sensor data is right
+ *  @return true if header and sensor data is right.
  */
 
 bool Sensors::pm1006Read() {
@@ -773,9 +773,8 @@ bool Sensors::pm1006Read() {
 
 /**
  * @brief PMSensor Serial read to basic string
- * 
  * @param SENSOR_RETRY attempts before failure
- * @return String buffer
+ * @return String buffer.
  **/
 String Sensors::hwSerialRead(unsigned int lenght_buffer) {
     unsigned int try_sensor_read = 0;
@@ -794,7 +793,7 @@ String Sensors::hwSerialRead(unsigned int lenght_buffer) {
 
 /**
  *  @brief Sensirion SPS30 particulate meter sensor read.
- *  @return true if reads succes
+ *  @return true if reads succes.
  */
 bool Sensors::sps30Read() {
     if (!isSensorRegistered(SENSORS::SSPS30)) return false;
@@ -877,7 +876,7 @@ bool Sensors::senseAirS8Read() {
 
 /**
  * @brief read sensor data. Sensor selected.
- * @return true if data is loaded from sensor
+ * @return true if data is loaded from sensor.
  */
 bool Sensors::pmSensorRead() {
     switch (dev_uart_type) {
@@ -1413,7 +1412,7 @@ bool Sensors::sps30tests() {
 }
 
 /**
- * @brief : read and display Sensirion device info
+ * @brief : read and display Sensirion device info.
  */
 void Sensors::sps30DeviceInfo() {
     char buf[32];
@@ -1725,7 +1724,7 @@ void Sensors::geigerRead(){
 }
 /**
  * @brief Enable Geiger sensor on specific pin
- * @param GPIO pin
+ * @param GPIO pin.
 */
 void Sensors::enableGeigerSensor(int gpio){
   sensorAnnounce(SENSORS::SCAJOE);
