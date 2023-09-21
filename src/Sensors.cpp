@@ -37,12 +37,12 @@ void Sensors::loop() {
         pmLoopTimeStamp = millis();
         readAllSensors();
 
-        if (!dataReady) DEBUG("-->[SLIB] Any data from sensors\t: ? check your wirings!");
+        if (!dataReady) DEBUG("-->[SLIB] any data from sensors\t: ? check your wirings!");
 
         if (dataReady && (_onDataCb != nullptr)) {
             _onDataCb();  // if any sensor reached any data, dataReady is true.
         } else if (!dataReady && (_onErrorCb != nullptr))
-            _onErrorCb("[W][SLIB] Sensorslib error msg\t: No data from any sensor!"); 
+            _onErrorCb("[W][SLIB] sensorslib error msg\t: No data from any sensor!"); 
     }
 
     #ifdef DHT11_ENABLED
@@ -188,13 +188,13 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue) {
 
 /**
  * @brief set CO2 altitude offset (m)
- * @param altitude (m)
+ * @param altitude (m).
  * 
  * This method is used to compensate the CO2 value with the altitude. Recommended on high altitude.
  */
 void Sensors::setCO2AltitudeOffset(float altitude){
     this->altoffset = altitude;
-    this->hpa = hpaCalculation(altitude);       //hPa hectopascal calculation based on altitude
+    this->hpa = hpaCalculation(altitude);       // hPa hectopascal calculation based on altitude
 
     if (isSensorRegistered(SENSORS::SSCD30)) {
         setSCD30AltitudeOffset(altoffset);
@@ -210,7 +210,7 @@ void Sensors::setCO2AltitudeOffset(float altitude){
 
 /**
  * @brief set the sea level pressure (hPa)
- * @param hpa (hPa)
+ * @param hpa (hPa).
  * 
  * This method is used to set the sea level pressure for some sensors that need it.
  */
@@ -284,19 +284,87 @@ float Sensors::getCO2humi() {
     return CO2humi;
 }
 
-/// get temperature °C value of CO2 sensor device
-float Sensors::getCO2temp() {
-    return CO2temp;
-}
-
 /// get humidity % value of environment sensor 
 float Sensors::getHumidity() {
     return humi;
 }
 
-/// get temperature °C value of environment sensor
+/**
+ * @brief set the temperature type unit
+ * @param tunit celciuse, kelvin or fahrenheit.
+*/
+void Sensors::setTemperatureUnit(TEMPUNIT tunit) {
+  temp_unit = tunit;
+  String tunit_symbol;
+  switch (temp_unit) {
+    case TEMPUNIT::CELSIUS:
+      tunit_symbol = getUnitSymbol(TEMP);
+      break;
+    case TEMPUNIT::KELVIN:
+      tunit_symbol = getUnitSymbol(TEMPK);
+      break;
+    case TEMPUNIT::FAHRENHEIT:
+      tunit_symbol = getUnitSymbol(TEMPF);
+      break;
+    default:
+      tunit_symbol = getUnitSymbol(TEMP);
+  }
+  Serial.printf("-->[SLIB] temperature unit\t: %s\r\n", tunit_symbol.c_str());
+}
+
+/// get temperature value from the CO2 sensor device
+float Sensors::getCO2temp() {
+  switch (temp_unit) {
+    case TEMPUNIT::CELSIUS:
+      return CO2temp;
+    case TEMPUNIT::KELVIN:
+      return CO2temp + 273.15;
+    case TEMPUNIT::FAHRENHEIT:
+      return CO2temp * 1.8 + 32;
+  }
+  return CO2temp;
+}
+
+/// get temperature value from environment sensor
 float Sensors::getTemperature() {
-    return temp;
+  switch (temp_unit) {
+    case TEMPUNIT::CELSIUS:
+      return temp;
+    case TEMPUNIT::KELVIN:
+      return temp + 273.15;
+    case TEMPUNIT::FAHRENHEIT:
+      return temp * 1.8 + 32;
+  }
+  return temp;
+}
+
+/**
+ * @brief Temperature unit register (auto)
+ * @param isCO2temp temperature unit register for CO2 sensors.
+ * 
+ * This method should register the right unit regarding setTemperatureUnit() method.
+*/
+void Sensors::tempRegister(bool isCO2temp) {
+  switch (temp_unit) {
+    case (TEMPUNIT::CELSIUS):
+      if (isCO2temp)
+        unitRegister(UNIT::CO2TEMP);
+      else
+        unitRegister(UNIT::TEMP);
+      break;
+    case (TEMPUNIT::KELVIN):
+      if (isCO2temp)
+        unitRegister(UNIT::CO2TEMPK);
+      else
+        unitRegister(UNIT::TEMPK);
+      break;
+    case (TEMPUNIT::FAHRENHEIT):
+      if (isCO2temp)
+        unitRegister(UNIT::CO2TEMPF);
+      else
+        unitRegister(UNIT::TEMPF);
+      break;
+  }
 }
 
 /**
@@ -326,10 +394,12 @@ float Sensors::getPressure() {
     return pres;
 }
 
+/// get NH3 value in ppm
 float Sensors::getNH3() {
     return nh3;
 }
 
+/// get CO value in ppm
 float Sensors::getCO() {
     return co;
 }
@@ -351,17 +421,19 @@ int Sensors::getUARTDeviceTypeSelected() {
 }
 
 /**
- * @brief Forced to enable I2C sensors only
+ * @brief Forced to enable I2C sensors only.
  * Recommended to use only if you are using a I2C sensor and improve the performance.
  */
 void Sensors::detectI2COnly(bool enable) {
     i2conly = enable;
 }
 
+/// returns the CanAirIO Sensorslib version
 String Sensors::getLibraryVersion() {
     return String(CSL_VERSION);
 }
 
+/// return the current revision code number
 int16_t Sensors::getLibraryRevision() {
     return CSL_REVISION;
 }
@@ -407,10 +479,9 @@ SensorGroup Sensors::getSensorGroup(SENSORS sensor) {
 
 /**
  * @brief get the sensor registry for retrieve the sensor names
- * @return pointer to the sensor registry
- * @link https://bit.ly/3qVQYYy
+ * @return pointer to the sensor registry.
  * 
- * See the multivariable example: https://bit.ly/2XzZ9yw
+ * See the <a href="https://bit.ly/3qVQYYy">Advanced Multivariable example</a> 
  */
 uint8_t * Sensors::getSensorsRegistered() {
     return sensors_registered;
@@ -419,9 +490,8 @@ uint8_t * Sensors::getSensorsRegistered() {
 /**
  * @brief get the sensor unit status on the registry
  * @return True if the sensor unit is available, false otherwise.
- * @link https://bit.ly/3qVQYYy
  * 
- * See the multivariable example: https://bit.ly/2XzZ9yw
+ * See the <a href="https://bit.ly/3qVQYYy">Advanced Multivariable example</a> 
  */
 bool Sensors::isUnitRegistered(UNIT unit) {
     if (unit == UNIT::NUNIT) return false;
@@ -434,9 +504,8 @@ bool Sensors::isUnitRegistered(UNIT unit) {
 /**
  * @brief get the sensor units registry for retrieve the unit name, unit type and symbol. See getNextUnit()
  * @return pointer to the sensor units registry
- * @link https://bit.ly/3qVQYYy
  * 
- * See the multivariable example: https://bit.ly/2XzZ9yw
+ * See the <a href="https://bit.ly/3qVQYYy">Advanced Multivariable example</a> 
  */
 uint8_t * Sensors::getUnitsRegistered() {
     return units_registered;
@@ -482,7 +551,7 @@ UNIT Sensors::getNextUnit() {
 }
 
 /**
- * @brief reset the sensor units registry
+ * @brief reset the sensor units registry.
  * 
  * This function is useful to reset the units registry after a sensor unit is removed.
  * but it is **Not necessary** to call this function.
@@ -494,7 +563,7 @@ void Sensors::resetUnitsRegister() {
     }
 }
 /**
- * @brief reset the sensor registry
+ * @brief reset the sensor registry.
  * 
  * This function is useful to reset the sensors registry after a sensor is removed.
  * It should be called before the initialization of the sensors but
@@ -508,7 +577,7 @@ void Sensors::resetSensorsRegister() {
 }
 
 /**
- * @brief reset the next sensor unit counter
+ * @brief reset the next sensor unit counter.
  * 
  * This function is useful to reset the counter to review the sensor units again.
  * but it is not necessary to call this function.
@@ -520,7 +589,7 @@ void Sensors::resetNextUnit() {
 /**
  * @brief get the sensor unit value (float)
  * @param unit (mandatory) UNIT enum value.
- * @return float value of the each unit (RAW)
+ * @return float value of the each unit (RAW).
  * 
  * Also you can use the specific primitive like getTemperature(), 
  * getHumidity(), getGas(), getAltitude(), getPressure()
@@ -537,12 +606,20 @@ float Sensors::getUnitValue(UNIT unit) {
             return pm10;
         case TEMP:
             return temp;
+        case TEMPK:
+          return temp + 273.15;
+        case TEMPF:
+          return temp * 1.8 + 32;
         case HUM:
             return humi;
         case CO2:
             return CO2Val;
         case CO2TEMP:
             return CO2temp;
+        case CO2TEMPK:
+          return CO2temp + 273.15;
+        case CO2TEMPF:
+            return CO2temp * 1.8 + 32;
         case CO2HUM:
             return CO2humi;
         case PRESS:
@@ -566,11 +643,11 @@ float Sensors::getUnitValue(UNIT unit) {
 
 /**
  * @brief print the sensor units names available
- * @param debug optional boolean to set the debug mode flag
+ * @param debug optional boolean to set the debug mode flag.
  */
 void Sensors::printUnitsRegistered(bool debug) { 
     if (!debug) return;
-    Serial.printf("-->[SLIB] Sensors units count\t: %i (", units_registered_count);
+    Serial.printf("-->[SLIB] sensors units count\t: %i (", units_registered_count);
     int i = 0;
     while (units_registered[i++] != 0) {
         Serial.print(unit_name[units_registered[i-1]]);
@@ -581,11 +658,11 @@ void Sensors::printUnitsRegistered(bool debug) {
 
 /**
  * @brief print the sensor names detected
- * @param debug optional boolean to set the debug mode flag
+ * @param debug optional boolean to set the debug mode flag.
  */
 void Sensors::printSensorsRegistered(bool debug) { 
     if (!debug) return;
-    Serial.printf("-->[SLIB] Sensors count  \t: %i (", sensors_registered_count);
+    Serial.printf("-->[SLIB] sensors count  \t: %i (", sensors_registered_count);
     int i = 0;
     while (sensors_registered[i++] != 0) {
         Serial.print(sensors_device_names[sensors_registered[i-1]]);
@@ -597,7 +674,7 @@ void Sensors::printSensorsRegistered(bool debug) {
 /// Print preview of the current variables detected by the sensors
 void Sensors::printValues() {
     if (!devmode) return;
-    Serial.print("-->[SLIB] Sensors values  \t: ");
+    Serial.print("-->[SLIB] sensors values  \t: ");
     for (u_int i = 0; i < UCOUNT; i++) {
         if (units_registered[i] != 0) {
             Serial.print(getUnitName((UNIT)units_registered[i]));
@@ -614,7 +691,7 @@ void Sensors::printValues() {
 
 /**
  *  @brief PMS sensor generic read. Supported: Honeywell & Plantower sensors
- *  @return true if header and sensor data is right
+ *  @return true if header and sensor data is right.
  */
 bool Sensors::pmGenericRead() {
     int lenght_buffer = 32;
@@ -641,7 +718,7 @@ bool Sensors::pmGenericRead() {
 
 /**
  *  @brief Panasonic GCJA5 particulate meter sensor read.
- *  @return true if header and sensor data is right
+ *  @return true if header and sensor data is right.
  */
 bool Sensors::pmGCJA5Read() {
     int lenght_buffer = 32;
@@ -668,7 +745,7 @@ bool Sensors::pmGCJA5Read() {
 
 /**
  *  @brief Nova SDS011 particulate meter sensor read.
- *  @return true if header and sensor data is right
+ *  @return true if header and sensor data is right.
  */
 bool Sensors::pmSDS011Read() {
     int lenght_buffer = 10;
@@ -695,7 +772,7 @@ bool Sensors::pmSDS011Read() {
 
 /**
  *  @brief IKEA Vindriktning particulate meter sensor read.
- *  @return true if header and sensor data is right
+ *  @return true if header and sensor data is right.
  */
 
 bool Sensors::pm1006Read() {
@@ -710,9 +787,8 @@ bool Sensors::pm1006Read() {
 
 /**
  * @brief PMSensor Serial read to basic string
- * 
  * @param SENSOR_RETRY attempts before failure
- * @return String buffer
+ * @return String buffer.
  **/
 String Sensors::hwSerialRead(unsigned int lenght_buffer) {
     unsigned int try_sensor_read = 0;
@@ -731,7 +807,7 @@ String Sensors::hwSerialRead(unsigned int lenght_buffer) {
 
 /**
  *  @brief Sensirion SPS30 particulate meter sensor read.
- *  @return true if reads succes
+ *  @return true if reads succes.
  */
 bool Sensors::sps30Read() {
     if (!isSensorRegistered(SENSORS::SSPS30)) return false;
@@ -781,8 +857,8 @@ bool Sensors::CO2Mhz19Read() {
         if(altoffset != 0) CO2correctionAlt();
         dataReady = true;
         DEBUG("-->[SLIB] MHZ14-9 read  \t: done!");
+        tempRegister(true);
         unitRegister(UNIT::CO2);
-        unitRegister(UNIT::CO2TEMP);
         return true;
     }
     return false;
@@ -814,7 +890,7 @@ bool Sensors::senseAirS8Read() {
 
 /**
  * @brief read sensor data. Sensor selected.
- * @return true if data is loaded from sensor
+ * @return true if data is loaded from sensor.
  */
 bool Sensors::pmSensorRead() {
     switch (dev_uart_type) {
@@ -867,7 +943,7 @@ void Sensors::am2320Read() {
         temp = temp1-toffset;
         dataReady = true;
         DEBUG("-->[SLIB] AM2320 read\t\t: done!");
-        unitRegister(UNIT::TEMP);
+        tempRegister(false);
         unitRegister(UNIT::HUM);
     }
 }
@@ -882,7 +958,7 @@ void Sensors::bme280Read() {
     alt = bme280.readAltitude(sealevel);
     dataReady = true;
     DEBUG("-->[SLIB] BME280 read\t\t: done!");
-    unitRegister(UNIT::TEMP);
+    tempRegister(false);
     unitRegister(UNIT::HUM);
     unitRegister(UNIT::ALT);
 }
@@ -897,7 +973,7 @@ void Sensors::bmp280Read() {
     alt = alt1;
     dataReady = true;
     DEBUG("-->[SLIB] BMP280 read\t\t: done!");
-    unitRegister(UNIT::TEMP);
+    tempRegister(false);
     unitRegister(UNIT::PRESS);
     unitRegister(UNIT::ALT);
 }
@@ -912,7 +988,7 @@ void Sensors::bme680Read() {
     alt = bme680.readAltitude(sealevel);
     dataReady = true;
     DEBUG("-->[SLIB] BME680 read\t\t: done!");
-    unitRegister(UNIT::TEMP);
+    tempRegister(false);
     unitRegister(UNIT::HUM);
     unitRegister(UNIT::PRESS);
     unitRegister(UNIT::GAS);
@@ -927,7 +1003,7 @@ void Sensors::aht10Read() {
         temp = temp1-toffset;
         dataReady = true;
         DEBUG("-->[SLIB] AHT10 read\t\t: done!");
-        unitRegister(UNIT::TEMP);
+        tempRegister(false);
         unitRegister(UNIT::HUM);
     }
 }
@@ -940,7 +1016,7 @@ void Sensors::sht31Read() {
         temp = temp1-toffset;
         dataReady = true;
         DEBUG("-->[SLIB] SHT31 read\t\t: done!");
-        unitRegister(UNIT::TEMP);
+        tempRegister(false);
         unitRegister(UNIT::HUM);
     }
 }
@@ -954,8 +1030,8 @@ void Sensors::CO2scd30Read() {
         CO2temp = scd30.temperature;
         dataReady = true;
         DEBUG("-->[SLIB] SCD30 read\t\t: done!");
+        tempRegister(true);
         unitRegister(UNIT::CO2);
-        unitRegister(UNIT::CO2TEMP);
         unitRegister(UNIT::CO2HUM);
     }
 }
@@ -970,8 +1046,8 @@ void Sensors::CO2scd4xRead() {
     CO2temp = tCO2temp;
     dataReady = true;
     DEBUG("-->[SLIB] SCD4x read\t\t: done!");
+    tempRegister(true);
     unitRegister(UNIT::CO2);
-    unitRegister(UNIT::CO2TEMP);
     unitRegister(UNIT::CO2HUM);
 }
 
@@ -1040,7 +1116,7 @@ void Sensors::dhtRead() {
     dataReady = true;
     sensorRegister(SENSORS::SDHTX);
     DEBUG("-->[SLIB] DHTXX read\t\t: done!");
-    unitRegister(UNIT::TEMP);
+    tempRegister(false);
     unitRegister(UNIT::HUM);
 }
 #endif
@@ -1350,7 +1426,7 @@ bool Sensors::sps30tests() {
 }
 
 /**
- * @brief : read and display Sensirion device info
+ * @brief : read and display Sensirion device info.
  */
 void Sensors::sps30DeviceInfo() {
     char buf[32];
@@ -1435,6 +1511,7 @@ void Sensors::bme280Init() {
     sensorRegister(SENSORS::SBME280);
 }
 
+/// Environment BMP280 sensor init
 void Sensors::bmp280Init() {
     sensorAnnounce(SENSORS::SBMP280);
     #ifndef Wire1
@@ -1459,6 +1536,7 @@ void Sensors::bmp280Init() {
     sensorRegister(SENSORS::SBMP280);
 }
 
+/// Bosch BME680 sensor init
 void Sensors::bme680Init() {
     sensorAnnounce(SENSORS::SBME680);
     if (!bme680.begin()) return;
@@ -1470,6 +1548,7 @@ void Sensors::bme680Init() {
     sensorRegister(SENSORS::SBME680);
 }
 
+/// AHTXX sensors init
 void Sensors::aht10Init() {
     sensorAnnounce(SENSORS::SAHTXX);
     aht10 = AHTxx(AHTXX_ADDRESS_X38, AHT1x_SENSOR);
@@ -1481,6 +1560,7 @@ void Sensors::aht10Init() {
     sensorRegister(SENSORS::SAHTXX);
 }
 
+/// Sensirion SCD30 CO2/T/H sensor init
 void Sensors::CO2scd30Init() {
     sensorAnnounce(SENSORS::SSCD30);
     #ifndef Wire1
@@ -1522,6 +1602,7 @@ void Sensors::setSCD30AltitudeOffset(float offset) {
     }
 }
 
+/// Sensirion SCD4X CO2 sensor init
 void Sensors::CO2scd4xInit() {
     sensorAnnounce(SENSORS::SSCD4X);
     float tTemperatureOffset, offsetDifference;
@@ -1572,6 +1653,7 @@ void Sensors::setSCD4xAltitudeOffset(float offset) {
     }
 }
 
+/// Panasonic GCJA5 sensor init
 void Sensors::GCJA5Init() {
     sensorAnnounce(SENSORS::SGCJA5);
     #ifndef Wire1
@@ -1582,6 +1664,7 @@ void Sensors::GCJA5Init() {
     sensorRegister(SENSORS::SGCJA5);
 }
 
+/// DFRobot GAS (CO) sensors init
 void Sensors::DFRobotCOInit() {
   sensorAnnounce(SENSORS::SDFRCO);
   dfrCO = DFRobot_GAS_I2C(&Wire, 0x78); // Be sure that your group of i2c address is 7
@@ -1593,6 +1676,7 @@ void Sensors::DFRobotCOInit() {
   sensorRegister(SENSORS::SDFRCO);
 }
 
+/// DFRobot GAS (NH3) sensors init
 void Sensors::DFRobotNH3Init() {
   sensorAnnounce(SENSORS::SDFRNH3);
   dfrNH3 = DFRobot_GAS_I2C(&Wire, 0x7A); // 0x77 y 0x75 used by bme680. Be sure that your group of i2c address is 7
@@ -1612,6 +1696,7 @@ void Sensors::CO2correctionAlt() {
     DEBUG("-->[SLIB] CO2 compensated\t:", String(CO2Val).c_str());
 }
 
+/// hPa hectopascal calculation based on the altitude. See CO2AltitudeOffset setter
 float Sensors::hpaCalculation(float altitude) {
     DEBUG("-->[SLIB] CO2 altitude offset\t:", String(altitude).c_str());
     float hpa = 1012 - 0.118 * altitude + 0.00000473 * altitude * altitude;            // Cuadratic regresion formula obtained PA (hpa) from high above the sea
@@ -1619,22 +1704,38 @@ float Sensors::hpaCalculation(float altitude) {
     return hpa;
 }
 
+/// utility to notify on the debug output a possible sensor.
 void Sensors::sensorAnnounce(SENSORS sensor) {
     DEBUG("-->[SLIB] attempt enable sensor\t:",getSensorName(sensor).c_str());
 }
 
+/**
+ * @brief register the sensor type.
+ * @param receive SENSORS enum param.
+ * 
+ * Each sensor should be registered and also its units. With that we will able to have
+ * dynamic calls of the sensors and its units on the GUI or implementation.
+*/
 void Sensors::sensorRegister(SENSORS sensor) {
     if (isSensorRegistered(sensor)) return;
     Serial.printf("-->[SLIB] sensor registered\t: %s  \t:D\r\n", getSensorName(sensor).c_str());
     sensors_registered[sensors_registered_count++] = sensor;
 }
 
+/**
+ * @brief register the unit type.
+ * @param receive UNIT enum param.
+ *
+ * Each sensor unit should be registered. For temperature sensors
+ * please use tempRegister() method.
+*/
 void Sensors::unitRegister(UNIT unit) {
     if (isUnitRegistered(unit)) return;
     if (unit == UNIT::NUNIT) return;
     units_registered[units_registered_count++] = unit;
 }
 
+/// reset all library variables (generic sensors units)
 void Sensors::resetAllVariables() {
     pm1 = 0;
     pm25 = 0;
@@ -1662,7 +1763,7 @@ void Sensors::geigerRead(){
 }
 /**
  * @brief Enable Geiger sensor on specific pin
- * @param GPIO pin
+ * @param gpio number or pin.
 */
 void Sensors::enableGeigerSensor(int gpio){
   sensorAnnounce(SENSORS::SCAJOE);
@@ -1674,11 +1775,19 @@ void Sensors::enableGeigerSensor(int gpio){
   sensorRegister(SENSORS::SCAJOE);
 }
 
+/**
+ * @brief get Geiger count. Tics in the last 60secs
+ * @return CPM
+*/
 uint32_t Sensors::getGeigerCPM(void) {
   if (rad == nullptr) return 0;
   else return rad->getTics();
 }
 
+/**
+ * @brief get Geiger count in uSv/h units
+ * @return CPM * J305 conversion factor
+*/
 float Sensors::getGeigerMicroSievertHour(void) {
   if (rad == nullptr) return 0;
   else return rad->getUSvh();

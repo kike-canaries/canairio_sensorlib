@@ -85,6 +85,7 @@ DHT22 is supported but is not recommended. Please see the documentation.
 - Unified calibration trigger for all CO2 sensors
 - Unified CO2 Altitude compensation
 - Unified temperature offset for CO2 and environment sensors
+- Add support for Kelvin and Fahrenheit on environment and CO2 sensors
 - Public access to main objects of each library (full methods access)
 - Get unit symbol and name and each sub-sensor
 - Get the main group type: NONE, PM, CO2 and ENV.
@@ -129,6 +130,7 @@ void setup() {
     sensors.setSeaLevelPressure(1036.25);           // [optional] Set sea level pressure in hpa
     sensors.setDebugMode(false);                    // [optional] debug mode to get detailed msgs
     sensors.detectI2COnly(true);                    // [optional] force to only i2c sensors
+    sensors.setTemperatureUnit(TEMPUNIT::KELVIN);   // comment it for Celsius or set Fahrenheit
     sensors.init();                                 // Auto detection to UART and i2c sensors
 
     // Alternatives only for UART sensors (TX/RX):
@@ -143,8 +145,6 @@ void setup() {
     // sensors.init(SENSORS::SAIRS8);               // Force UART detection to SenseAirS8 CO2 sensor
     // sensors.init(SENSORS::Auto,PMS_RX,PMS_TX);   // Auto detection on custom RX,TX
   
-
-
     // Also you can access to sub-library objects, and perform for example calls like next:
 
     // sensors.sps30.sleep()
