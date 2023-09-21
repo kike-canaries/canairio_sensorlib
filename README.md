@@ -5,7 +5,7 @@
 
 Generic sensor manager, abstractions and bindings of multiple sensors [libraries](https://github.com/kike-canaries/canairio_sensorlib/blob/master/unified-lib-deps.ini): Honeywell, Plantower, Panasonic, Sensirion, etc. and CO2 sensors. Also it's handling others environment sensors. This library is for general purpose, but also is the sensors library base of [CanAirIO project](https://canair.io/docs).
 
-For developers also you can check the complete library documentation [here](http://hpsaturn.com/canairio_sensorlib_doc/html/index.html)
+For developers also you can check the complete library documentation [here](http://hpsaturn.com/canairio_sensorlib_doc/html/classSensors.html)
 
 <table>
 	<tr>
@@ -354,7 +354,7 @@ Also you can make a donation, be a patreon or buy a device:
 - [x] Disable/enable logs (debug mode flag)
 - [x] Added bme280, bmp280, aht10, sht31, am2320 i2c sensors
 - [x] Exposed public sub-libraries objects, sps30, aht10, etc.
-- [x] Added old DHT sensors 
+- [x] Added old DHT sensors
 - [x] Added CO2 sensors: MHZ19, SCD30, CM1106 via UART
 - [x] Added SDS011 particle metter
 - [x] BME680 support
@@ -366,6 +366,7 @@ Also you can make a donation, be a patreon or buy a device:
 - [x] Two I2C channel supported for M5Stack Devices (M5StickC tested)
 - [x] Added CO and NH3 sensors
 - [x] Added Geiger sensor support
+- [ ] New IKEA VINDSTYRKA device support
 - [ ] Sea level setting for Pressure sensors and others
 - [ ] Support to second UART port
 
