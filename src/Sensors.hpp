@@ -24,8 +24,8 @@
 #include <dht_nonblocking.h> 
 #endif
 
-#define CSL_VERSION "0.7.0"
-#define CSL_REVISION 377
+#define CSL_VERSION "0.7.1"
+#define CSL_REVISION 378
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -85,6 +85,7 @@
 // UART defualt port
 #define SENSOR_COMMS SERIALPORT2
 
+// Sensors units definitions (symbol/name)
 #define SENSOR_UNITS           \
     X(NUNIT, "NUNIT", "NUNIT") \
     X(PM1, "ug/m3", "PM1")     \
@@ -92,9 +93,13 @@
     X(PM4, "ug/m3", "PM4")     \
     X(PM10, "ug/m3", "PM10")   \
     X(TEMP, "C", "T")          \
+    X(TEMPK, "K", "T")          \
+    X(TEMPF, "F", "T")          \
     X(HUM, "%", "H")           \
     X(CO2, "ppm", "CO2")       \
     X(CO2TEMP, "C", "CO2T")    \
+    X(CO2TEMPK, "K", "CO2TK")    \
+    X(CO2TEMPF, "F", "CO2TF")    \
     X(CO2HUM, "%", "CO2H")     \
     X(PRESS, "hPa", "P")       \
     X(ALT, "m", "Alt")         \
@@ -110,6 +115,7 @@
 typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
 #undef X
 
+// sensors types: 1:PM, 2:CO2, 3:ENV
 #define SENSORS_TYPES       \
     X(Auto, "GENERIC", 1)   \
     X(SGCJA5, "GCJA5", 1)   \
@@ -138,94 +144,104 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
 typedef enum SENSORS : size_t { SENSORS_TYPES } SENSORS;  // backward compatibility
 #undef X
 
-// MAIN SENSOR TYPE
+// MAIN SENSOR GROUPS TYPE
 enum class SensorGroup { SENSOR_NONE,
                          SENSOR_PM,
                          SENSOR_CO2,
                          SENSOR_ENV, 
                          SENSOR_RAD  // CAJOE_GEIGER
                          };
+// TEMPERATURE UNITS
+enum class TEMPUNIT {
+    CELSIUS,
+    FAHRENHEIT,
+    KELVIN
+};
 
 typedef void (*errorCbFn)(const char *msg);
 typedef void (*voidCbFn)();
 
+/**
+ * @brief CanAirIO Sensors Manager main class.
+ * @authors \@hpsaturn and CanAir.IO contributers
+*/
 class Sensors {
    public:
-    // SPS30 values. Only for Sensirion SPS30 sensor.
+    /// SPS30 values. Only for Sensirion SPS30 sensor.
     struct sps_values val;
 
-    // Debug mode for increase verbose.
+    /// Debug mode for increase verbose.
     bool devmode;
 
-    // Initial sample time for all sensors
+    /// Initial sample time for all sensors
     int sample_time = 10;
 
-    // temperature offset (for final temp output)
+    /// Temperature offset (for final temp output)
     float toffset = 0.0;
 
-    // Altitud compensation variable
+    /// Altitud compensation variable
     float altoffset = 0.0;
 
-    // Sea level pressure (hPa)
+    /// Sea level pressure (hPa)
     float sealevel = 1013.25;
 
-    // Altitud hpa calculation
+    /// Altitud hpa calculation
     float hpa = 0.0;
 
     /// Sensirion library
     SPS30 sps30;
 
-    // only detect i2c sensors
+    /// only detect i2c sensors flag
     bool i2conly;
 
     /*****************************************
      * I2C sensors:
      ****************************************/
 
-    // AM2320 (Humidity and temperature)
+    /// AM2320 object (Humidity and temperature)
     AM232X am2320;
-    // BME280 (Humidity, Pressure, Altitude and Temperature)
+    /// BME280 object (Humidity, Pressure, Altitude and Temperature)
     Adafruit_BME280 bme280;
-    // BMP280 (Humidity, Pressure, Altitude and Temperature)
+    /// BMP280 object (Humidity, Pressure, Altitude and Temperature)
     Adafruit_BMP280 bmp280;
-    // BME680 (Humidity, Gas, IAQ, Pressure, Altitude and Temperature)
+    /// BME680 object (Humidity, Gas, IAQ, Pressure, Altitude and Temperature)
     Adafruit_BME680 bme680;
-    // AHT10
+    /// AHTXX sensors object
     AHTxx aht10;
-    // SHT31
+    /// SHT31 object (Humidity and temperature)
     Adafruit_SHT31 sht31;
 
     #ifdef DHT11_ENABLED
-    // DHT sensor
+    /// @deprecated DHT sensor variable 
     float dhthumi, dhttemp;
     #endif
-    // Mhz19 sensor
+    /// Mhz19 object sensor
     MHZ19 mhz19;
-    // SCD30 sensor
+    /// SCD30 object sensor
     Adafruit_SCD30 scd30;
-    // CM1106 UART
+    /// CM1106 UART main object sensor
     CM1106_UART *cm1106;
-    // CM1106 UART
+    /// CM1106 UART main variable
     CM1106_sensor cm1106sensor;
-    // CM1106 UART
+    /// CM1106 UART calibration object
     CM1106_ABC abc;
-    // Panasonic SN-GCJA5
+    /// Panasonic SN-GCJA5 object sensor
     SFE_PARTICLE_SENSOR pmGCJA5;
-    // SenseAir S8 CO2 sensor
+    /// SenseAir S8 CO2 object sensor
     S8_UART *s8;
-    // SenseAir S8 CO2 sensor
+    /// SenseAir S8 CO2 object sensor
     S8_sensor s8sensor;
-    // SCD4x sensor
+    /// SCD4x object sensor
     SensirionI2CScd4x scd4x;
     // SEN5x sensor PM
     SensirionI2CSen5x sen5x;
-    // IKEA Vindriktn sensor
+    /// IKEA Vindriktn object sensor
     PM1006 *pm1006;
-    // DFRobot gravity NH3 sensor addr 0x74
+    /// DFRobot gravity NH3 object sensor addr 0x74
     DFRobot_GAS_I2C dfrCO;
-    // DFRobot gravity NH3 sensor addr 0x77
+    /// DFRobot gravity NH3 object sensor addr 0x77
     DFRobot_GAS_I2C dfrNH3;
-    // Geiger CAJOE sensor
+    /// Geiger CAJOE object sensor
     GEIGER *rad;
 
 
@@ -243,6 +259,8 @@ class Sensors {
     void setOnDataCallBack(voidCbFn cb);
 
     void setOnErrorCallBack(errorCbFn cb);
+
+    void setTemperatureUnit(TEMPUNIT tunit);
 
     void setDebugMode(bool enable);
 
@@ -366,7 +384,10 @@ class Sensors {
     float temp = 0.0;  // Temperature (°C)
     float pres = 0.0;  // Pressure
     float alt = 0.0;
-    float gas = 0.0;   // 
+    float gas = 0.0;   //
+
+    // temperature unit (C,K,F)
+    TEMPUNIT temp_unit = TEMPUNIT::CELSIUS; 
     
     uint16_t CO2Val;      // CO2 in ppm
     float CO2humi = 0.0;  // humidity of CO2 sensor
@@ -434,7 +455,6 @@ class Sensors {
     bool pm1006Read();
     bool CO2Mhz19Read();
     bool CO2CM1106Read();
-    int CO2CM1106val();
     bool CO2Mhz19Init();
     bool CO2CM1106Init();
     bool senseAirS8Init();
@@ -470,6 +490,8 @@ class Sensors {
     void printValues();
 
     void printHumTemp();
+
+    void tempRegister(bool isCO2temp);
 
     void sensorRegister(SENSORS sensor);
 

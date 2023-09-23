@@ -5,7 +5,7 @@
 
 Generic sensor manager, abstractions and bindings of multiple sensors [libraries](https://github.com/kike-canaries/canairio_sensorlib/blob/master/unified-lib-deps.ini): Honeywell, Plantower, Panasonic, Sensirion, etc. and CO2 sensors. Also it's handling others environment sensors. This library is for general purpose, but also is the sensors library base of [CanAirIO project](https://canair.io/docs).
 
-For developers also you can check the complete library documentation [here](http://hpsaturn.com/canairio_sensorlib_doc/html/index.html)
+For developers also you can check the complete library documentation [here](http://hpsaturn.com/canairio_sensorlib_doc/html/classSensors.html)
 
 <table>
 	<tr>
@@ -85,6 +85,7 @@ DHT22 is supported but is not recommended. Please see the documentation.
 - Unified calibration trigger for all CO2 sensors
 - Unified CO2 Altitude compensation
 - Unified temperature offset for CO2 and environment sensors
+- Add support for Kelvin and Fahrenheit on environment and CO2 sensors
 - Public access to main objects of each library (full methods access)
 - Get unit symbol and name and each sub-sensor
 - Get the main group type: NONE, PM, CO2 and ENV.
@@ -129,6 +130,7 @@ void setup() {
     sensors.setSeaLevelPressure(1036.25);           // [optional] Set sea level pressure in hpa
     sensors.setDebugMode(false);                    // [optional] debug mode to get detailed msgs
     sensors.detectI2COnly(true);                    // [optional] force to only i2c sensors
+    sensors.setTemperatureUnit(TEMPUNIT::KELVIN);   // comment it for Celsius or set Fahrenheit
     sensors.init();                                 // Auto detection to UART and i2c sensors
 
     // Alternatives only for UART sensors (TX/RX):
@@ -143,8 +145,6 @@ void setup() {
     // sensors.init(SENSORS::SAIRS8);               // Force UART detection to SenseAirS8 CO2 sensor
     // sensors.init(SENSORS::Auto,PMS_RX,PMS_TX);   // Auto detection on custom RX,TX
   
-
-
     // Also you can access to sub-library objects, and perform for example calls like next:
 
     // sensors.sps30.sleep()
@@ -354,7 +354,7 @@ Also you can make a donation, be a patreon or buy a device:
 - [x] Disable/enable logs (debug mode flag)
 - [x] Added bme280, bmp280, aht10, sht31, am2320 i2c sensors
 - [x] Exposed public sub-libraries objects, sps30, aht10, etc.
-- [x] Added old DHT sensors 
+- [x] Added old DHT sensors
 - [x] Added CO2 sensors: MHZ19, SCD30, CM1106 via UART
 - [x] Added SDS011 particle metter
 - [x] BME680 support
@@ -366,6 +366,7 @@ Also you can make a donation, be a patreon or buy a device:
 - [x] Two I2C channel supported for M5Stack Devices (M5StickC tested)
 - [x] Added CO and NH3 sensors
 - [x] Added Geiger sensor support
+- [ ] New IKEA VINDSTYRKA device support
 - [ ] Sea level setting for Pressure sensors and others
 - [ ] Support to second UART port
 
