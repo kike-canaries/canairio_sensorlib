@@ -10,11 +10,12 @@
 #include <Adafruit_SCD30.h>
 #include <Adafruit_Sensor.h>
 #include <MHZ19.h>
-#include <SensirionI2CScd4x.h>
 #include <SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h>
 #include <cm1106_uart.h>
 #include <s8_uart.h>
+#include <SensirionI2CScd4x.h>
 #include <sps30.h>
+#include <SensirionI2CSen5x.h>
 #include <drivers/pm1006.h>
 #include <drivers/geiger.h>
 #include <DFRobot_MultiGasSensor.h>
@@ -127,6 +128,7 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
     X(IKEAVK, "IKEAVK",1)   \
     X(SSCD30, "SCD30", 2)   \
     X(SSCD4X, "SCD4X", 2)   \
+    X(SSEN5X, "SEN5X", 1)   \
     X(SSHT31, "SHT31", 3)   \
     X(SBME280, "BME280", 3) \
     X(SBMP280, "BMP280", 3) \
@@ -134,7 +136,7 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
     X(SAHTXX, "AHTXX", 3)   \
     X(SAM232X, "AM232X", 3) \
     X(SDHTX, "DHTX", 3)     \
-    X(SDFRCO, "DFRCO", 3) \
+    X(SDFRCO, "DFRCO", 3)   \
     X(SDFRNH3, "DFRNH3", 3) \
     X(SDFRNO2, "DFRNO2", 3) \
     X(SCAJOE, "CAJOE", 3)   \
@@ -233,6 +235,8 @@ class Sensors {
     S8_sensor s8sensor;
     /// SCD4x object sensor
     SensirionI2CScd4x scd4x;
+    // SEN5x sensor PM
+    SensirionI2CSen5x sen5x;
     /// IKEA Vindriktn object sensor
     PM1006 *pm1006;
     /// DFRobot gravity NH3 object sensor addr 0x74
@@ -243,6 +247,8 @@ class Sensors {
     DFRobot_GAS_I2C dfrNO2;
     /// Geiger CAJOE object sensor
     GEIGER *rad;
+
+
 
     void init(u_int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
@@ -426,6 +432,10 @@ class Sensors {
     void CO2scd4xRead();
     void setSCD4xTempOffset(float offset);
     void setSCD4xAltitudeOffset(float offset);
+
+    void sen5xInit();
+    void sen5xRead();
+   // void setSEN5xTempOffset(float offset);
 
     void GCJA5Init();
     void GCJA5Read();
