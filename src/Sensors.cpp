@@ -69,6 +69,7 @@ bool Sensors::readAllSensors() {
     GCJA5Read();
     sps30Read();
     CO2scd4xRead();
+    sen5xRead();
     am2320Read(); 
     sht31Read();
     bme280Read();
@@ -77,6 +78,7 @@ bool Sensors::readAllSensors() {
     aht10Read(); 
     DFRobotCORead();
     DFRobotNH3Read();
+    DFRobotNO2Read();
     geigerRead();
 
     #ifdef DHT11_ENABLED
@@ -123,6 +125,7 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     sps30I2CInit();
     GCJA5Init();
     CO2scd4xInit();
+    sen5xInit();
     bmp280Init();
     bme280Init();
     bme680Init();
@@ -131,6 +134,7 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     aht10Init(); 
     DFRobotCOInit();
     DFRobotNH3Init();
+    DFRobotNO2Init();
   
     #ifdef DHT11_ENABLED
     dhtInit();
@@ -377,6 +381,7 @@ void Sensors::setTempOffset(float offset){
     toffset = offset;
     setSCD30TempOffset(toffset);
     setSCD4xTempOffset(toffset);
+   // setSEN5xTempOffset(toffset);
 }
 
 /// get Gas resistance value of BMP680 sensor
@@ -402,6 +407,11 @@ float Sensors::getNH3() {
 /// get CO value in ppm
 float Sensors::getCO() {
     return co;
+}
+
+/// get NO2 value in ppm
+float Sensors::getNO2() {
+    return no2;
 }
 
 /**
@@ -636,6 +646,8 @@ float Sensors::getUnitValue(UNIT unit) {
             return nh3;
         case CO:
             return co;
+        case NO2:
+            return no2;
         default:
             return 0.0;
     }
@@ -1051,6 +1063,47 @@ void Sensors::CO2scd4xRead() {
     unitRegister(UNIT::CO2HUM);
 }
 
+
+void Sensors::sen5xRead() {
+    uint16_t error;
+    char errorMessage[256];
+    float massConcentrationPm1p0;
+    float massConcentrationPm2p5;
+    float massConcentrationPm4p0;
+    float massConcentrationPm10p0;
+    float ambientHumidity;
+    float ambientTemperature;
+    float vocIndex;
+    float noxIndex;
+    
+    error = sen5x.readMeasuredValues(
+        massConcentrationPm1p0, massConcentrationPm2p5, massConcentrationPm4p0,
+        massConcentrationPm10p0, ambientHumidity, ambientTemperature, vocIndex,
+        noxIndex);
+
+    if (error) {
+        Serial.print("Error trying to execute readMeasuredValues(): ");
+        errorToString(error, errorMessage, 256);
+        Serial.println(errorMessage);
+    }
+  
+   // if (massConcentrationPm1p0 > 1000 || massConcentrationPm2p5 > 1000 || massConcentrationPm4p0 > 1000 || massConcentrationPm10p0 > 1000) return;
+    pm1 = massConcentrationPm1p0;
+    pm25 = massConcentrationPm2p5;
+    pm4 = massConcentrationPm4p0;
+    pm10 = massConcentrationPm4p0;
+    temp = ambientTemperature;
+    humi = ambientHumidity;
+    dataReady = true;
+    DEBUG("-->[SLIB] SEN5x read\t\t: done!");
+    unitRegister(UNIT::PM1);
+    unitRegister(UNIT::PM25);
+    unitRegister(UNIT::PM4);
+    unitRegister(UNIT::PM10);
+    unitRegister(UNIT::TEMP);
+    unitRegister(UNIT::HUM);
+}
+
 void Sensors::GCJA5Read() {
     if (dev_uart_type == SENSORS::SGCJA5) return;
     if (!pmGCJA5.isConnected()) return;
@@ -1080,6 +1133,12 @@ void Sensors::DFRobotCORead() {
     co = dfrCO.readGasConcentrationPPM();
     unitRegister(UNIT::CO);
    
+}
+
+void Sensors::DFRobotNO2Read() {
+    if (!dfrNO2.begin()) return;
+    no2 = dfrNO2.readGasConcentrationPPM();
+    unitRegister(UNIT::NO2);
 }
 
 #ifdef DHT11_ENABLED
@@ -1653,7 +1712,88 @@ void Sensors::setSCD4xAltitudeOffset(float offset) {
     }
 }
 
-/// Panasonic GCJA5 sensor init
+
+void Sensors::sen5xInit() {
+    sensorAnnounce(SENSORS::SSEN5X);
+    Wire.begin();
+    sen5x.begin(Wire);
+    uint16_t error;
+    char errorMessage[256];
+    error = sen5x.deviceReset();
+    if (error) {
+        Serial.print("Error trying to execute deviceReset(): ");
+        errorToString(error, errorMessage, 256);
+        Serial.println(errorMessage);
+    }
+    unsigned char productName[32];
+    uint8_t productNameSize = 32;
+    error = sen5x.getProductName(productName, productNameSize);
+
+    if (error) {
+        Serial.print("Error trying to execute getProductName(): ");
+        errorToString(error, errorMessage, 256);
+        Serial.println(errorMessage);
+    } else {
+       Serial.print("ProductName: ");
+       Serial.println((char*)productName);
+    
+     }
+        uint8_t firmwareMajor;
+        uint8_t firmwareMinor;
+        bool firmwareDebug;
+        uint8_t hardwareMajor;
+        uint8_t hardwareMinor;
+        uint8_t protocolMajor;
+        uint8_t protocolMinor;
+     error = sen5x.getVersion(firmwareMajor, firmwareMinor, firmwareDebug,
+                             hardwareMajor, hardwareMinor, protocolMajor,
+                             protocolMinor);
+    if (error) {
+        Serial.print("Error trying to execute getVersion(): ");
+        errorToString(error, errorMessage, 256);
+        Serial.println(errorMessage);
+    } else {
+        Serial.print("Firmware: ");
+        Serial.print(firmwareMajor);
+        Serial.print(".");
+        Serial.print(firmwareMinor);
+        Serial.print(", ");
+
+        Serial.print("Hardware: ");
+        Serial.print(hardwareMajor);
+        Serial.print(".");
+        Serial.println(hardwareMinor);
+    }
+    
+    unsigned char serialNumber[32];
+    uint8_t serialNumberSize = 32;
+
+    error = sen5x.getSerialNumber(serialNumber, serialNumberSize);
+    if (error) {
+        Serial.print("Error trying to execute getSerialNumber(): ");
+        errorToString(error, errorMessage, 256);
+        Serial.println(errorMessage);
+    } else {
+        Serial.print("SerialNumber:");
+        Serial.println((char*)serialNumber);
+    }
+     
+    sensorRegister(SENSORS::SSEN5X);
+
+}
+
+/*
+void Sensors::setsen5xTempOffset(float offset) {
+    if (isSensorRegistered(SENSORS::SSEN5X)) {
+        Serial.println("-->[SLIB] SEN5x new temperature offset\t: " + String(offset));
+        sen5x.stoptMeasurement();
+        sen5x.setTemperatureOffsetSimple(tempOffset);
+        delay(510);
+        sen5x.startMeasurement();
+    }
+}
+*/
+
 void Sensors::GCJA5Init() {
     sensorAnnounce(SENSORS::SGCJA5);
     #ifndef Wire1
@@ -1667,7 +1807,7 @@ void Sensors::GCJA5Init() {
 /// DFRobot GAS (CO) sensors init
 void Sensors::DFRobotCOInit() {
   sensorAnnounce(SENSORS::SDFRCO);
-  dfrCO = DFRobot_GAS_I2C(&Wire, 0x78); // Be sure that your group of i2c address is 7
+  dfrCO = DFRobot_GAS_I2C(&Wire, 0x78); // Be sure that your group of i2c address is 7, and A0=0 A1=0
   if (!dfrCO.begin()) return;
   //Mode of obtaining data: the main controller needs to request the sensor for data
   dfrCO.changeAcquireMode(dfrCO.PASSIVITY);
@@ -1679,13 +1819,25 @@ void Sensors::DFRobotCOInit() {
 /// DFRobot GAS (NH3) sensors init
 void Sensors::DFRobotNH3Init() {
   sensorAnnounce(SENSORS::SDFRNH3);
-  dfrNH3 = DFRobot_GAS_I2C(&Wire, 0x7A); // 0x77 y 0x75 used by bme680. Be sure that your group of i2c address is 7
+  dfrNH3 = DFRobot_GAS_I2C(&Wire, 0x7A); // 0x77 y 0x75 used by bme680. Be sure that your group of i2c address is 7, and A0=1 A1=0
   if (!dfrNH3.begin()) return;
   //Mode of obtaining data: the main controller needs to request the sensor for data
   dfrNH3.changeAcquireMode(dfrNH3.PASSIVITY);
   //Turn on temperature compensation: gas.ON : turn on
   dfrNH3.setTempCompensation(dfrNH3.ON);
   sensorRegister(SENSORS::SDFRNH3);
+}
+
+/// DFRobot GAS (NO2) sensors init
+void Sensors::DFRobotNO2Init() {
+  sensorAnnounce(SENSORS::SDFRNO2);
+  dfrNO2 = DFRobot_GAS_I2C(&Wire, 0x7B); // Be sure that your group of i2c address is 7, and A0=1 A1=1
+  if (!dfrNO2.begin()) return;
+  //Mode of obtaining data: the main controller needs to request the sensor for data
+  dfrNO2.changeAcquireMode(dfrNO2.PASSIVITY);
+  //Turn on temperature compensation: gas.ON : turn on
+  dfrNO2.setTempCompensation(dfrNO2.ON);
+  sensorRegister(SENSORS::SDFRNO2);
 }
 
 // Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
