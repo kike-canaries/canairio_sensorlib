@@ -107,6 +107,7 @@
     X(RAD, "uSv/h", "RAD") \
     X(NH3, "ppm", "NH3")       \
     X(CO, "ppm", "CO")         \
+    X(NO2, "ppm", "NO2")       \
     X(UCOUNT, "COUNT", "UCOUNT")
 
 
@@ -135,6 +136,7 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
     X(SDHTX, "DHTX", 3)     \
     X(SDFRCO, "DFRCO", 3) \
     X(SDFRNH3, "DFRNH3", 3) \
+    X(SDFRNO2, "DFRNO2", 3) \
     X(SCAJOE, "CAJOE", 3)   \
     X(SCOUNT, "SCOUNT", 3)
 
@@ -237,6 +239,8 @@ class Sensors {
     DFRobot_GAS_I2C dfrCO;
     /// DFRobot gravity NH3 object sensor addr 0x77
     DFRobot_GAS_I2C dfrNH3;
+    /// DFRobot gravity NO2 object sensor add 0x7B
+    DFRobot_GAS_I2C dfrNO2;
     /// Geiger CAJOE object sensor
     GEIGER *rad;
 
@@ -289,6 +293,8 @@ class Sensors {
     float getNH3();
     
     float getCO();
+    
+    float getNO2();
 
     void enableGeigerSensor(int gpio);
 
@@ -389,6 +395,7 @@ class Sensors {
 
     float nh3;         // Amonium in ppm
     float co;          // Carbon monoxide
+    float no2;         // Nitrogen dioxide
         
     void am2320Init();
     void am2320Read();
@@ -433,6 +440,8 @@ class Sensors {
     void DFRobotNH3Read();
     void DFRobotCOInit();
     void DFRobotCORead();
+    void DFRobotNO2Init();
+    void DFRobotNO2Read();
 
     // UART sensors methods:
 

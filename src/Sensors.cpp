@@ -77,6 +77,7 @@ bool Sensors::readAllSensors() {
     aht10Read(); 
     DFRobotCORead();
     DFRobotNH3Read();
+    DFRobotNO2Read();
     geigerRead();
 
     #ifdef DHT11_ENABLED
@@ -131,6 +132,7 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     aht10Init(); 
     DFRobotCOInit();
     DFRobotNH3Init();
+    DFRobotNO2Init();
   
     #ifdef DHT11_ENABLED
     dhtInit();
@@ -404,6 +406,11 @@ float Sensors::getCO() {
     return co;
 }
 
+/// get NO2 value in ppm
+float Sensors::getNO2() {
+    return no2;
+}
+
 /**
  * @brief UART only: check if the UART sensor is registered
  * @return bool true if the UART sensor is registered, false otherwise.
@@ -636,6 +643,8 @@ float Sensors::getUnitValue(UNIT unit) {
             return nh3;
         case CO:
             return co;
+        case NO2:
+            return no2;
         default:
             return 0.0;
     }
@@ -1080,6 +1089,12 @@ void Sensors::DFRobotCORead() {
     co = dfrCO.readGasConcentrationPPM();
     unitRegister(UNIT::CO);
    
+}
+
+void Sensors::DFRobotNO2Read() {
+    if (!dfrNO2.begin()) return;
+    no2 = dfrNO2.readGasConcentrationPPM();
+    unitRegister(UNIT::NO2);
 }
 
 #ifdef DHT11_ENABLED
@@ -1667,7 +1682,7 @@ void Sensors::GCJA5Init() {
 /// DFRobot GAS (CO) sensors init
 void Sensors::DFRobotCOInit() {
   sensorAnnounce(SENSORS::SDFRCO);
-  dfrCO = DFRobot_GAS_I2C(&Wire, 0x78); // Be sure that your group of i2c address is 7
+  dfrCO = DFRobot_GAS_I2C(&Wire, 0x78); // Be sure that your group of i2c address is 7, and A0=0 A1=0
   if (!dfrCO.begin()) return;
   //Mode of obtaining data: the main controller needs to request the sensor for data
   dfrCO.changeAcquireMode(dfrCO.PASSIVITY);
@@ -1679,13 +1694,25 @@ void Sensors::DFRobotCOInit() {
 /// DFRobot GAS (NH3) sensors init
 void Sensors::DFRobotNH3Init() {
   sensorAnnounce(SENSORS::SDFRNH3);
-  dfrNH3 = DFRobot_GAS_I2C(&Wire, 0x7A); // 0x77 y 0x75 used by bme680. Be sure that your group of i2c address is 7
+  dfrNH3 = DFRobot_GAS_I2C(&Wire, 0x7A); // 0x77 y 0x75 used by bme680. Be sure that your group of i2c address is 7, and A0=1 A1=0
   if (!dfrNH3.begin()) return;
   //Mode of obtaining data: the main controller needs to request the sensor for data
   dfrNH3.changeAcquireMode(dfrNH3.PASSIVITY);
   //Turn on temperature compensation: gas.ON : turn on
   dfrNH3.setTempCompensation(dfrNH3.ON);
   sensorRegister(SENSORS::SDFRNH3);
+}
+
+/// DFRobot GAS (NO2) sensors init
+void Sensors::DFRobotNO2Init() {
+  sensorAnnounce(SENSORS::SDFRNO2);
+  dfrNO2 = DFRobot_GAS_I2C(&Wire, 0x7B); // Be sure that your group of i2c address is 7, and A0=1 A1=1
+  if (!dfrNO2.begin()) return;
+  //Mode of obtaining data: the main controller needs to request the sensor for data
+  dfrNO2.changeAcquireMode(dfrNO2.PASSIVITY);
+  //Turn on temperature compensation: gas.ON : turn on
+  dfrNO2.setTempCompensation(dfrNO2.ON);
+  sensorRegister(SENSORS::SDFRNO2);
 }
 
 // Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
