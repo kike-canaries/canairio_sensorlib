@@ -23,7 +23,7 @@
 #include <dht_nonblocking.h> 
 #endif
 
-#define CSL_VERSION "0.7.2"
+#define CSL_VERSION "0.7.3"
 #define CSL_REVISION 379
 
 /***************************************************************
