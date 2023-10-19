@@ -53,6 +53,7 @@ Panasonic via UART in ESP8266 maybe needs select in detection.
 | BME680      | i2c |  Auto | STABLE |
 | DfRobot SEN0469 NH3  | i2c |  Auto | TESTING |
 | DFRobot SEN0466 CO | i2c |  Auto | TESTING |
+| DFRobot SEN0471 NO2 | i2c |  Auto | TESTING |
 | Geiger CAJOE | GPIO | Select | TESTING |
 | DHTxx       | TwoWire |  Select | DISABLED |
 
