@@ -53,6 +53,7 @@ Panasonic via UART in ESP8266 maybe needs select in detection.
 | BME680      | i2c |  Auto | STABLE |
 | DfRobot SEN0469 NH3  | i2c |  Auto | TESTING |
 | DFRobot SEN0466 CO | i2c |  Auto | TESTING |
+| DFRobot SEN0471 NO2 | i2c |  Auto | TESTING |
 | Geiger CAJOE | GPIO | Select | TESTING |
 | DHTxx       | TwoWire |  Select | DISABLED |
 
@@ -364,7 +365,7 @@ Also you can make a donation, be a patreon or buy a device:
 - [x] SenseAir S8 via UART support
 - [x] Multivariable selection (getNextUnit(),getUnitName(),etc)
 - [x] Two I2C channel supported for M5Stack Devices (M5StickC tested)
-- [x] Added CO and NH3 sensors
+- [x] Added CO, NO2 and NH3 sensors
 - [x] Added Geiger sensor support
 - [ ] New IKEA VINDSTYRKA device support
 - [ ] Sea level setting for Pressure sensors and others
