@@ -239,9 +239,9 @@ class Sensors {
     SensirionI2CSen5x sen5x;
     /// IKEA Vindriktn object sensor
     PM1006 *pm1006;
-    /// DFRobot gravity NH3 object sensor addr 0x74
+    /// DFRobot gravity CO object sensor addr 0x78
     DFRobot_GAS_I2C dfrCO;
-    /// DFRobot gravity NH3 object sensor addr 0x77
+    /// DFRobot gravity NH3 object sensor addr 0x7A
     DFRobot_GAS_I2C dfrNH3;
     /// DFRobot gravity NO2 object sensor add 0x7B
     DFRobot_GAS_I2C dfrNO2;
@@ -400,8 +400,8 @@ class Sensors {
     float CO2temp = 0.0;  // temperature of CO2 sensor
 
     float nh3;         // Amonium in ppm
-    float co;          // Carbon monoxide
-    float no2;         // Nitrogen dioxide
+    float co;          // Carbon monoxide in ppm
+    float no2;         // Nitrogen dioxide in ppm
         
     void am2320Init();
     void am2320Read();

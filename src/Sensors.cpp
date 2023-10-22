@@ -1812,7 +1812,7 @@ void Sensors::DFRobotCOInit() {
   //Mode of obtaining data: the main controller needs to request the sensor for data
   dfrCO.changeAcquireMode(dfrCO.PASSIVITY);
    //Turn on temperature compensation: gas.ON : turn on
-  dfrNH3.setTempCompensation(dfrCO.ON);
+  dfrCO.setTempCompensation(dfrCO.ON);
   sensorRegister(SENSORS::SDFRCO);
 }
 
@@ -1902,6 +1902,7 @@ void Sensors::resetAllVariables() {
     pres = 0.0;
     nh3 = 0;
     co = 0;
+    no2 = 0;
     if (rad !=nullptr) rad->clear();
 }
 
