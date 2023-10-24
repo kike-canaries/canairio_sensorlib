@@ -435,7 +435,7 @@ class Sensors {
 
     void sen5xInit();
     void sen5xRead();
-   // void setSEN5xTempOffset(float offset);
+    void setsen5xTempOffset(float offset);
 
     void GCJA5Init();
     void GCJA5Read();
