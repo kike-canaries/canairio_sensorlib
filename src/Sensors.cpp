@@ -1662,10 +1662,7 @@ void Sensors::CO2scd4xInit() {
     uint16_t error;
     scd4x.begin(Wire);
     error = scd4x.stopPeriodicMeasurement();
-    if (error) {
-        DEBUG("[W][SLIB] SCD4x stopping error \t:", String(error).c_str());
-        return;
-    }
+    if (error) return;
     scd4x.getTemperatureOffset(tTemperatureOffset);
     scd4x.getSensorAltitude(tSensorAltitude);
     DEBUG("-->[SLIB] SCD4x Temp offset\t:", String(tTemperatureOffset).c_str());
@@ -1716,6 +1713,12 @@ void Sensors::sen5xInit() {
     uint16_t error;
     error = sen5x.deviceReset();
     if (error) return;
+    float tempOffset = 0.0;
+    DEBUG("-->[SLIB] SEN5X Temp offset\t:",String(sen5x.getTemperatureOffsetSimple(tempOffset)).c_str());
+    if(uint16_t((tempOffset*100)) != (uint16_t(toffset*100))) {
+        sen5x.setTemperatureOffsetSimple(toffset);
+        delay(10);
+    }
     sensorRegister(SENSORS::SSEN5X);
 }
 
