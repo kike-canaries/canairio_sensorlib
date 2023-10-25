@@ -65,11 +65,12 @@ bool Sensors::readAllSensors() {
         DEBUG("-->[SLIB] UART data ready \t:", dataReady ? "true" : "false");
     }
     enableWire1(); 
+    
+    sen5xRead();
     CO2scd30Read();
     GCJA5Read();
     sps30Read();
     CO2scd4xRead();
-    sen5xRead();
     am2320Read(); 
     sht31Read();
     bme280Read();
@@ -1065,6 +1066,7 @@ void Sensors::CO2scd4xRead() {
 
 
 void Sensors::sen5xRead() {
+    if (!isSensorRegistered(SENSORS::SSEN5X)) return;
     float massConcentrationPm1p0;
     float massConcentrationPm2p5;
     float massConcentrationPm4p0;
