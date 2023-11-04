@@ -69,6 +69,9 @@ bool Sensors::readAllSensors() {
     GCJA5Read();
     sps30Read();
     CO2scd4xRead();
+    if (!sps30Read()) {
+    sen5xRead();
+    }
     sen5xRead();
     am2320Read(); 
     sht31Read();
@@ -128,7 +131,6 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     if (!sps30I2CInit()) {
     sen5xInit();
     }
-    
     bmp280Init();
     bme280Init();
     bme680Init();
