@@ -125,7 +125,10 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     sps30I2CInit();
     GCJA5Init();
     CO2scd4xInit();
+    if (!sps30I2CInit()) {
     sen5xInit();
+    }
+    
     bmp280Init();
     bme280Init();
     bme680Init();
