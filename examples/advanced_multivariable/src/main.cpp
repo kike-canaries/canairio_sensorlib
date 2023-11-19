@@ -1,7 +1,7 @@
 /**
  * @file main.cpp
  * @author Antonio Vanegas @hpsaturn
- * @date June 2018 - 2022
+ * @date June 2018 - 2023
  * @brief CanAirIO Sensorslib tests
  * @license GPL3
  * 
@@ -67,7 +67,7 @@ void powerEnableSensors() {
 
 void setup() {
     Serial.begin(115200);
-    delay(200);
+    delay(500);           // Only for debugging
     // powerEnableSensors(); // Only for special setup hardware with enable
     delay(100);
     Serial.println("\n== Sensor test setup ==\n");
@@ -75,10 +75,11 @@ void setup() {
     
     sensors.setSampleTime(10);                       // config sensors sample time interval
     sensors.setOnDataCallBack(&onSensorDataOk);      // all data read callback
-    sensors.setDebugMode(true);                      // [optional] debug mode
-    sensors.detectI2COnly(true);                     // force to only i2c sensors
+    sensors.setDebugMode(false);                     // [optional] debug mode
+    sensors.detectI2COnly(false);                    // not force to only i2c sensors
     sensors.setTemperatureUnit(TEMPUNIT::KELVIN);    // comment for Celsius or set Fahrenheit
-    sensors.init();                                  // Auto detection to UART and i2c sensors
+    // sensors.init(SENSORS::Auto, 13, 12);          // Auto detection (Custom UART sensor pins example)
+    sensors.init();                                  // Auto detection (UART and i2c sensors)
     delay(1000);
 }
 
