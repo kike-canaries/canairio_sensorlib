@@ -1561,13 +1561,16 @@ void Sensors::sht31Init() {
 }
 
 void Sensors::bme280Init() {
-    sensorAnnounce(SENSORS::SBME280);
-    #ifndef Wire1
-    if (!bme280.begin()) return;
-    #else
-    if (!bme280.begin() && !bme280.begin(BME280_ADDRESS,&Wire1)) return; 
-    #endif
-    sensorRegister(SENSORS::SBME280);
+  sensorAnnounce(SENSORS::SBME280);
+  #ifndef Wire1
+  if (!bme280.begin() && !bme280.begin(BME280_ADDRESS_ALTERNATE)) return;
+  #else
+  if (!bme280.begin() && 
+      !bme280.begin(BME280_ADDRESS_ALTERNATE) && 
+      !bme280.begin(BME280_ADDRESS, &Wire1) && 
+      !bme280.begin(BME280_ADDRESS_ALTERNATE, &Wire1)) return;
+  #endif
+  sensorRegister(SENSORS::SBME280);
 }
 
 /// Environment BMP280 sensor init
