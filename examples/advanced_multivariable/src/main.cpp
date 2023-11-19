@@ -18,6 +18,8 @@
 #include <Arduino.h>
 #include <Sensors.hpp>
 
+#define MAIN_HW_EN_PIN 27 // Only for setup with booster board with enable pin
+
 void printSensorsDetected() {
     uint16_t sensors_count =  sensors.getSensorsRegisteredCount();
     uint16_t units_count   =  sensors.getUnitsRegisteredCount();
@@ -56,9 +58,18 @@ void onSensorDataError(const char * msg){
 *  M A I N
 ******************************************************************************/
 
+void powerEnableSensors() {
+    // init all sensors (step-up to 5V with enable pin)
+    Serial.println("-->[POWR] == enable sensors ==");
+    pinMode(MAIN_HW_EN_PIN, OUTPUT);
+    digitalWrite(MAIN_HW_EN_PIN, HIGH);  // step-up on
+}
+
 void setup() {
     Serial.begin(115200);
     delay(200);
+    // powerEnableSensors(); // Only for special setup hardware with enable
+    delay(100);
     Serial.println("\n== Sensor test setup ==\n");
     Serial.println("-->[SETUP] Detecting sensors..");
     
