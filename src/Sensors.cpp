@@ -680,11 +680,14 @@ void Sensors::printUnitsRegistered(bool debug) {
  */
 void Sensors::printSensorsRegistered(bool debug) { 
     if (!debug) return;
-    Serial.printf("-->[SLIB] sensors count  \t: %i (", sensors_registered_count);
     int i = 0;
+    Serial.printf("-->[SLIB] sensors count  \t: %i (", sensors_registered_count);
+    if (sensors_registered_count > 0 && sensors_registered[0] == SENSORS::Auto) {
+      Serial.printf("%s,", sensors_device_names[sensors_registered[0]]);
+      i = 1;
+    }
     while (sensors_registered[i++] != 0) {
-        Serial.print(sensors_device_names[sensors_registered[i-1]]);
-        Serial.print(",");
+      Serial.printf("%s,", sensors_device_names[sensors_registered[i-1]]);
     }
     Serial.println(")");
 }
@@ -1210,7 +1213,7 @@ void Sensors::sps30Errorloop(char *mess, uint8_t r) {
  **/
 bool Sensors::sensorSerialInit(u_int pms_type, int pms_rx, int pms_tx) {
     // set UART for autodetection sensors (Honeywell, Plantower)
-    if (pms_type == Auto) {
+    if (pms_type == SENSORS::Auto) {
         DEBUG("-->[SLIB] UART detecting type\t: Auto");
         if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
     }
@@ -1819,7 +1822,9 @@ void Sensors::sensorAnnounce(SENSORS sensor) {
  * dynamic calls of the sensors and its units on the GUI or implementation.
 */
 void Sensors::sensorRegister(SENSORS sensor) {
-    if (isSensorRegistered(sensor)) return;
+    if (isSensorRegistered(sensor) && sensor != SENSORS::Auto) {
+      return;
+    }
     Serial.printf("-->[SLIB] sensor registered\t: %s  \t:D\r\n", getSensorName(sensor).c_str());
     sensors_registered[sensors_registered_count++] = sensor;
 }
