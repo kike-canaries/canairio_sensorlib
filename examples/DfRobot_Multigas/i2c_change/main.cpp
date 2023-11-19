@@ -37,7 +37,7 @@
 //#define I2C_ADDRESS    0x77
   DFRobot_GAS_I2C nh3(&Wire,0x7A);
   DFRobot_GAS_I2C co(&Wire,0x78);
-  DFRobot_GAS_I2C no(&Wire,0x7B);
+  DFRobot_GAS_I2C no2(&Wire,0x7B);
 
 void setup() {
   //Serial port init for viewing printing output
