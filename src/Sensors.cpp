@@ -65,6 +65,8 @@ bool Sensors::readAllSensors() {
         DEBUG("-->[SLIB] UART data ready \t:", dataReady ? "true" : "false");
     }
     enableWire1(); 
+    
+    sen5xRead();
     CO2scd30Read();
     GCJA5Read();
     sps30Read();
@@ -72,7 +74,6 @@ bool Sensors::readAllSensors() {
     if (!sps30Read()) {
     sen5xRead();
     }
-    sen5xRead();
     am2320Read(); 
     sht31Read();
     bme280Read();
@@ -1070,6 +1071,7 @@ void Sensors::CO2scd4xRead() {
 
 
 void Sensors::sen5xRead() {
+    if (!isSensorRegistered(SENSORS::SSEN5X)) return;
     float massConcentrationPm1p0;
     float massConcentrationPm2p5;
     float massConcentrationPm4p0;
@@ -1667,10 +1669,7 @@ void Sensors::CO2scd4xInit() {
     uint16_t error;
     scd4x.begin(Wire);
     error = scd4x.stopPeriodicMeasurement();
-    if (error) {
-        DEBUG("[W][SLIB] SCD4x stopping error \t:", String(error).c_str());
-        return;
-    }
+    if (error) return;
     scd4x.getTemperatureOffset(tTemperatureOffset);
     scd4x.getSensorAltitude(tSensorAltitude);
     DEBUG("-->[SLIB] SCD4x Temp offset\t:", String(tTemperatureOffset).c_str());
@@ -1721,6 +1720,12 @@ void Sensors::sen5xInit() {
     uint16_t error;
     error = sen5x.deviceReset();
     if (error) return;
+    float tempOffset = 0.0;
+    DEBUG("-->[SLIB] SEN5X Temp offset\t:",String(sen5x.getTemperatureOffsetSimple(tempOffset)).c_str());
+    if(uint16_t((tempOffset*100)) != (uint16_t(toffset*100))) {
+        sen5x.setTemperatureOffsetSimple(toffset);
+        delay(10);
+    }
     sensorRegister(SENSORS::SSEN5X);
 }
 

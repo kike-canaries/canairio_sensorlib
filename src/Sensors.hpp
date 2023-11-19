@@ -25,7 +25,7 @@
 #endif
 
 #define CSL_VERSION "0.7.3"
-#define CSL_REVISION 381
+#define CSL_REVISION 382
 
 /***************************************************************
 * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
