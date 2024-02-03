@@ -3,13 +3,14 @@
 #ifdef ESP32
 hw_timer_t* geiger_timer = NULL;
 portMUX_TYPE* geiger_timerMux = NULL;
-uint16_t tics_cnt = 0U; // tics in 1000ms
-uint32_t tics_tot = 0U; // total tics since boot
+uint16_t tics_cnt = 0U;  // tics in 1000ms
+uint32_t tics_tot = 0U;  // total tics since boot
 MovingSum<uint16_t, uint32_t>* cajoe_fms;
 
 // #########################################################################
 // Interrupt routine called on each click from the geiger tube
-// WARNING! the ISR is actually called on both the rising and the falling edge even if configure for FALLING or RISING
+// WARNING! the ISR is actually called on both the rising and the falling edge even if configure for
+// FALLING or RISING
 
 void IRAM_ATTR GeigerTicISR() {
   portENTER_CRITICAL_ISR(geiger_timerMux);
@@ -31,7 +32,7 @@ void IRAM_ATTR onGeigerTimer() {
 // #########################################################################
 // Initialize Geiger counter
 GEIGER::GEIGER(int gpio, bool debug) {
-#ifdef ESP32 
+#ifdef ESP32
   devmode = debug;
   tics_cnt = 0U;  // tics in 1000ms
   tics_tot = 0U;  // total tics since boot
@@ -39,10 +40,11 @@ GEIGER::GEIGER(int gpio, bool debug) {
   geiger_timer = NULL;
   geiger_timerMux = new portMUX_TYPE(portMUX_INITIALIZER_UNLOCKED);
 
-  // moving sum for CAJOE Geiger Counter, configured for 60 samples (1 sample every 1s * 60 samples = 60s)
+  // moving sum for CAJOE Geiger Counter, configured for 60 samples (1 sample every 1s * 60 samples
+  // = 60s)
   cajoe_fms = new MovingSum<uint16_t, uint32_t>(GEIGER_BUFSIZE);
 
-  Serial.printf("-->[SLIB] Geiger startup on pin\t: %i\r\n",gpio);
+  Serial.printf("-->[SLIB] Geiger startup on pin\t: %i\r\n", gpio);
 
   // attach interrupt routine to the GPI connected to the Geiger counter module
   pinMode(gpio, INPUT);
@@ -75,7 +77,8 @@ bool GEIGER::read() {
   ready = (tics_len == cajoe_fms->getFilterLength());
 
   // convert CPM (tics in last minute) to uSv/h and put in display buffer for TFT
-  // moving sum buffer size is 60 (1 sample every 1000 ms * 60 samples): the complete sum cover exactly last 60s
+  // moving sum buffer size is 60 (1 sample every 1000 ms * 60 samples): the complete sum cover
+  // exactly last 60s
   if (ready) {
     uSvh = getUSvh();
   } else {
@@ -99,16 +102,12 @@ bool GEIGER::read() {
 
 /**
  * Converts CPM to uSv/h units (J305 tube)
-*/
-float GEIGER::getUSvh() {
-  return float(this->tics_cpm) * J305_CONV_FACTOR;
-}
+ */
+float GEIGER::getUSvh() { return float(this->tics_cpm) * J305_CONV_FACTOR; }
 /**
  * Returns CPM
-*/
-uint32_t GEIGER::getTics() {
-  return this->tics_cpm;
-}
+ */
+uint32_t GEIGER::getTics() { return this->tics_cpm; }
 
 void GEIGER::clear() {
   tics_cpm = 0;

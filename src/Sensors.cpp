@@ -31,8 +31,9 @@ uint8_t sensors_registered[SCOUNT];
  * All sensors are read here, please call it on main loop.
  */
 void Sensors::loop() {
-  static uint32_t pmLoopTimeStamp = 0;                                // timestamp for sensor loop check data
-  if ((millis() - pmLoopTimeStamp > sample_time * (uint32_t)1000)) {  // sample time for each capture
+  static uint32_t pmLoopTimeStamp = 0;  // timestamp for sensor loop check data
+  if ((millis() - pmLoopTimeStamp >
+       sample_time * (uint32_t)1000)) {  // sample time for each capture
     pmLoopTimeStamp = millis();
     readAllSensors();
 
@@ -161,9 +162,9 @@ void Sensors::setSampleTime(int seconds) {
 /**
  * @brief set CO2 recalibration PPM value (400 to 2000)
  * @param ppmValue the ppm value to set, normally 400.
- * 
+ *
  * This method is used to set the CO2 recalibration value, please use it only on outdoor conditions.
- * Please see the documentation of each sensor for more information. 
+ * Please see the documentation of each sensor for more information.
  */
 void Sensors::setCO2RecalibrationFactor(int ppmValue) {
   if (isSensorRegistered(SENSORS::SSCD30)) {
@@ -198,7 +199,7 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue) {
 /**
  * @brief set CO2 altitude offset (m)
  * @param altitude (m).
- * 
+ *
  * This method is used to compensate the CO2 value with the altitude. Recommended on high altitude.
  */
 void Sensors::setCO2AltitudeOffset(float altitude) {
@@ -220,12 +221,10 @@ void Sensors::setCO2AltitudeOffset(float altitude) {
 /**
  * @brief set the sea level pressure (hPa)
  * @param hpa (hPa).
- * 
+ *
  * This method is used to set the sea level pressure for some sensors that need it.
  */
-void Sensors::setSeaLevelPressure(float hpa) {
-  sealevel = hpa;
-}
+void Sensors::setSeaLevelPressure(float hpa) { sealevel = hpa; }
 
 /// restart and re-init all sensors (not recommended)
 void Sensors::restart() {
@@ -238,70 +237,48 @@ void Sensors::restart() {
  * @brief Get sensor data.
  * @param cb (mandatory) callback function to be called when data is ready.
  */
-void Sensors::setOnDataCallBack(voidCbFn cb) {
-  _onDataCb = cb;
-}
+void Sensors::setOnDataCallBack(voidCbFn cb) { _onDataCb = cb; }
 
 /**
  * @brief Optional callback for get the sensors errors
  * @param cb callback function to be called when any warnning or error happens.
  */
-void Sensors::setOnErrorCallBack(errorCbFn cb) {
-  _onErrorCb = cb;
-}
+void Sensors::setOnErrorCallBack(errorCbFn cb) { _onErrorCb = cb; }
 
 /**
  * @brief Optional for increase the debug level
  * @param enable true to enable debug mode, false to disable debug mode.
  */
-void Sensors::setDebugMode(bool enable) {
-  devmode = enable;
-}
+void Sensors::setDebugMode(bool enable) { devmode = enable; }
 
 /// get the sensor status
-bool Sensors::isDataReady() {
-  return readAllComplete;
-}
+bool Sensors::isDataReady() { return readAllComplete; }
 
 /// get PM1.0 ug/m3 value
-uint16_t Sensors::getPM1() {
-  return pm1;
-}
+uint16_t Sensors::getPM1() { return pm1; }
 
 /// get PM2.5 ug/m3 value
-uint16_t Sensors::getPM25() {
-  return pm25;
-}
+uint16_t Sensors::getPM25() { return pm25; }
 
 /// get PM4 ug/m3 value
-uint16_t Sensors::getPM4() {
-  return pm4;
-}
+uint16_t Sensors::getPM4() { return pm4; }
 
 /// get PM10 ug/m3 value
-uint16_t Sensors::getPM10() {
-  return pm10;
-}
+uint16_t Sensors::getPM10() { return pm10; }
 
 /// get CO2 ppm value
-uint16_t Sensors::getCO2() {
-  return CO2Val;
-}
+uint16_t Sensors::getCO2() { return CO2Val; }
 
 /// get humidity % value of CO2 sensor device
-float Sensors::getCO2humi() {
-  return CO2humi;
-}
+float Sensors::getCO2humi() { return CO2humi; }
 
 /// get humidity % value of environment sensor
-float Sensors::getHumidity() {
-  return humi;
-}
+float Sensors::getHumidity() { return humi; }
 
 /**
  * @brief set the temperature type unit
  * @param tunit celciuse, kelvin or fahrenheit.
-*/
+ */
 void Sensors::setTemperatureUnit(TEMPUNIT tunit) {
   temp_unit = tunit;
   String tunit_symbol;
@@ -350,9 +327,9 @@ float Sensors::getTemperature() {
 /**
  * @brief Temperature unit register (auto)
  * @param isCO2temp temperature unit register for CO2 sensors.
- * 
+ *
  * This method should register the right unit regarding setTemperatureUnit() method.
-*/
+ */
 void Sensors::tempRegister(bool isCO2temp) {
   switch (temp_unit) {
     case (TEMPUNIT::CELSIUS):
@@ -378,8 +355,8 @@ void Sensors::tempRegister(bool isCO2temp) {
 
 /**
  * @brief Set temperature offset for all temperature sensors
- * @param offset temperature offset in °C (default 0). 
- * 
+ * @param offset temperature offset in °C (default 0).
+ *
  * Positive value for offset to be subtracetd to the temperature.
  */
 void Sensors::setTempOffset(float offset) {
@@ -390,73 +367,49 @@ void Sensors::setTempOffset(float offset) {
 }
 
 /// get Gas resistance value of BMP680 sensor
-float Sensors::getGas() {
-  return gas;
-}
+float Sensors::getGas() { return gas; }
 
 /// get Altitude value in meters
-float Sensors::getAltitude() {
-  return alt;
-}
+float Sensors::getAltitude() { return alt; }
 
 /// get Pressure value in hPa
-float Sensors::getPressure() {
-  return pres;
-}
+float Sensors::getPressure() { return pres; }
 
 /// get NH3 value in ppm
-float Sensors::getNH3() {
-  return nh3;
-}
+float Sensors::getNH3() { return nh3; }
 
 /// get CO value in ppm
-float Sensors::getCO() {
-  return co;
-}
+float Sensors::getCO() { return co; }
 
 /// get NO2 value in ppm
-float Sensors::getNO2() {
-  return no2;
-}
+float Sensors::getNO2() { return no2; }
 
 /**
  * @brief UART only: check if the UART sensor is registered
  * @return bool true if the UART sensor is registered, false otherwise.
  */
-bool Sensors::isUARTSensorConfigured() {
-  return dev_uart_type >= 0;
-}
+bool Sensors::isUARTSensorConfigured() { return dev_uart_type >= 0; }
 
 /**
  * @brief UART only: get the UART sensor type. See SENSORS enum. Also getDeviceName()
  * @return SENSORS enum value.
  */
-int Sensors::getUARTDeviceTypeSelected() {
-  return dev_uart_type;
-}
+int Sensors::getUARTDeviceTypeSelected() { return dev_uart_type; }
 
 /**
  * @brief Forced to enable I2C sensors only.
  * Recommended to use only if you are using a I2C sensor and improve the performance.
  */
-void Sensors::detectI2COnly(bool enable) {
-  i2conly = enable;
-}
+void Sensors::detectI2COnly(bool enable) { i2conly = enable; }
 
 /// returns the CanAirIO Sensorslib version
-String Sensors::getLibraryVersion() {
-  return String(CSL_VERSION);
-}
+String Sensors::getLibraryVersion() { return String(CSL_VERSION); }
 
 /// return the current revision code number
-int16_t Sensors::getLibraryRevision() {
-  return CSL_REVISION;
-}
+int16_t Sensors::getLibraryRevision() { return CSL_REVISION; }
 
 /// get device sensors detected count
-uint8_t Sensors::getSensorsRegisteredCount() {
-  return sensors_registered_count;
-}
+uint8_t Sensors::getSensorsRegisteredCount() { return sensors_registered_count; }
 
 /**
  * @brief Read and check the sensors status on initialization
@@ -484,7 +437,7 @@ String Sensors::getSensorName(SENSORS sensor) {
  * @brief get the sensor group type
  * @param sensor (mandatory) SENSORS enum value.
  * @return Sensor group int with the sensor type.
- * 
+ *
  * if the sensor is not in a group, return 0.
  * if the sensor is in a group, return 1 (PM), 2 (CO2), 3 (ENV).
  */
@@ -495,18 +448,16 @@ SensorGroup Sensors::getSensorGroup(SENSORS sensor) {
 /**
  * @brief get the sensor registry for retrieve the sensor names
  * @return pointer to the sensor registry.
- * 
- * See the <a href="https://bit.ly/3qVQYYy">Advanced Multivariable example</a> 
+ *
+ * See the <a href="https://bit.ly/3qVQYYy">Advanced Multivariable example</a>
  */
-uint8_t *Sensors::getSensorsRegistered() {
-  return sensors_registered;
-}
+uint8_t *Sensors::getSensorsRegistered() { return sensors_registered; }
 
 /**
  * @brief get the sensor unit status on the registry
  * @return True if the sensor unit is available, false otherwise.
- * 
- * See the <a href="https://bit.ly/3qVQYYy">Advanced Multivariable example</a> 
+ *
+ * See the <a href="https://bit.ly/3qVQYYy">Advanced Multivariable example</a>
  */
 bool Sensors::isUnitRegistered(UNIT unit) {
   if (unit == UNIT::NUNIT) return false;
@@ -517,19 +468,16 @@ bool Sensors::isUnitRegistered(UNIT unit) {
 }
 
 /**
- * @brief get the sensor units registry for retrieve the unit name, unit type and symbol. See getNextUnit()
+ * @brief get the sensor units registry for retrieve the unit name, unit type and symbol. See
+ * getNextUnit()
  * @return pointer to the sensor units registry
- * 
- * See the <a href="https://bit.ly/3qVQYYy">Advanced Multivariable example</a> 
+ *
+ * See the <a href="https://bit.ly/3qVQYYy">Advanced Multivariable example</a>
  */
-uint8_t *Sensors::getUnitsRegistered() {
-  return units_registered;
-}
+uint8_t *Sensors::getUnitsRegistered() { return units_registered; }
 
 /// get device sensors units detected count
-uint8_t Sensors::getUnitsRegisteredCount() {
-  return units_registered_count;
-}
+uint8_t Sensors::getUnitsRegisteredCount() { return units_registered_count; }
 
 /**
  * @brief get the sensor unit name
@@ -546,9 +494,7 @@ String Sensors::getUnitName(UNIT unit) {
  * @param unit (mandatory) UNIT enum value.
  * @return String with the unit symbol.
  */
-String Sensors::getUnitSymbol(UNIT unit) {
-  return String(unit_symbol[unit]);
-}
+String Sensors::getUnitSymbol(UNIT unit) { return String(unit_symbol[unit]); }
 
 /**
  * @brief get the next sensor unit available
@@ -567,7 +513,7 @@ UNIT Sensors::getNextUnit() {
 
 /**
  * @brief reset the sensor units registry.
- * 
+ *
  * This function is useful to reset the units registry after a sensor unit is removed.
  * but it is **Not necessary** to call this function.
  */
@@ -579,7 +525,7 @@ void Sensors::resetUnitsRegister() {
 }
 /**
  * @brief reset the sensor registry.
- * 
+ *
  * This function is useful to reset the sensors registry after a sensor is removed.
  * It should be called before the initialization of the sensors but
  * it is **Not necessary** to call this function.
@@ -593,20 +539,18 @@ void Sensors::resetSensorsRegister() {
 
 /**
  * @brief reset the next sensor unit counter.
- * 
+ *
  * This function is useful to reset the counter to review the sensor units again.
  * but it is not necessary to call this function.
  */
-void Sensors::resetNextUnit() {
-  current_unit = 0;
-}
+void Sensors::resetNextUnit() { current_unit = 0; }
 
 /**
  * @brief get the sensor unit value (float)
  * @param unit (mandatory) UNIT enum value.
  * @return float value of the each unit (RAW).
- * 
- * Also you can use the specific primitive like getTemperature(), 
+ *
+ * Also you can use the specific primitive like getTemperature(),
  * getHumidity(), getGas(), getAltitude(), getPressure()
  */
 float Sensors::getUnitValue(UNIT unit) {
@@ -706,8 +650,8 @@ void Sensors::printValues() {
 }
 
 /******************************************************************************
-*  S E N S O R   P R I V A T E   M E T H O D S
-******************************************************************************/
+ *  S E N S O R   P R I V A T E   M E T H O D S
+ ******************************************************************************/
 
 /**
  *  @brief PMS sensor generic read. Supported: Honeywell & Plantower sensors
@@ -832,7 +776,7 @@ String Sensors::hwSerialRead(unsigned int lenght_buffer) {
 bool Sensors::sps30Read() {
   if (!isSensorRegistered(SENSORS::SSPS30)) return false;
   uint8_t ret, error_cnt = 0;
-  delay(35);  //Delay for sincronization
+  delay(35);  // Delay for sincronization
 
   do {
     ret = sps30.GetValues(&val);
@@ -949,8 +893,8 @@ bool Sensors::pmSensorRead() {
 }
 
 /******************************************************************************
-*  I 2 C   S E N S O R   R E A D   M E T H O D S
-******************************************************************************/
+ *  I 2 C   S E N S O R   R E A D   M E T H O D S
+ ******************************************************************************/
 
 void Sensors::am2320Read() {
   if (!am2320.isConnected()) return;
@@ -1084,8 +1028,7 @@ void Sensors::sen5xRead() {
 
   uint16_t error = sen5x.readMeasuredValues(
       massConcentrationPm1p0, massConcentrationPm2p5, massConcentrationPm4p0,
-      massConcentrationPm10p0, ambientHumidity, ambientTemperature, vocIndex,
-      noxIndex);
+      massConcentrationPm10p0, ambientHumidity, ambientTemperature, vocIndex, noxIndex);
 
   if (error) return;
 
@@ -1199,10 +1142,10 @@ void Sensors::sps30Errorloop(char *mess, uint8_t r) {
 
 /**
  * Particule meter sensor (PMS) init.
- * 
+ *
  * Hardware serial init for multiple PM sensors, like
  * Honeywell, Plantower, Panasonic, Sensirion, etc.
- * 
+ *
  * @param pms_type PMS type, please see DEVICE_TYPE enum.
  * @param pms_rx PMS RX pin.
  * @param pms_tx PMS TX pin.
@@ -1252,8 +1195,8 @@ bool Sensors::sensorSerialInit(u_int pms_type, int pms_rx, int pms_tx) {
   return false;
 }
 /**
- * @brief Generic PM sensor auto detection. 
- * 
+ * @brief Generic PM sensor auto detection.
+ *
  * In order UART config, this method looking up for
  * special header on Serial stream
  **/
@@ -1458,7 +1401,8 @@ bool Sensors::sps30I2CInit() {
   // start measurement
   if (sps30.start()) {
     DEBUG("-->[SLIB] SPS30 Measurement OK");
-    if (sps30.I2C_expect() == 4) DEBUG("[W][SLIB] SPS30 setup message\t: I2C buffersize only PM values  \r\n");
+    if (sps30.I2C_expect() == 4)
+      DEBUG("[W][SLIB] SPS30 setup message\t: I2C buffersize only PM values  \r\n");
     sensorRegister(SENSORS::SSPS30);
     return true;
   } else
@@ -1491,7 +1435,7 @@ void Sensors::sps30DeviceInfo() {
   uint8_t ret;
   SPS30_version v;
 
-  //try to read serial number
+  // try to read serial number
   ret = sps30.GetSerialNumber(buf, 32);
   if (ret == SPS30_ERR_OK) {
     if (strlen(buf) > 0)
@@ -1564,10 +1508,9 @@ void Sensors::bme280Init() {
 #ifndef Wire1
   if (!bme280.begin() && !bme280.begin(BME280_ADDRESS_ALTERNATE)) return;
 #else
-  if (!bme280.begin() &&
-      !bme280.begin(BME280_ADDRESS_ALTERNATE) &&
-      !bme280.begin(BME280_ADDRESS, &Wire1) &&
-      !bme280.begin(BME280_ADDRESS_ALTERNATE, &Wire1)) return;
+  if (!bme280.begin() && !bme280.begin(BME280_ADDRESS_ALTERNATE) &&
+      !bme280.begin(BME280_ADDRESS, &Wire1) && !bme280.begin(BME280_ADDRESS_ALTERNATE, &Wire1))
+    return;
 #endif
   sensorRegister(SENSORS::SBME280);
 }
@@ -1680,7 +1623,8 @@ void Sensors::CO2scd4xInit() {
   if (tSensorAltitude != uint16_t(altoffset)) setSCD4xAltitudeOffset(altoffset);
 
   offsetDifference = abs((toffset * 100) - (tTemperatureOffset * 100));
-  if (offsetDifference > 0.5) {  // Accounts for SCD4x conversion rounding errors in temperature offset
+  if (offsetDifference >
+      0.5) {  // Accounts for SCD4x conversion rounding errors in temperature offset
     Serial.println("-->[SLIB] SCD4x new offset\t: Temp offset to" + String(toffset));
     setSCD4xTempOffset(toffset);
   }
@@ -1723,7 +1667,8 @@ void Sensors::sen5xInit() {
   error = sen5x.deviceReset();
   if (error) return;
   float tempOffset = 0.0;
-  DEBUG("-->[SLIB] SEN5X Temp offset\t:", String(sen5x.getTemperatureOffsetSimple(tempOffset)).c_str());
+  DEBUG("-->[SLIB] SEN5X Temp offset\t:",
+        String(sen5x.getTemperatureOffsetSimple(tempOffset)).c_str());
   if (uint16_t((tempOffset * 100)) != (uint16_t(toffset * 100))) {
     sen5x.setTemperatureOffsetSimple(toffset);
     delay(10);
@@ -1756,11 +1701,12 @@ void Sensors::GCJA5Init() {
 /// DFRobot GAS (CO) sensors init
 void Sensors::DFRobotCOInit() {
   sensorAnnounce(SENSORS::SDFRCO);
-  dfrCO = DFRobot_GAS_I2C(&Wire, 0x78);  // Be sure that your group of i2c address is 7, and A0=0 A1=0
+  dfrCO =
+      DFRobot_GAS_I2C(&Wire, 0x78);  // Be sure that your group of i2c address is 7, and A0=0 A1=0
   if (!dfrCO.begin()) return;
-  //Mode of obtaining data: the main controller needs to request the sensor for data
+  // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrCO.changeAcquireMode(dfrCO.PASSIVITY);
-  //Turn on temperature compensation: gas.ON : turn on
+  // Turn on temperature compensation: gas.ON : turn on
   dfrCO.setTempCompensation(dfrCO.ON);
   sensorRegister(SENSORS::SDFRCO);
 }
@@ -1768,11 +1714,12 @@ void Sensors::DFRobotCOInit() {
 /// DFRobot GAS (NH3) sensors init
 void Sensors::DFRobotNH3Init() {
   sensorAnnounce(SENSORS::SDFRNH3);
-  dfrNH3 = DFRobot_GAS_I2C(&Wire, 0x7A);  // 0x77 y 0x75 used by bme680. Be sure that your group of i2c address is 7, and A0=1 A1=0
+  dfrNH3 = DFRobot_GAS_I2C(&Wire, 0x7A);  // 0x77 y 0x75 used by bme680. Be sure that your group of
+                                          // i2c address is 7, and A0=1 A1=0
   if (!dfrNH3.begin()) return;
-  //Mode of obtaining data: the main controller needs to request the sensor for data
+  // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrNH3.changeAcquireMode(dfrNH3.PASSIVITY);
-  //Turn on temperature compensation: gas.ON : turn on
+  // Turn on temperature compensation: gas.ON : turn on
   dfrNH3.setTempCompensation(dfrNH3.ON);
   sensorRegister(SENSORS::SDFRNH3);
 }
@@ -1780,11 +1727,12 @@ void Sensors::DFRobotNH3Init() {
 /// DFRobot GAS (NO2) sensors init
 void Sensors::DFRobotNO2Init() {
   sensorAnnounce(SENSORS::SDFRNO2);
-  dfrNO2 = DFRobot_GAS_I2C(&Wire, 0x7B);  // Be sure that your group of i2c address is 7, and A0=1 A1=1
+  dfrNO2 =
+      DFRobot_GAS_I2C(&Wire, 0x7B);  // Be sure that your group of i2c address is 7, and A0=1 A1=1
   if (!dfrNO2.begin()) return;
-  //Mode of obtaining data: the main controller needs to request the sensor for data
+  // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrNO2.changeAcquireMode(dfrNO2.PASSIVITY);
-  //Turn on temperature compensation: gas.ON : turn on
+  // Turn on temperature compensation: gas.ON : turn on
   dfrNO2.setTempCompensation(dfrNO2.ON);
   sensorRegister(SENSORS::SDFRNO2);
 }
@@ -1792,7 +1740,8 @@ void Sensors::DFRobotNO2Init() {
 // Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
 void Sensors::CO2correctionAlt() {
   DEBUG("-->[SLIB] CO2 altitud original\t:", String(CO2Val).c_str());
-  float CO2cor = (0.016 * ((1013.25 - hpa) / 10) * (CO2Val - 400)) + CO2Val;  // Increment of 1.6% for every hpa of difference at sea level
+  float CO2cor = (0.016 * ((1013.25 - hpa) / 10) * (CO2Val - 400)) +
+                 CO2Val;  // Increment of 1.6% for every hpa of difference at sea level
   CO2Val = round(CO2cor);
   DEBUG("-->[SLIB] CO2 compensated\t:", String(CO2Val).c_str());
 }
@@ -1800,7 +1749,10 @@ void Sensors::CO2correctionAlt() {
 /// hPa hectopascal calculation based on the altitude. See CO2AltitudeOffset setter
 float Sensors::hpaCalculation(float altitude) {
   DEBUG("-->[SLIB] CO2 altitude offset\t:", String(altitude).c_str());
-  float hpa = 1012 - 0.118 * altitude + 0.00000473 * altitude * altitude;  // Cuadratic regresion formula obtained PA (hpa) from high above the sea
+  float hpa =
+      1012 - 0.118 * altitude +
+      0.00000473 * altitude *
+          altitude;  // Cuadratic regresion formula obtained PA (hpa) from high above the sea
   DEBUG("-->[SLIB] CO2 pressure (hPa)\t:", String(hpa).c_str());
   return hpa;
 }
@@ -1813,10 +1765,10 @@ void Sensors::sensorAnnounce(SENSORS sensor) {
 /**
  * @brief register the sensor type.
  * @param receive SENSORS enum param.
- * 
+ *
  * Each sensor should be registered and also its units. With that we will able to have
  * dynamic calls of the sensors and its units on the GUI or implementation.
-*/
+ */
 void Sensors::sensorRegister(SENSORS sensor) {
   if (isSensorRegistered(sensor) && sensor != SENSORS::Auto) {
     return;
@@ -1831,7 +1783,7 @@ void Sensors::sensorRegister(SENSORS sensor) {
  *
  * Each sensor unit should be registered. For temperature sensors
  * please use tempRegister() method.
-*/
+ */
 void Sensors::unitRegister(UNIT unit) {
   if (isUnitRegistered(unit)) return;
   if (unit == UNIT::NUNIT) return;
@@ -1868,7 +1820,7 @@ void Sensors::geigerRead() {
 /**
  * @brief Enable Geiger sensor on specific pin
  * @param gpio number or pin.
-*/
+ */
 void Sensors::enableGeigerSensor(int gpio) {
   sensorAnnounce(SENSORS::SCAJOE);
   if (gpio < 0) {
@@ -1882,7 +1834,7 @@ void Sensors::enableGeigerSensor(int gpio) {
 /**
  * @brief get Geiger count. Tics in the last 60secs
  * @return CPM
-*/
+ */
 uint32_t Sensors::getGeigerCPM(void) {
   if (rad == nullptr)
     return 0;
@@ -1893,7 +1845,7 @@ uint32_t Sensors::getGeigerCPM(void) {
 /**
  * @brief get Geiger count in uSv/h units
  * @return CPM * J305 conversion factor
-*/
+ */
 float Sensors::getGeigerMicroSievertHour(void) {
   if (rad == nullptr)
     return 0;
@@ -1924,7 +1876,8 @@ void Sensors::startI2C() {
 #ifdef M5ATOM
   enableWire1();
 #endif
-#if not defined(M5STICKCPLUS) && not defined(M5COREINK) && not defined(M5ATOM) && not defined(ESP32C3)
+#if not defined(M5STICKCPLUS) && not defined(M5COREINK) && not defined(M5ATOM) && \
+    not defined(ESP32C3)
   Wire.begin();
 #endif
 #ifdef ESP32C3
@@ -1959,13 +1912,16 @@ void Sensors::disableWire1() {
 }
 
 bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx) {
-  if (devmode) Serial.printf("-->[SLIB] UART init with speed\t: %lu TX:%i RX:%i\r\n", speed_baud, pms_tx, pms_rx);
+  if (devmode)
+    Serial.printf("-->[SLIB] UART init with speed\t: %lu TX:%i RX:%i\r\n", speed_baud, pms_tx,
+                  pms_rx);
   switch (SENSOR_COMMS) {
     case SERIALPORT:
       Serial.begin(speed_baud);
       _serial = &Serial;
       break;
-#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || defined(SAMD21G18A) || defined(ARDUINO_SAM_DUE)
+#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || defined(SAMD21G18A) || \
+    defined(ARDUINO_SAM_DUE)
     case SERIALPORT1:
       Serial1.begin(speed_baud);
       _serial = &Serial1;
@@ -1990,8 +1946,8 @@ bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, i
 #endif
 
 #if defined(ARDUINO_ARCH_ESP32)
-    //on a Sparkfun ESP32 Thing the default pins for serial1 are used for acccessing flash memory
-    //you have to define different pins upfront in order to use serial1 port.
+    // on a Sparkfun ESP32 Thing the default pins for serial1 are used for acccessing flash memory
+    // you have to define different pins upfront in order to use serial1 port.
     case SERIALPORT1:
       DEBUG("-->[SLIB] UART COMM port \t: Serial1");
       if (pms_rx == 0 || pms_tx == 0) {
@@ -2043,7 +1999,7 @@ bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, i
 #else
         DEBUG("-->[SLIB] UART SoftwareSerial \t: disable");
         return (false);
-#endif  //INCLUDE_SOFTWARE_SERIAL
+#endif  // INCLUDE_SOFTWARE_SERIAL
       }
       break;
   }
