@@ -384,7 +384,7 @@ void Sensors::tempRegister(bool isCO2temp) {
  */
 void Sensors::setTempOffset(float offset) {
   toffset = offset;
-  setSCD30TempOffset(toffset);
+  setSCD30TempOffset(toffset * 100);
   setSCD4xTempOffset(toffset);
   setsen5xTempOffset(toffset);
 }
