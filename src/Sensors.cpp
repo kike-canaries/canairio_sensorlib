@@ -986,6 +986,7 @@ void Sensors::sht31Read() {
 }
 
 void Sensors::CO2scd30Read() {
+  if (!isSensorRegistered(SENSORS::SSCD30)) return;
   if (!scd30.dataReady() || !scd30.read()) return;
   uint16_t tCO2 = scd30.CO2;  // we need temp var, without it override CO2
   if (tCO2 > 0) {
