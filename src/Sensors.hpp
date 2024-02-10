@@ -4,7 +4,8 @@
 #include <AHTxx.h>
 #include <AM232X.h>
 #include <Adafruit_BME280.h>
-#include <Adafruit_BME680.h>
+//#include <Adafruit_BME680.h>
+#include <bsec.h>
 #include <Adafruit_BMP280.h>
 #include <Adafruit_SHT31.h>
 #include <Adafruit_SCD30.h>
@@ -103,7 +104,7 @@
     X(CO2HUM, "%", "CO2H")     \
     X(PRESS, "hPa", "P")       \
     X(ALT, "m", "Alt")         \
-    X(GAS, "Ohm", "Gas")       \
+    X(GAS, "KOhm", "Gas")       \
     X(CPM, "CPM", "RAD")       \
     X(RAD, "uSv/h", "RAD") \
     X(NH3, "ppm", "NH3")       \
@@ -207,7 +208,8 @@ class Sensors {
     /// BMP280 object (Humidity, Pressure, Altitude and Temperature)
     Adafruit_BMP280 bmp280;
     /// BME680 object (Humidity, Gas, IAQ, Pressure, Altitude and Temperature)
-    Adafruit_BME680 bme680;
+    //Adafruit_BME680 bme680;
+    Bsec iaqSensor;
     /// AHTXX sensors object
     AHTxx aht10;
     /// SHT31 object (Humidity and temperature)
