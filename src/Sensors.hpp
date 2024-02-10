@@ -5,7 +5,7 @@
 #include <AM232X.h>
 #include <Adafruit_BME280.h>
 //#include <Adafruit_BME680.h>
-#include <bsec.h>
+#include "bsec.h"
 #include <Adafruit_BMP280.h>
 #include <Adafruit_SHT31.h>
 #include <Adafruit_SCD30.h>
