@@ -997,20 +997,15 @@ void Sensors::bmp280Read() {
 }
 
 void Sensors::bme680Read() {
-    //if (!bme680.performReading()) return;
     if (!iaqSensor.run()) return;
-    /* float temp1 = bme680.temperature;
-    temp = temp1 - toffset;
-    humi = bme680.humidity;
-    pres = bme680.pressure / 100.0;
-    gas = bme680.gas_resistance / 1000.0;
-    alt = bme680.readAltitude(sealevel); */
     float temp1 = iaqSensor.rawTemperature;
     temp = temp1 - toffset;
     humi = iaqSensor.humidity;
-    pres = iaqSensor.pressure;
-    gas = iaqSensor.iaqAccuracy;
-    //alt = bme680.readAltitude(sealevel);
+    pres = iaqSensor.pressure/100;
+    gas = iaqSensor.gasResistance;
+    //gas = iaqSensor.iaq;
+    //alt = (1.0 - pow((float) iaqSensor.pressure / sealevel, 0.190284));
+    //alt = 44330 * (1.0 - pow(pres / sealevel, 0.1903));
 
     dataReady = true;
     DEBUG("-->[SLIB] BME680 read\t\t: done!");
