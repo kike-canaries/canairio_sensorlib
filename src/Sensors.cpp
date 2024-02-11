@@ -1601,13 +1601,6 @@ void Sensors::bmp280Init() {
 /// Bosch BME680 sensor init
 void Sensors::bme680Init() {
     sensorAnnounce(SENSORS::SBME680);
-   /* if (!bme680.begin()) return;
-    bme680.setTemperatureOversampling(BME680_OS_8X);
-    bme680.setHumidityOversampling(BME680_OS_2X);
-    bme680.setPressureOversampling(BME680_OS_4X);
-    bme680.setIIRFilterSize(BME680_FILTER_SIZE_3);
-    bme680.setGasHeater(320, 150);  // 320*C for 150 ms
-    */
     iaqSensor.begin(BME68X_I2C_ADDR_HIGH, Wire);
     if (iaqSensor.bsecStatus != BSEC_OK) return;
     if (iaqSensor.bme68xStatus != BME68X_OK) return;
