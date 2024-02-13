@@ -897,6 +897,7 @@ bool Sensors::pmSensorRead() {
  ******************************************************************************/
 
 void Sensors::am2320Read() {
+  if (!isSensorRegistered(SENSORS::SAM232X)) return;
   if (!am2320.isConnected()) return;
   int status = am2320.read();
   if (status != AM232X_OK) return;
@@ -913,6 +914,7 @@ void Sensors::am2320Read() {
 }
 
 void Sensors::bme280Read() {
+  if (!isSensorRegistered(SENSORS::SBME280)) return;
   float humi1 = bme280.readHumidity();
   float temp1 = bme280.readTemperature();
   if (isnan(humi1) || humi1 == 0 || isnan(temp1)) return;
@@ -928,6 +930,7 @@ void Sensors::bme280Read() {
 }
 
 void Sensors::bmp280Read() {
+  if (!isSensorRegistered(SENSORS::SBMP280)) return;
   float temp1 = bmp280.readTemperature();
   float press1 = bmp280.readPressure();
   float alt1 = bmp280.readAltitude(sealevel);
@@ -943,6 +946,7 @@ void Sensors::bmp280Read() {
 }
 
 void Sensors::bme680Read() {
+  if (!isSensorRegistered(SENSORS::SBME680)) return;
   if (!bme680.performReading()) return;
   float temp1 = bme680.temperature;
   temp = temp1 - toffset;
@@ -960,6 +964,7 @@ void Sensors::bme680Read() {
 }
 
 void Sensors::aht10Read() {
+  if (!isSensorRegistered(SENSORS::SAHTXX)) return;
   float temp1 = aht10.readTemperature();
   if (temp1 != AHTXX_ERROR) {
     float humi1 = aht10.readHumidity();
@@ -973,6 +978,7 @@ void Sensors::aht10Read() {
 }
 
 void Sensors::sht31Read() {
+  if (!isSensorRegistered(SENSORS::SSHT31)) return;
   float humi1 = sht31.readHumidity();
   float temp1 = sht31.readTemperature();
   if (!isnan(humi1)) humi = humi1;
@@ -1002,6 +1008,7 @@ void Sensors::CO2scd30Read() {
 }
 
 void Sensors::CO2scd4xRead() {
+  if (!isSensorRegistered(SENSORS::SSCD4X)) return;
   uint16_t tCO2 = 0;
   float tCO2temp, tCO2humi = 0;
   uint16_t error = scd4x.readMeasurement(tCO2, tCO2temp, tCO2humi);
@@ -1051,6 +1058,7 @@ void Sensors::sen5xRead() {
 
 void Sensors::GCJA5Read() {
   if (dev_uart_type == SENSORS::SGCJA5) return;
+  if (!isSensorRegistered(SENSORS::SGCJA5)) return;
   if (!pmGCJA5.isConnected()) return;
   uint16_t _pm1 = pmGCJA5.getPM1_0();
   uint16_t _pm25 = pmGCJA5.getPM2_5();
@@ -1067,18 +1075,21 @@ void Sensors::GCJA5Read() {
 }
 
 void Sensors::DFRobotNH3Read() {
+  if (!isSensorRegistered(SENSORS::SDFRNH3)) return;
   if (!dfrNH3.begin()) return;
   nh3 = dfrNH3.readGasConcentrationPPM();
   unitRegister(UNIT::NH3);
 }
 
 void Sensors::DFRobotCORead() {
+  if (!isSensorRegistered(SENSORS::SDFRCO)) return;
   if (!dfrCO.begin()) return;
   co = dfrCO.readGasConcentrationPPM();
   unitRegister(UNIT::CO);
 }
 
 void Sensors::DFRobotNO2Read() {
+  if (!isSensorRegistered(SENSORS::SDFRNO2)) return;
   if (!dfrNO2.begin()) return;
   no2 = dfrNO2.readGasConcentrationPPM();
   unitRegister(UNIT::NO2);
