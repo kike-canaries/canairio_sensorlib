@@ -1598,6 +1598,7 @@ void Sensors::CO2scd30Init() {
   }
 
   if (uint16_t((scd30.getTemperatureOffset())) != (uint16_t(toffset * 100))) {
+    DEBUG("-->[SLIB] SCD30 Temp offset to\t:", String(toffset).c_str());
     setSCD30TempOffset(toffset);
     delay(10);
   }
