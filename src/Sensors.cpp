@@ -1586,6 +1586,8 @@ void Sensors::CO2scd30Init() {
 #endif
   delay(10);
 
+  sensorRegister(SENSORS::SSCD30);
+
   DEBUG("-->[SLIB] SCD30 Temp offset\t:", String(scd30.getTemperatureOffset()).c_str());
   DEBUG("-->[SLIB] SCD30 Altitude offset\t:", String(scd30.getAltitudeOffset()).c_str());
 
@@ -1595,11 +1597,10 @@ void Sensors::CO2scd30Init() {
     delay(10);
   }
 
-  if (uint16_t((scd30.getTemperatureOffset() * 100)) != (uint16_t(toffset * 100))) {
+  if (uint16_t((scd30.getTemperatureOffset())) != (uint16_t(toffset * 100))) {
     setSCD30TempOffset(toffset);
     delay(10);
   }
-  sensorRegister(SENSORS::SSCD30);
 }
 
 /// set SCD30 temperature compensation
