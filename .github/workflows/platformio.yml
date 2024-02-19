@@ -42,7 +42,7 @@ jobs:
           pio run
       - name: PlatformIO registry lastest (M5Atom project)
         run: |
-          cd m5atom
+          cd examples/m5atom
           pio run
       - name: All archictures tests
         run: |
