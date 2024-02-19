@@ -34,12 +34,16 @@ jobs:
       - name: Basic Arduino IDE example test
         run: |
           cd examples/advanced_sensirion
-          pio run -s
-      - name: PlatformIO registry test (M5CoreInk project)
+          pio run
+      - name: PlatformIO registry backward (M5CoreInk project)
         run: |
           git clone https://github.com/hpsaturn/co2_m5coreink.git
           cd co2_m5coreink
-          pio run -s 
+          pio run
+      - name: PlatformIO registry lastest (M5Atom project)
+        run: |
+          cd m5atom
+          pio run
       - name: All archictures tests
         run: |
           pio run
