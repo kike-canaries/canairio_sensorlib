@@ -1629,6 +1629,7 @@ void Sensors::CO2scd4xInit() {
   scd4x.begin(Wire);
   error = scd4x.stopPeriodicMeasurement();
   if (error) return;
+  sensorRegister(SENSORS::SSCD4X);
   scd4x.getTemperatureOffset(tTemperatureOffset);
   scd4x.getSensorAltitude(tSensorAltitude);
   DEBUG("-->[SLIB] SCD4x Temp offset\t:", String(tTemperatureOffset).c_str());
@@ -1644,7 +1645,6 @@ void Sensors::CO2scd4xInit() {
   }
   error = scd4x.startPeriodicMeasurement();
   if (error) DEBUG("[W][SLIB] SCD4x periodic measure\t: starting error:", String(error).c_str());
-  sensorRegister(SENSORS::SSCD4X);
 }
 
 /// set SCD4x temperature compensation
