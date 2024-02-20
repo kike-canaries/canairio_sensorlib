@@ -373,8 +373,9 @@ void Sensors::setTempOffset(float offset) {
  */
 float getTempOffset() {
   float toffset;
-  toffset = getSCD30TempOffset(toffset * 100);
-  toffset = getSCD4xTempOffset(toffset);
+  toffset = getSCD30TempOffset();
+  toffset = getSCD4xTempOffset();
+  return toffset;
 }
 
 /// get Gas resistance value of BMP680 sensor
@@ -1682,13 +1683,27 @@ void Sensors::setSCD4xTempOffset(float offset) {
 /// get SCD4x temperature compensation
 float Sensors::getSCD4xTempOffset() {
   float offset = 0.0;
+  uint16_t error;
   if (isSensorRegistered(SENSORS::SSCD4X)) {
     scd4x.stopPeriodicMeasurement();
-    delay(510);
-    scd4x.getTemperatureOffset(offset);
-    scd4x.startPeriodicMeasurement();
-    Serial.println("-->[SLIB] SCD4x get temperature offset\t: " + String(offset));
+    if (error) {
+      DEBUG("[SLIB] SCD4x stopPeriodicMeasurement()\t: error:", String(error).c_str());
+      return 0.0;
+    } else {
+      DEBUG("[SLIB] SCD4x stopPeriodicMeasurement()\t: done!");
+    }
+    error = scd4x.getTemperatureOffset(offset);
+    if (error) {
+      DEBUG("[SLIB] SCD4x get temp offset\t: error:", String(error).c_str());
+      return 0.0;
+    }
+    error = scd4x.startPeriodicMeasurement();
+    if (error) {
+      DEBUG("[SLIB] SCD4x startPeriodicMeasurement()\t: error:", String(error).c_str());
+      return 0.0;
+    }
   }
+  return offset;
 }
 
 /// set SCD4x altitude compensation
