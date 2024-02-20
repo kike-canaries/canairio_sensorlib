@@ -306,6 +306,8 @@ class Sensors {
 
   void setTempOffset(float offset);
 
+  float getTempOffset();
+
   void setCO2AltitudeOffset(float altitude);
 
   void setSeaLevelPressure(float hpa);

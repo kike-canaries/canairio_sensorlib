@@ -355,7 +355,6 @@ void Sensors::tempRegister(bool isCO2temp) {
 
 /**
  * @brief Set temperature offset for all temperature sensors
- * @param offset temperature offset in °C (default 0).
  *
  * Positive value for offset to be subtracetd to the temperature.
  */
@@ -364,6 +363,18 @@ void Sensors::setTempOffset(float offset) {
   setSCD30TempOffset(toffset * 100);
   setSCD4xTempOffset(toffset);
   setsen5xTempOffset(toffset);
+}
+
+/**
+ * @brief Get temperature offset for Sensirion sensors (from internal sensor in SCD4x and SCD30)
+ * @param offset temperature offset in °C (default 0).
+ * @return float with the temperature offset.
+ * Positive value for offset to be subtracetd to the temperature.
+ */
+float getTempOffset() {
+  float toffset;
+  toffset = getSCD30TempOffset(toffset * 100);
+  toffset = getSCD4xTempOffset(toffset);
 }
 
 /// get Gas resistance value of BMP680 sensor
@@ -1612,6 +1623,16 @@ void Sensors::setSCD30TempOffset(float offset) {
   }
 }
 
+/// get SCD30 temperature compensation
+float Sensors::getSCD30TempOffset() {
+  float offset = 0.0;
+  if (isSensorRegistered(SENSORS::SSCD30)) {
+    offset = scd30.getTemperatureOffset() / 100.0;
+    Serial.println("-->[SLIB] SCD30 get temp offset\t: " + String(offset));
+  }
+  return offset;
+}
+
 /// set SCD30 altitude compensation
 void Sensors::setSCD30AltitudeOffset(float offset) {
   if (isSensorRegistered(SENSORS::SSCD30)) {
@@ -1640,7 +1661,7 @@ void Sensors::CO2scd4xInit() {
   offsetDifference = abs((toffset * 100) - (tTemperatureOffset * 100));
   if (offsetDifference >
       0.5) {  // Accounts for SCD4x conversion rounding errors in temperature offset
-    Serial.println("-->[SLIB] SCD4x new offset\t: Temp offset to" + String(toffset));
+    Serial.println("-->[SLIB] SCD4x new offset\t: Temp offset to " + String(toffset));
     setSCD4xTempOffset(toffset);
   }
   error = scd4x.startPeriodicMeasurement();
@@ -1655,6 +1676,18 @@ void Sensors::setSCD4xTempOffset(float offset) {
     delay(510);
     scd4x.setTemperatureOffset(offset);
     scd4x.startPeriodicMeasurement();
+  }
+}
+
+/// get SCD4x temperature compensation
+float Sensors::getSCD4xTempOffset() {
+  float offset = 0.0;
+  if (isSensorRegistered(SENSORS::SSCD4X)) {
+    scd4x.stopPeriodicMeasurement();
+    delay(510);
+    scd4x.getTemperatureOffset(offset);
+    scd4x.startPeriodicMeasurement();
+    Serial.println("-->[SLIB] SCD4x get temperature offset\t: " + String(offset));
   }
 }
 
