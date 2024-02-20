@@ -367,11 +367,10 @@ void Sensors::setTempOffset(float offset) {
 
 /**
  * @brief Get temperature offset for Sensirion sensors (from internal sensor in SCD4x and SCD30)
- * @param offset temperature offset in °C (default 0).
  * @return float with the temperature offset.
  * Positive value for offset to be subtracetd to the temperature.
  */
-float getTempOffset() {
+float Sensors::getTempOffset() {
   float toffset;
   toffset = getSCD30TempOffset();
   toffset = getSCD4xTempOffset();
