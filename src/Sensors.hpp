@@ -306,6 +306,8 @@ class Sensors {
 
   void setTempOffset(float offset);
 
+  float getTempOffset();
+
   void setCO2AltitudeOffset(float altitude);
 
   void setSeaLevelPressure(float hpa);
@@ -419,6 +421,7 @@ class Sensors {
   void CO2scd30Init();
   void CO2scd30Read();
   void setSCD30TempOffset(float offset);
+  float getSCD30TempOffset();
   void setSCD30AltitudeOffset(float offset);
   void CO2correctionAlt();
   float hpaCalculation(float altitude);
@@ -426,6 +429,7 @@ class Sensors {
   void CO2scd4xInit();
   void CO2scd4xRead();
   void setSCD4xTempOffset(float offset);
+  float getSCD4xTempOffset();
   void setSCD4xAltitudeOffset(float offset);
 
   void sen5xInit();
