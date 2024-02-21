@@ -371,9 +371,13 @@ void Sensors::setTempOffset(float offset) {
  * Positive value for offset to be subtracetd to the temperature.
  */
 float Sensors::getTempOffset() {
-  float toffset;
-  toffset = getSCD30TempOffset();
-  toffset = getSCD4xTempOffset();
+  float toffset = 0.0;
+  if (isSensorRegistered(SENSORS::SSCD30)) {
+    toffset = getSCD30TempOffset();
+  }
+  if (isSensorRegistered(SENSORS::SSCD4X)) {
+    toffset = getSCD4xTempOffset();
+  }
   return toffset;
 }
 
