@@ -1002,7 +1002,7 @@ void Sensors::bme680Read() {
     temp = temp1 - toffset;
     humi = iaqSensor.humidity;
     pres = iaqSensor.pressure/100;
-    gas = iaqSensor.gasResistance;
+    gas = iaqSensor.gasResistance/1000;
     //gas = iaqSensor.iaq;
     //alt = (1.0 - pow((float) iaqSensor.pressure / sealevel, 0.190284));
     //alt = 44330 * (1.0 - pow(pres / sealevel, 0.1903));

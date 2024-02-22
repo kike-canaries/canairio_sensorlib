@@ -103,7 +103,7 @@
     X(CO2HUM, "%", "CO2H")     \
     X(PRESS, "hPa", "P")       \
     X(ALT, "m", "Alt")         \
-    X(GAS, "Ohm", "Gas")       \
+    X(GAS, "kOhm", "Gas")       \
     X(CPM, "CPM", "RAD")       \
     X(RAD, "uSv/h", "RAD") \
     X(NH3, "ppm", "NH3")       \
