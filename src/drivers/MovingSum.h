@@ -7,45 +7,41 @@
 #ifndef MOVING_SUM_H
 #define MOVING_SUM_H
 
-#define DEFAULT_FILTER_LENGTH       8      // default length of the filter
+#define DEFAULT_FILTER_LENGTH 8  // default length of the filter
 
 // ----------------------------------------------------------------------------------------------------------------------------------------
 // template types are: <data_type>, <sum_type>
 //
 // <data_type>    : should be an integer type large enough to fit the current sample variable
-// <sum_type>     : must be large enough to contain the sum of filter_length samples, each of type <data_type>
-// 
+// <sum_type>     : must be large enough to contain the sum of filter_length samples, each of type
+// <data_type>
+//
 // example: MovingSum adc<uint8_t,  uint16_t>
 //          MovingSum adc<uint16_t, uint32_t>
 //          MovingSum adc<uint16_t, uint32_t>
 // ----------------------------------------------------------------------------------------------------------------------------------------
 
-template <class MA_dt, class MA_st> 
-class MovingSum
-{
+template <class MA_dt, class MA_st>
+class MovingSum {
+ public:
+  MovingSum(unsigned short _filter_length = DEFAULT_FILTER_LENGTH);
+  ~MovingSum();
 
-public:
+  void add(MA_dt x);
+  void clear(void);
+  MA_dt* getData(void);
+  MA_st getCurrentSum(void) const;
+  unsigned short getFilterLength(void) const;
+  unsigned short getCurrentFilterLength(void) const;
 
-                                    MovingSum(unsigned short _filter_length=DEFAULT_FILTER_LENGTH);
-                                   ~MovingSum();
+ private:
+  MA_st sum;                     // sum of current samples
+  MA_dt* data;                   // vector with raw data
+  unsigned short index;          // index of current sample
+  unsigned short filter_length;  // length of the filter
+  bool filter_complete;          // true when there are filter_length samples
 
-	void                            add(MA_dt x);
-	void                            clear(void);
-	MA_dt*                          getData(void);
-	MA_st                           getCurrentSum(void) const;
-	unsigned short                  getFilterLength(void) const;
-	unsigned short                  getCurrentFilterLength(void) const;
-
-private:
-
-	MA_st                           sum;                            // sum of current samples
-	MA_dt                          *data;                           // vector with raw data
-	unsigned short                  index;                          // index of current sample
-	unsigned short                  filter_length;                  // length of the filter
-	bool                            filter_complete;                // true when there are filter_length samples 
-
-	void                            init();
-
+  void init();
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------------------
@@ -53,11 +49,10 @@ private:
 // ----------------------------------------------------------------------------------------------------------------------------------------
 
 template <class MA_dt, class MA_st>
-MovingSum<MA_dt, MA_st>::MovingSum(unsigned short _filter_length)
-{
-   filter_length = _filter_length;
+MovingSum<MA_dt, MA_st>::MovingSum(unsigned short _filter_length) {
+  filter_length = _filter_length;
 
-   init();
+  init();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------
@@ -65,9 +60,8 @@ MovingSum<MA_dt, MA_st>::MovingSum(unsigned short _filter_length)
 // ----------------------------------------------------------------------------------------------------------------------------------------
 
 template <class MA_dt, class MA_st>
-MovingSum<MA_dt, MA_st>::~MovingSum()
-{
-   delete[] data;
+MovingSum<MA_dt, MA_st>::~MovingSum() {
+  delete[] data;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------
@@ -75,15 +69,14 @@ MovingSum<MA_dt, MA_st>::~MovingSum()
 // ----------------------------------------------------------------------------------------------------------------------------------------
 
 template <class MA_dt, class MA_st>
-void MovingSum<MA_dt, MA_st>::init(void)
-{
-   sum = 0;
-   index = -1;
-   filter_complete = false;
+void MovingSum<MA_dt, MA_st>::init(void) {
+  sum = 0;
+  index = -1;
+  filter_complete = false;
 
-   data = new MA_dt[filter_length];
+  data = new MA_dt[filter_length];
 
-   clear();
+  clear();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------
@@ -91,11 +84,10 @@ void MovingSum<MA_dt, MA_st>::init(void)
 // ----------------------------------------------------------------------------------------------------------------------------------------
 
 template <class MA_dt, class MA_st>
-void MovingSum<MA_dt, MA_st>::clear(void)
-{
-   for(unsigned short i=0; i<filter_length; i++){
-      data[i] = 0;
-      }
+void MovingSum<MA_dt, MA_st>::clear(void) {
+  for (unsigned short i = 0; i < filter_length; i++) {
+    data[i] = 0;
+  }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------
@@ -103,17 +95,15 @@ void MovingSum<MA_dt, MA_st>::clear(void)
 // ----------------------------------------------------------------------------------------------------------------------------------------
 
 template <class MA_dt, class MA_st>
-void MovingSum<MA_dt, MA_st>::add(MA_dt x)
-{
-   index = (index + 1) % filter_length;
-   sum -= data[index];
-   data[index] = x;
-   sum += x;
+void MovingSum<MA_dt, MA_st>::add(MA_dt x) {
+  index = (index + 1) % filter_length;
+  sum -= data[index];
+  data[index] = x;
+  sum += x;
 
-   if (!filter_complete && index==filter_length-1){
-	  filter_complete = true;
-	  }
-  
+  if (!filter_complete && index == filter_length - 1) {
+    filter_complete = true;
+  }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------
@@ -121,9 +111,8 @@ void MovingSum<MA_dt, MA_st>::add(MA_dt x)
 // ----------------------------------------------------------------------------------------------------------------------------------------
 
 template <class MA_dt, class MA_st>
-MA_st MovingSum<MA_dt, MA_st>::getCurrentSum(void) const
-{
-	return sum;
+MA_st MovingSum<MA_dt, MA_st>::getCurrentSum(void) const {
+  return sum;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------
@@ -131,9 +120,8 @@ MA_st MovingSum<MA_dt, MA_st>::getCurrentSum(void) const
 // ----------------------------------------------------------------------------------------------------------------------------------------
 
 template <class MA_dt, class MA_st>
-MA_dt* MovingSum<MA_dt, MA_st>::getData(void)
-{
-	return data;
+MA_dt* MovingSum<MA_dt, MA_st>::getData(void) {
+  return data;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------
@@ -141,9 +129,8 @@ MA_dt* MovingSum<MA_dt, MA_st>::getData(void)
 // ----------------------------------------------------------------------------------------------------------------------------------------
 
 template <class MA_dt, class MA_st>
-unsigned short MovingSum<MA_dt, MA_st>::getFilterLength(void) const
-{
-	return filter_length;
+unsigned short MovingSum<MA_dt, MA_st>::getFilterLength(void) const {
+  return filter_length;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------
@@ -151,9 +138,8 @@ unsigned short MovingSum<MA_dt, MA_st>::getFilterLength(void) const
 // ----------------------------------------------------------------------------------------------------------------------------------------
 
 template <class MA_dt, class MA_st>
-unsigned short MovingSum<MA_dt, MA_st>::getCurrentFilterLength(void) const
-{
-   return filter_complete ? filter_length : (index+1);
+unsigned short MovingSum<MA_dt, MA_st>::getCurrentFilterLength(void) const {
+  return filter_complete ? filter_length : (index + 1);
 }
 
 #endif
