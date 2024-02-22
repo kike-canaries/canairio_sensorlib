@@ -88,31 +88,30 @@
 #define SENSOR_COMMS SERIALPORT2
 
 // Sensors units definitions (symbol/name)
-#define SENSOR_UNITS           \
-    X(NUNIT, "NUNIT", "NUNIT") \
-    X(PM1, "ug/m3", "PM1")     \
-    X(PM25, "ug/m3", "PM2.5")  \
-    X(PM4, "ug/m3", "PM4")     \
-    X(PM10, "ug/m3", "PM10")   \
-    X(TEMP, "C", "T")          \
-    X(TEMPK, "K", "T")          \
-    X(TEMPF, "F", "T")          \
-    X(HUM, "%", "H")           \
-    X(CO2, "ppm", "CO2")       \
-    X(CO2TEMP, "C", "CO2T")    \
-    X(CO2TEMPK, "K", "CO2TK")    \
-    X(CO2TEMPF, "F", "CO2TF")    \
-    X(CO2HUM, "%", "CO2H")     \
-    X(PRESS, "hPa", "P")       \
-    X(ALT, "m", "Alt")         \
-    X(GAS, "kOhm", "Gas")       \
-    X(CPM, "CPM", "RAD")       \
-    X(RAD, "uSv/h", "RAD") \
-    X(NH3, "ppm", "NH3")       \
-    X(CO, "ppm", "CO")         \
-    X(NO2, "ppm", "NO2")       \
-    X(UCOUNT, "COUNT", "UCOUNT")
-
+#define SENSOR_UNITS         \
+  X(NUNIT, "NUNIT", "NUNIT") \
+  X(PM1, "ug/m3", "PM1")     \
+  X(PM25, "ug/m3", "PM2.5")  \
+  X(PM4, "ug/m3", "PM4")     \
+  X(PM10, "ug/m3", "PM10")   \
+  X(TEMP, "C", "T")          \
+  X(TEMPK, "K", "T")         \
+  X(TEMPF, "F", "T")         \
+  X(HUM, "%", "H")           \
+  X(CO2, "ppm", "CO2")       \
+  X(CO2TEMP, "C", "CO2T")    \
+  X(CO2TEMPK, "K", "CO2TK")  \
+  X(CO2TEMPF, "F", "CO2TF")  \
+  X(CO2HUM, "%", "CO2H")     \
+  X(PRESS, "hPa", "P")       \
+  X(ALT, "m", "Alt")         \
+  X(GAS, "kohm", "Gas")      \
+  X(CPM, "CPM", "RAD")       \
+  X(RAD, "uSv/h", "RAD")     \
+  X(NH3, "ppm", "NH3")       \
+  X(CO, "ppm", "CO")         \
+  X(NO2, "ppm", "NO2")       \
+  X(UCOUNT, "COUNT", "UCOUNT")
 
 #define X(unit, symbol, name) unit,
 typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
