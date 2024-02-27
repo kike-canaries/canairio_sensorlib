@@ -304,6 +304,10 @@ class Sensors {
 
   float getGeigerMicroSievertHour(void);
 
+  void initTOffset(float offset);
+
+  float getTOffset();
+
   void setTempOffset(float offset);
 
   float getTempOffset();

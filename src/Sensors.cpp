@@ -354,6 +354,21 @@ void Sensors::tempRegister(bool isCO2temp) {
 }
 
 /**
+ * @brief Initialize internal temperature offset to be used on startup
+ *
+ * Positive value for offset to be subtracetd to the temperature.
+ * Mush be called before the initialization of the sensors.
+ */
+void Sensors::initTOffset(float offset) { toffset = offset; }
+
+/**
+ * @brief Get sensorlib actual internal temperature offset
+ * @return float with the temperature offset.
+ * Positive value for offset to be subtracetd to the temperature.
+ */
+float Sensors::getTOffset() { return toffset; }
+
+/**
  * @brief Set temperature offset for all temperature sensors
  *
  * Positive value for offset to be subtracetd to the temperature.
