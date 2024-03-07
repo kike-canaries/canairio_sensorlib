@@ -4,7 +4,7 @@
 #include <AHTxx.h>
 #include <AM232X.h>
 #include <Adafruit_BME280.h>
-#include <Adafruit_BME680.h>
+#include "bsec.h"
 #include <Adafruit_BMP280.h>
 #include <Adafruit_SCD30.h>
 #include <Adafruit_SHT31.h>
@@ -105,7 +105,7 @@
   X(CO2HUM, "%", "CO2H")     \
   X(PRESS, "hPa", "P")       \
   X(ALT, "m", "Alt")         \
-  X(GAS, "Ohm", "Gas")       \
+  X(GAS, "kohm", "Gas")      \
   X(CPM, "CPM", "RAD")       \
   X(RAD, "uSv/h", "RAD")     \
   X(NH3, "ppm", "NH3")       \
@@ -194,27 +194,27 @@ class Sensors {
   /// only detect i2c sensors flag
   bool i2conly;
 
-  /*****************************************
+/*****************************************
    * I2C sensors:
    ****************************************/
+  
+    /// AM2320 object (Humidity and temperature)
+    AM232X am2320;
+    /// BME280 object (Humidity, Pressure, Altitude and Temperature)
+    Adafruit_BME280 bme280;
+    /// BMP280 object (Humidity, Pressure, Altitude and Temperature)
+    Adafruit_BMP280 bmp280;
+    /// BME680 object (Humidity, Gas, IAQ, Pressure, Altitude and Temperature)
+    Bsec iaqSensor;
+    /// AHTXX sensors object
+    AHTxx aht10;
+    /// SHT31 object (Humidity and temperature)
+    Adafruit_SHT31 sht31;
 
-  /// AM2320 object (Humidity and temperature)
-  AM232X am2320;
-  /// BME280 object (Humidity, Pressure, Altitude and Temperature)
-  Adafruit_BME280 bme280;
-  /// BMP280 object (Humidity, Pressure, Altitude and Temperature)
-  Adafruit_BMP280 bmp280;
-  /// BME680 object (Humidity, Gas, IAQ, Pressure, Altitude and Temperature)
-  Adafruit_BME680 bme680;
-  /// AHTXX sensors object
-  AHTxx aht10;
-  /// SHT31 object (Humidity and temperature)
-  Adafruit_SHT31 sht31;
-
-#ifdef DHT11_ENABLED
+  #ifdef DHT11_ENABLED
   /// @deprecated DHT sensor variable
   float dhthumi, dhttemp;
-#endif
+ #endif
   /// Mhz19 object sensor
   MHZ19 mhz19;
   /// SCD30 object sensor

@@ -976,21 +976,23 @@ void Sensors::bmp280Read() {
 }
 
 void Sensors::bme680Read() {
-  if (!isSensorRegistered(SENSORS::SBME680)) return;
-  if (!bme680.performReading()) return;
-  float temp1 = bme680.temperature;
-  temp = temp1 - toffset;
-  humi = bme680.humidity;
-  pres = bme680.pressure / 100.0;
-  gas = bme680.gas_resistance / 1000.0;
-  alt = bme680.readAltitude(sealevel);
-  dataReady = true;
-  DEBUG("-->[SLIB] BME680 read\t\t: done!");
-  tempRegister(false);
-  unitRegister(UNIT::HUM);
-  unitRegister(UNIT::PRESS);
-  unitRegister(UNIT::GAS);
-  unitRegister(UNIT::ALT);
+    if (!iaqSensor.run()) return;
+    float temp1 = iaqSensor.rawTemperature;
+    temp = temp1 - toffset;
+    humi = iaqSensor.humidity;
+    pres = iaqSensor.pressure/100;
+    gas = iaqSensor.gasResistance/1000;
+    //gas = iaqSensor.iaq;
+    //alt = (1.0 - pow((float) iaqSensor.pressure / sealevel, 0.190284));
+    //alt = 44330 * (1.0 - pow(pres / sealevel, 0.1903));
+
+    dataReady = true;
+    DEBUG("-->[SLIB] BME680 read\t\t: done!");
+    tempRegister(false);
+    unitRegister(UNIT::HUM);
+    unitRegister(UNIT::PRESS);
+    unitRegister(UNIT::GAS);
+    unitRegister(UNIT::ALT);
 }
 
 void Sensors::aht10Read() {
@@ -1584,14 +1586,29 @@ void Sensors::bmp280Init() {
 
 /// Bosch BME680 sensor init
 void Sensors::bme680Init() {
-  sensorAnnounce(SENSORS::SBME680);
-  if (!bme680.begin()) return;
-  bme680.setTemperatureOversampling(BME680_OS_8X);
-  bme680.setHumidityOversampling(BME680_OS_2X);
-  bme680.setPressureOversampling(BME680_OS_4X);
-  bme680.setIIRFilterSize(BME680_FILTER_SIZE_3);
-  bme680.setGasHeater(320, 150);  // 320*C for 150 ms
-  sensorRegister(SENSORS::SBME680);
+    sensorAnnounce(SENSORS::SBME680);
+    iaqSensor.begin(BME68X_I2C_ADDR_HIGH, Wire);
+    if (iaqSensor.bsecStatus != BSEC_OK) return;
+    if (iaqSensor.bme68xStatus != BME68X_OK) return;
+    bsec_virtual_sensor_t sensorList[13] = {
+    BSEC_OUTPUT_IAQ,
+    BSEC_OUTPUT_STATIC_IAQ,
+    BSEC_OUTPUT_CO2_EQUIVALENT,
+    BSEC_OUTPUT_BREATH_VOC_EQUIVALENT,
+    BSEC_OUTPUT_RAW_TEMPERATURE,
+    BSEC_OUTPUT_RAW_PRESSURE,
+    BSEC_OUTPUT_RAW_HUMIDITY,
+    BSEC_OUTPUT_RAW_GAS,
+    BSEC_OUTPUT_STABILIZATION_STATUS,
+    BSEC_OUTPUT_RUN_IN_STATUS,
+    BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_TEMPERATURE,
+    BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_HUMIDITY,
+    BSEC_OUTPUT_GAS_PERCENTAGE
+  };
+
+    iaqSensor.updateSubscription(sensorList, 13, BSEC_SAMPLE_RATE_LP);
+  
+    sensorRegister(SENSORS::SBME680);
 }
 
 /// AHTXX sensors init
