@@ -119,8 +119,8 @@
   X(NH3, "ppm", "NH3")       \
   X(CO, "ppm", "CO")         \
   X(NO2, "ppm", "NO2")       \
-  X(NOXI, "noxi", "NOXI")     \
-  X(VOCI, "voci", "VOCI")     \
+  X(NOXI, "noxi", "NOXI")    \
+  X(VOCI, "voci", "VOCI")    \
   X(UCOUNT, "COUNT", "UCOUNT")
 
 #define X(unit, symbol, name) unit,
