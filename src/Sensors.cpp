@@ -66,7 +66,6 @@ bool Sensors::readAllSensors() {
   }
   enableWire1();
 
-  sen5xRead();
   CO2scd30Read();
   GCJA5Read();
   sps30Read();
@@ -1068,12 +1067,15 @@ void Sensors::sen5xRead() {
       massConcentrationPm1p0, massConcentrationPm2p5, massConcentrationPm4p0,
       massConcentrationPm10p0, ambientHumidity, ambientTemperature, vocIndex, noxIndex);
 
-  if (error) return;
+  if (error) {
+    DEBUG("[E][SLIB] SEN5x read error!");
+    return;
+  } 
 
-  pm1 = massConcentrationPm1p0;
-  pm25 = massConcentrationPm2p5;
-  pm4 = massConcentrationPm4p0;
-  pm10 = massConcentrationPm4p0;
+  pm1 = (u_int16_t) massConcentrationPm1p0;
+  pm25 = (u_int16_t) massConcentrationPm2p5;
+  pm4 = (u_int16_t) massConcentrationPm4p0;
+  pm10 = (u_int16_t) massConcentrationPm4p0;
   temp = ambientTemperature;
   humi = ambientHumidity;
   dataReady = true;
@@ -1748,6 +1750,12 @@ void Sensors::sen5xInit() {
   if (uint16_t((tempOffset * 100)) != (uint16_t(toffset * 100))) {
     sen5x.setTemperatureOffsetSimple(toffset);
     delay(10);
+  }
+  /** Start Measurement */
+  error = sen5x.startMeasurement();
+  if (error) {
+    DEBUG("[E][SLIB] Error trying to execute startMeasurement():");
+    return;
   }
   sensorRegister(SENSORS::SSEN5X);
 }

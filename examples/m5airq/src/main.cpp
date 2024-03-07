@@ -34,7 +34,7 @@ I2C_BM8563 bm8563(I2C_BM8563_DEFAULT_ADDRESS, Wire);
 void printSensorsDetected() {
     uint16_t sensors_count =  sensors.getSensorsRegisteredCount();
     uint16_t units_count   =  sensors.getUnitsRegisteredCount();
-    Serial.println("-->[MAIN] Sensors detected count\t: " + String(sensors_count));
+    Serial.println("-->[MAIN] Sensors detected     \t: " + String(sensors_count));
     Serial.println("-->[MAIN] Sensors units count  \t: " + String(units_count));
     Serial.print(  "-->[MAIN] Sensors devices names\t: ");
     int i = 0;
@@ -52,7 +52,7 @@ void printSensorsValues() {
         String uName = sensors.getUnitName(unit);
         float uValue = sensors.getUnitValue(unit);
         String uSymb = sensors.getUnitSymbol(unit);
-        Serial.printf("-->[MAIN] %s:\t%02.1f\t%s\n", uName.c_str(), uValue, uSymb.c_str());
+        Serial.printf("-->[MAIN] %6s:\t%02.1f\t%s\n", uName.c_str(), uValue, uSymb.c_str());
         unit = sensors.getNextUnit();
     }
 }
