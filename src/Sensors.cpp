@@ -1956,8 +1956,15 @@ void Sensors::startI2C() {
 #ifdef M5ATOM
   enableWire1();
 #endif
+#ifdef M5AIRQ
+  Serial.println("-->[SLIB] M5AIRQ I2C enable");
+  pinMode(GROVE_SDA, OUTPUT);
+  pinMode(GROVE_SCL, OUTPUT);
+  Wire.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);
+  // enableWire1();
+#endif
 #if not defined(M5STICKCPLUS) && not defined(M5COREINK) && not defined(M5ATOM) && \
-    not defined(ESP32C3)
+    not defined(ESP32C3) && not defined(M5AIRQ)
   Wire.begin();
 #endif
 #ifdef ESP32C3

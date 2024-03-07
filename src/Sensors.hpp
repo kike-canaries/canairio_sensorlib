@@ -81,6 +81,14 @@
 #define EXT_I2C_SDA 32
 #define EXT_I2C_SCL 33
 
+#ifdef M5AIRQ
+#define GROVE_SDA 13
+#define GROVE_SCL 15
+
+#define I2C1_SDA_PIN 11
+#define I2C1_SCL_PIN 12
+#endif
+
 // Read UART sensor retry.
 #define SENSOR_RETRY 1000  // Max Serial characters
 
