@@ -1745,13 +1745,12 @@ void Sensors::sen5xInit() {
   error = sen5x.deviceReset();
   if (error) return;
   float tempOffset = 0.0;
-  DEBUG("-->[SLIB] SEN5X Temp offset\t:",
-        String(sen5x.getTemperatureOffsetSimple(tempOffset)).c_str());
+  sen5x.getTemperatureOffsetSimple(tempOffset);
+  DEBUG("-->[SLIB] SEN5X Temp offset\t:", String(tempOffset).c_str());
   if (uint16_t((tempOffset * 100)) != (uint16_t(toffset * 100))) {
     sen5x.setTemperatureOffsetSimple(toffset);
     delay(10);
   }
-  /** Start Measurement */
   error = sen5x.startMeasurement();
   if (error) {
     DEBUG("[E][SLIB] Error trying to execute startMeasurement():");
