@@ -1738,11 +1738,7 @@ void Sensors::setSCD4xAltitudeOffset(float offset) {
 /// Panasonic SEN5X sensor init
 void Sensors::sen5xInit() {
   sensorAnnounce(SENSORS::SSEN5X);
-#ifndef Wire1
   sen5x.begin(Wire);
-#else
-  sen5x.begin(Wire1);
-#endif
   uint16_t error;
   error = sen5x.deviceReset();
   if (error) return;
@@ -1955,17 +1951,6 @@ void Sensors::startI2C() {
 #endif
 #ifdef M5ATOM
   enableWire1();
-#endif
-#ifdef M5AIRQ
-  Serial.println("-->[SLIB] M5AIRQ I2C enable");
-  pinMode(GROVE_SDA, OUTPUT);
-  pinMode(GROVE_SCL, OUTPUT);
-  Wire.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);
-  // enableWire1();
-#endif
-#if not defined(M5STICKCPLUS) && not defined(M5COREINK) && not defined(M5ATOM) && \
-    not defined(ESP32C3) && not defined(M5AIRQ)
-  Wire.begin();
 #endif
 #ifdef ESP32C3
   Wire.begin(19, 18);
