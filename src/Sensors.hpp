@@ -119,6 +119,8 @@
   X(NH3, "ppm", "NH3")       \
   X(CO, "ppm", "CO")         \
   X(NO2, "ppm", "NO2")       \
+  X(NOXI, "noxi", "NOXI")     \
+  X(VOCI, "voci", "VOCI")     \
   X(UCOUNT, "COUNT", "UCOUNT")
 
 #define X(unit, symbol, name) unit,
@@ -399,7 +401,9 @@ class Sensors {
   float temp = 0.0;  // Temperature (°C)
   float pres = 0.0;  // Pressure
   float alt = 0.0;
-  float gas = 0.0;  //
+  float gas = 0.0;
+  float voci = 0.0;
+  float noxi = 0.0;
 
   // temperature unit (C,K,F)
   TEMPUNIT temp_unit = TEMPUNIT::CELSIUS;

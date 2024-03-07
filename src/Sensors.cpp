@@ -1070,12 +1070,14 @@ void Sensors::sen5xRead() {
   if (error) {
     DEBUG("[E][SLIB] SEN5x read error!");
     return;
-  } 
+  }
 
-  pm1 = (u_int16_t) massConcentrationPm1p0;
-  pm25 = (u_int16_t) massConcentrationPm2p5;
-  pm4 = (u_int16_t) massConcentrationPm4p0;
-  pm10 = (u_int16_t) massConcentrationPm4p0;
+  pm1 = (u_int16_t)massConcentrationPm1p0;
+  pm25 = (u_int16_t)massConcentrationPm2p5;
+  pm4 = (u_int16_t)massConcentrationPm4p0;
+  pm10 = (u_int16_t)massConcentrationPm4p0;
+  voci = vocIndex;
+  noxi = noxIndex;
   temp = ambientTemperature;
   humi = ambientHumidity;
   dataReady = true;
@@ -1086,6 +1088,8 @@ void Sensors::sen5xRead() {
   unitRegister(UNIT::PM10);
   unitRegister(UNIT::TEMP);
   unitRegister(UNIT::HUM);
+  unitRegister(UNIT::VOCI);
+  unitRegister(UNIT::NOXI);
 }
 
 void Sensors::GCJA5Read() {
