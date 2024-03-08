@@ -66,7 +66,6 @@ bool Sensors::readAllSensors() {
   }
   enableWire1();
 
-  sen5xRead();
   CO2scd30Read();
   GCJA5Read();
   sps30Read();
@@ -1068,12 +1067,17 @@ void Sensors::sen5xRead() {
       massConcentrationPm1p0, massConcentrationPm2p5, massConcentrationPm4p0,
       massConcentrationPm10p0, ambientHumidity, ambientTemperature, vocIndex, noxIndex);
 
-  if (error) return;
+  if (error) {
+    DEBUG("[E][SLIB] SEN5x read error!");
+    return;
+  }
 
-  pm1 = massConcentrationPm1p0;
-  pm25 = massConcentrationPm2p5;
-  pm4 = massConcentrationPm4p0;
-  pm10 = massConcentrationPm4p0;
+  pm1 = (u_int16_t)massConcentrationPm1p0;
+  pm25 = (u_int16_t)massConcentrationPm2p5;
+  pm4 = (u_int16_t)massConcentrationPm4p0;
+  pm10 = (u_int16_t)massConcentrationPm4p0;
+  voci = vocIndex;
+  noxi = noxIndex;
   temp = ambientTemperature;
   humi = ambientHumidity;
   dataReady = true;
@@ -1084,6 +1088,8 @@ void Sensors::sen5xRead() {
   unitRegister(UNIT::PM10);
   unitRegister(UNIT::TEMP);
   unitRegister(UNIT::HUM);
+  unitRegister(UNIT::VOCI);
+  unitRegister(UNIT::NOXI);
 }
 
 void Sensors::GCJA5Read() {
@@ -1738,20 +1744,21 @@ void Sensors::setSCD4xAltitudeOffset(float offset) {
 /// Panasonic SEN5X sensor init
 void Sensors::sen5xInit() {
   sensorAnnounce(SENSORS::SSEN5X);
-#ifndef Wire1
   sen5x.begin(Wire);
-#else
-  sen5x.begin(Wire1);
-#endif
   uint16_t error;
   error = sen5x.deviceReset();
   if (error) return;
   float tempOffset = 0.0;
-  DEBUG("-->[SLIB] SEN5X Temp offset\t:",
-        String(sen5x.getTemperatureOffsetSimple(tempOffset)).c_str());
+  sen5x.getTemperatureOffsetSimple(tempOffset);
+  DEBUG("-->[SLIB] SEN5X Temp offset\t:", String(tempOffset).c_str());
   if (uint16_t((tempOffset * 100)) != (uint16_t(toffset * 100))) {
     sen5x.setTemperatureOffsetSimple(toffset);
     delay(10);
+  }
+  error = sen5x.startMeasurement();
+  if (error) {
+    DEBUG("[E][SLIB] Error trying to execute startMeasurement():");
+    return;
   }
   sensorRegister(SENSORS::SSEN5X);
 }
@@ -1956,12 +1963,12 @@ void Sensors::startI2C() {
 #ifdef M5ATOM
   enableWire1();
 #endif
-#if not defined(M5STICKCPLUS) && not defined(M5COREINK) && not defined(M5ATOM) && \
-    not defined(ESP32C3)
-  Wire.begin();
-#endif
 #ifdef ESP32C3
   Wire.begin(19, 18);
+#endif
+#ifdef M5AIRQ
+  Wire.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);
+  enableWire1();
 #endif
 }
 
@@ -1977,6 +1984,10 @@ void Sensors::enableWire1() {
 #ifdef M5ATOM
   Wire1.flush();
   Wire1.begin(26, 32);  // M5CoreInk Ext port (default for all sensors)
+#endif
+#ifdef M5AIRQ
+  Wire1.flush();
+  Wire1.begin(GROVE_SDA, GROVE_SCL);
 #endif
 }
 
