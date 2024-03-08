@@ -81,6 +81,13 @@
 #define EXT_I2C_SDA 32
 #define EXT_I2C_SCL 33
 
+#ifdef M5AIRQ
+#define GROVE_SDA 13
+#define GROVE_SCL 15
+#define I2C1_SDA_PIN 11
+#define I2C1_SCL_PIN 12
+#endif
+
 // Read UART sensor retry.
 #define SENSOR_RETRY 1000  // Max Serial characters
 
@@ -111,6 +118,8 @@
   X(NH3, "ppm", "NH3")       \
   X(CO, "ppm", "CO")         \
   X(NO2, "ppm", "NO2")       \
+  X(NOXI, "noxi", "NOXI")    \
+  X(VOCI, "voci", "VOCI")    \
   X(UCOUNT, "COUNT", "UCOUNT")
 
 #define X(unit, symbol, name) unit,
@@ -304,7 +313,13 @@ class Sensors {
 
   float getGeigerMicroSievertHour(void);
 
+  void initTOffset(float offset);
+
+  float getTOffset();
+
   void setTempOffset(float offset);
+
+  float getTempOffset();
 
   void setCO2AltitudeOffset(float altitude);
 
@@ -385,7 +400,9 @@ class Sensors {
   float temp = 0.0;  // Temperature (°C)
   float pres = 0.0;  // Pressure
   float alt = 0.0;
-  float gas = 0.0;  //
+  float gas = 0.0;
+  float voci = 0.0;
+  float noxi = 0.0;
 
   // temperature unit (C,K,F)
   TEMPUNIT temp_unit = TEMPUNIT::CELSIUS;
@@ -419,6 +436,7 @@ class Sensors {
   void CO2scd30Init();
   void CO2scd30Read();
   void setSCD30TempOffset(float offset);
+  float getSCD30TempOffset();
   void setSCD30AltitudeOffset(float offset);
   void CO2correctionAlt();
   float hpaCalculation(float altitude);
@@ -426,6 +444,7 @@ class Sensors {
   void CO2scd4xInit();
   void CO2scd4xRead();
   void setSCD4xTempOffset(float offset);
+  float getSCD4xTempOffset();
   void setSCD4xAltitudeOffset(float offset);
 
   void sen5xInit();
