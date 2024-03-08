@@ -84,7 +84,6 @@
 #ifdef M5AIRQ
 #define GROVE_SDA 13
 #define GROVE_SCL 15
-
 #define I2C1_SDA_PIN 11
 #define I2C1_SCL_PIN 12
 #endif

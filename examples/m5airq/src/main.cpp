@@ -31,8 +31,8 @@
 void printSensorsDetected() {
   uint16_t sensors_count = sensors.getSensorsRegisteredCount();
   uint16_t units_count = sensors.getUnitsRegisteredCount();
-  Serial.println("-->[MAIN] Sensors detected     \t: " + String(sensors_count));
-  Serial.println("-->[MAIN] Sensors units count  \t: " + String(units_count));
+  Serial.println("-->[MAIN] Sensors detected   \t: " + String(sensors_count));
+  Serial.println("-->[MAIN] Sensors units count\t: " + String(units_count));
   Serial.print("-->[MAIN] Sensors devices names\t: ");
   int i = 0;
   while (sensors.getSensorsRegistered()[i++] != 0) {
@@ -43,7 +43,7 @@ void printSensorsDetected() {
 }
 
 void printSensorsValues() {
-  Serial.println("-->[MAIN] Preview sensor values:");
+  Serial.println("-->[MAIN] Preview sensor values :");
   UNIT unit = sensors.getNextUnit();
   while (unit != UNIT::NUNIT) {
     String uName = sensors.getUnitName(unit);
@@ -78,16 +78,14 @@ void setup() {
   delay(2000);           // Only for debugging
   powerEnableSensors();  // M5AirQ enable sensors
 
-  Wire.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);
-
   delay(100);
   Serial.println("\n== Sensor test setup ==\n");
   Serial.println("-->[SETUP] Detecting sensors..");
 
   sensors.setSampleTime(10);                      // config sensors sample time interval
   sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
-  sensors.setDebugMode(true);                     // [optional] debug mode
-  sensors.detectI2COnly(false);                   // not force to only i2c sensors
+  sensors.setDebugMode(false);                    // [optional] debug mode
+  sensors.detectI2COnly(true);                    // not force to only i2c sensors
   sensors.setTemperatureUnit(TEMPUNIT::CELSIUS);  // comment for Celsius or set Fahrenheit
   sensors.init();                                 // Auto detection (UART and i2c sensors)
   delay(1000);

@@ -1966,6 +1966,10 @@ void Sensors::startI2C() {
 #ifdef ESP32C3
   Wire.begin(19, 18);
 #endif
+#ifdef M5AIRQ
+  Wire.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);
+  enableWire1();
+#endif
 }
 
 void Sensors::enableWire1() {
@@ -1980,6 +1984,10 @@ void Sensors::enableWire1() {
 #ifdef M5ATOM
   Wire1.flush();
   Wire1.begin(26, 32);  // M5CoreInk Ext port (default for all sensors)
+#endif
+#ifdef M5AIRQ
+  Wire1.flush();
+  Wire1.begin(GROVE_SDA, GROVE_SCL);
 #endif
 }
 
