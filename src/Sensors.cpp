@@ -66,7 +66,6 @@ bool Sensors::readAllSensors() {
   }
   enableWire1();
 
-  sen5xRead();
   CO2scd30Read();
   GCJA5Read();
   sps30Read();
@@ -354,8 +353,22 @@ void Sensors::tempRegister(bool isCO2temp) {
 }
 
 /**
+ * @brief Initialize internal temperature offset to be used on startup
+ *
+ * Positive value for offset to be subtracetd to the temperature.
+ * Mush be called before the initialization of the sensors.
+ */
+void Sensors::initTOffset(float offset) { toffset = offset; }
+
+/**
+ * @brief Get sensorlib actual internal temperature offset
+ * @return float with the temperature offset.
+ * Positive value for offset to be subtracetd to the temperature.
+ */
+float Sensors::getTOffset() { return toffset; }
+
+/**
  * @brief Set temperature offset for all temperature sensors
- * @param offset temperature offset in °C (default 0).
  *
  * Positive value for offset to be subtracetd to the temperature.
  */
@@ -364,6 +377,22 @@ void Sensors::setTempOffset(float offset) {
   setSCD30TempOffset(toffset * 100);
   setSCD4xTempOffset(toffset);
   setsen5xTempOffset(toffset);
+}
+
+/**
+ * @brief Get temperature offset for Sensirion sensors (from internal sensor in SCD4x and SCD30)
+ * @return float with the temperature offset.
+ * Positive value for offset to be subtracetd to the temperature.
+ */
+float Sensors::getTempOffset() {
+  float toffset = 0.0;
+  if (isSensorRegistered(SENSORS::SSCD30)) {
+    toffset = getSCD30TempOffset();
+  }
+  if (isSensorRegistered(SENSORS::SSCD4X)) {
+    toffset = getSCD4xTempOffset();
+  }
+  return toffset;
 }
 
 /// get Gas resistance value of BMP680 sensor
@@ -1038,12 +1067,17 @@ void Sensors::sen5xRead() {
       massConcentrationPm1p0, massConcentrationPm2p5, massConcentrationPm4p0,
       massConcentrationPm10p0, ambientHumidity, ambientTemperature, vocIndex, noxIndex);
 
-  if (error) return;
+  if (error) {
+    DEBUG("[E][SLIB] SEN5x read error!");
+    return;
+  }
 
-  pm1 = massConcentrationPm1p0;
-  pm25 = massConcentrationPm2p5;
-  pm4 = massConcentrationPm4p0;
-  pm10 = massConcentrationPm4p0;
+  pm1 = (u_int16_t)massConcentrationPm1p0;
+  pm25 = (u_int16_t)massConcentrationPm2p5;
+  pm4 = (u_int16_t)massConcentrationPm4p0;
+  pm10 = (u_int16_t)massConcentrationPm4p0;
+  voci = vocIndex;
+  noxi = noxIndex;
   temp = ambientTemperature;
   humi = ambientHumidity;
   dataReady = true;
@@ -1054,6 +1088,8 @@ void Sensors::sen5xRead() {
   unitRegister(UNIT::PM10);
   unitRegister(UNIT::TEMP);
   unitRegister(UNIT::HUM);
+  unitRegister(UNIT::VOCI);
+  unitRegister(UNIT::NOXI);
 }
 
 void Sensors::GCJA5Read() {
@@ -1586,6 +1622,8 @@ void Sensors::CO2scd30Init() {
 #endif
   delay(10);
 
+  sensorRegister(SENSORS::SSCD30);
+
   DEBUG("-->[SLIB] SCD30 Temp offset\t:", String(scd30.getTemperatureOffset()).c_str());
   DEBUG("-->[SLIB] SCD30 Altitude offset\t:", String(scd30.getAltitudeOffset()).c_str());
 
@@ -1595,11 +1633,11 @@ void Sensors::CO2scd30Init() {
     delay(10);
   }
 
-  if (uint16_t((scd30.getTemperatureOffset() * 100)) != (uint16_t(toffset * 100))) {
+  if (uint16_t((scd30.getTemperatureOffset())) != (uint16_t(toffset * 100))) {
+    DEBUG("-->[SLIB] SCD30 Temp offset to\t:", String(toffset).c_str());
     setSCD30TempOffset(toffset);
     delay(10);
   }
-  sensorRegister(SENSORS::SSCD30);
 }
 
 /// set SCD30 temperature compensation
@@ -1608,6 +1646,16 @@ void Sensors::setSCD30TempOffset(float offset) {
     Serial.println("-->[SLIB] SCD30 new temp offset\t: " + String(offset));
     scd30.setTemperatureOffset(offset);
   }
+}
+
+/// get SCD30 temperature compensation
+float Sensors::getSCD30TempOffset() {
+  float offset = 0.0;
+  if (isSensorRegistered(SENSORS::SSCD30)) {
+    offset = scd30.getTemperatureOffset() / 100.0;
+    Serial.println("-->[SLIB] SCD30 get temp offset\t: " + String(offset));
+  }
+  return offset;
 }
 
 /// set SCD30 altitude compensation
@@ -1627,6 +1675,7 @@ void Sensors::CO2scd4xInit() {
   scd4x.begin(Wire);
   error = scd4x.stopPeriodicMeasurement();
   if (error) return;
+  sensorRegister(SENSORS::SSCD4X);
   scd4x.getTemperatureOffset(tTemperatureOffset);
   scd4x.getSensorAltitude(tSensorAltitude);
   DEBUG("-->[SLIB] SCD4x Temp offset\t:", String(tTemperatureOffset).c_str());
@@ -1637,12 +1686,11 @@ void Sensors::CO2scd4xInit() {
   offsetDifference = abs((toffset * 100) - (tTemperatureOffset * 100));
   if (offsetDifference >
       0.5) {  // Accounts for SCD4x conversion rounding errors in temperature offset
-    Serial.println("-->[SLIB] SCD4x new offset\t: Temp offset to" + String(toffset));
+    Serial.println("-->[SLIB] SCD4x new offset\t: Temp offset to " + String(toffset));
     setSCD4xTempOffset(toffset);
   }
   error = scd4x.startPeriodicMeasurement();
   if (error) DEBUG("[W][SLIB] SCD4x periodic measure\t: starting error:", String(error).c_str());
-  sensorRegister(SENSORS::SSCD4X);
 }
 
 /// set SCD4x temperature compensation
@@ -1654,6 +1702,32 @@ void Sensors::setSCD4xTempOffset(float offset) {
     scd4x.setTemperatureOffset(offset);
     scd4x.startPeriodicMeasurement();
   }
+}
+
+/// get SCD4x temperature compensation
+float Sensors::getSCD4xTempOffset() {
+  float offset = 0.0;
+  uint16_t error;
+  if (isSensorRegistered(SENSORS::SSCD4X)) {
+    scd4x.stopPeriodicMeasurement();
+    if (error) {
+      DEBUG("[SLIB] SCD4x stopPeriodicMeasurement()\t: error:", String(error).c_str());
+      return 0.0;
+    } else {
+      DEBUG("[SLIB] SCD4x stopPeriodicMeasurement()\t: done!");
+    }
+    error = scd4x.getTemperatureOffset(offset);
+    if (error) {
+      DEBUG("[SLIB] SCD4x get temp offset\t: error:", String(error).c_str());
+      return 0.0;
+    }
+    error = scd4x.startPeriodicMeasurement();
+    if (error) {
+      DEBUG("[SLIB] SCD4x startPeriodicMeasurement()\t: error:", String(error).c_str());
+      return 0.0;
+    }
+  }
+  return offset;
 }
 
 /// set SCD4x altitude compensation
@@ -1670,20 +1744,21 @@ void Sensors::setSCD4xAltitudeOffset(float offset) {
 /// Panasonic SEN5X sensor init
 void Sensors::sen5xInit() {
   sensorAnnounce(SENSORS::SSEN5X);
-#ifndef Wire1
   sen5x.begin(Wire);
-#else
-  sen5x.begin(Wire1);
-#endif
   uint16_t error;
   error = sen5x.deviceReset();
   if (error) return;
   float tempOffset = 0.0;
-  DEBUG("-->[SLIB] SEN5X Temp offset\t:",
-        String(sen5x.getTemperatureOffsetSimple(tempOffset)).c_str());
+  sen5x.getTemperatureOffsetSimple(tempOffset);
+  DEBUG("-->[SLIB] SEN5X Temp offset\t:", String(tempOffset).c_str());
   if (uint16_t((tempOffset * 100)) != (uint16_t(toffset * 100))) {
     sen5x.setTemperatureOffsetSimple(toffset);
     delay(10);
+  }
+  error = sen5x.startMeasurement();
+  if (error) {
+    DEBUG("[E][SLIB] Error trying to execute startMeasurement():");
+    return;
   }
   sensorRegister(SENSORS::SSEN5X);
 }
@@ -1888,12 +1963,12 @@ void Sensors::startI2C() {
 #ifdef M5ATOM
   enableWire1();
 #endif
-#if not defined(M5STICKCPLUS) && not defined(M5COREINK) && not defined(M5ATOM) && \
-    not defined(ESP32C3)
-  Wire.begin();
-#endif
 #ifdef ESP32C3
   Wire.begin(19, 18);
+#endif
+#ifdef M5AIRQ
+  Wire.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);
+  enableWire1();
 #endif
 }
 
@@ -1909,6 +1984,10 @@ void Sensors::enableWire1() {
 #ifdef M5ATOM
   Wire1.flush();
   Wire1.begin(26, 32);  // M5CoreInk Ext port (default for all sensors)
+#endif
+#ifdef M5AIRQ
+  Wire1.flush();
+  Wire1.begin(GROVE_SDA, GROVE_SCL);
 #endif
 }
 
