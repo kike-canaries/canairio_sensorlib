@@ -1970,6 +1970,9 @@ void Sensors::startI2C() {
   Wire.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);
   enableWire1();
 #endif
+#ifdef ESP32C3_AIRGRADIENT
+  Wire.begin(7, 6);
+#endif
 }
 
 void Sensors::enableWire1() {
@@ -2006,36 +2009,16 @@ bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, i
   if (devmode)
     Serial.printf("-->[SLIB] UART init with speed\t: %lu TX:%i RX:%i\r\n", speed_baud, pms_tx,
                   pms_rx);
+#if ARDUINO_USB_CDC_ON_BOOT  // Serial used for USB CDC
+  Serial0.begin(9600, SERIAL_8N1);
+  _serial = &Serial0;
+  return true;
+#endif
   switch (SENSOR_COMMS) {
     case SERIALPORT:
       Serial.begin(speed_baud);
       _serial = &Serial;
       break;
-#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || defined(SAMD21G18A) || \
-    defined(ARDUINO_SAM_DUE)
-    case SERIALPORT1:
-      Serial1.begin(speed_baud);
-      _serial = &Serial1;
-      break;
-#endif
-#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || defined(ARDUINO_SAM_DUE)
-    case SERIALPORT2:
-      Serial2.begin(speed_baud);
-      _serial = &Serial2;
-      break;
-
-    case SERIALPORT3:
-      Serial3.begin(speed_baud);
-      _serial = &Serial3;
-      break;
-#endif
-#if defined(__AVR_ATmega32U4__)
-    case SERIALPORT1:
-      Serial1.begin(speed_baud);
-      _serial = &Serial1;
-      break;
-#endif
-
 #if defined(ARDUINO_ARCH_ESP32)
     // on a Sparkfun ESP32 Thing the default pins for serial1 are used for acccessing flash memory
     // you have to define different pins upfront in order to use serial1 port.

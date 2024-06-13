@@ -24,8 +24,8 @@
 #include <dht_nonblocking.h>
 #endif
 
-#define CSL_VERSION "0.7.4"
-#define CSL_REVISION 383
+#define CSL_VERSION "0.7.5"
+#define CSL_REVISION 384
 
 /***************************************************************
  * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -69,6 +69,9 @@
 #elif ESP32C3
 #define PMS_RX 20
 #define PMS_TX 21
+#elif ESP32C3_AIRGRADIENT
+#define PMS_RX 0
+#define PMS_TX 1
 
 #else              // **DEFAULT** for legacy CanAirIO devices:
 #define PMS_RX 17  // D1MIN1 / TTGOT7 / ESP32DEVKIT, also for main ESP32 dev boards use it
