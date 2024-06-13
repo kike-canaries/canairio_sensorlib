@@ -1971,7 +1971,7 @@ void Sensors::startI2C() {
   enableWire1();
 #endif
 #ifdef ESP32C3_AIRGRADIENT
-  Wire.begin(7,6);
+  Wire.begin(7, 6);
 #endif
 }
 
@@ -2007,7 +2007,8 @@ void Sensors::disableWire1() {
 
 bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx) {
   if (devmode)
-    Serial.printf("-->[SLIB] UART init with speed\t: %lu TX:%i RX:%i\r\n", speed_baud, pms_tx, pms_rx);
+    Serial.printf("-->[SLIB] UART init with speed\t: %lu TX:%i RX:%i\r\n", speed_baud, pms_tx,
+                  pms_rx);
 #if ARDUINO_USB_CDC_ON_BOOT  // Serial used for USB CDC
   Serial0.begin(9600, SERIAL_8N1);
   _serial = &Serial0;

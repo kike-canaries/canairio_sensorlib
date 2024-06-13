@@ -71,8 +71,7 @@
 #define PMS_TX 21
 #elif ESP32C3_AIRGRADIENT
 #define PMS_RX 0
-#define PMS_TX 1 
-
+#define PMS_TX 1
 
 #else              // **DEFAULT** for legacy CanAirIO devices:
 #define PMS_RX 17  // D1MIN1 / TTGOT7 / ESP32DEVKIT, also for main ESP32 dev boards use it
