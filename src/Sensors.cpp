@@ -1970,6 +1970,9 @@ void Sensors::startI2C() {
   Wire.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);
   enableWire1();
 #endif
+#ifdef ESP32C3_AIRGRADIENT
+  Wire.begin(7,6);
+#endif
 }
 
 void Sensors::enableWire1() {
