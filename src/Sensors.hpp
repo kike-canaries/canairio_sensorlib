@@ -24,8 +24,8 @@
 #include <dht_nonblocking.h>
 #endif
 
-#define CSL_VERSION "0.7.4"
-#define CSL_REVISION 383
+#define CSL_VERSION "0.7.5"
+#define CSL_REVISION 384
 
 /***************************************************************
  * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -69,6 +69,9 @@
 #elif ESP32C3
 #define PMS_RX 20
 #define PMS_TX 21
+#elif ESP32C3_AIRGRADIENT
+#define PMS_RX 0
+#define PMS_TX 1
 
 #else              // **DEFAULT** for legacy CanAirIO devices:
 #define PMS_RX 17  // D1MIN1 / TTGOT7 / ESP32DEVKIT, also for main ESP32 dev boards use it
@@ -80,6 +83,13 @@
 #define HAT_I2C_SCL 26
 #define EXT_I2C_SDA 32
 #define EXT_I2C_SCL 33
+
+#ifdef M5AIRQ
+#define GROVE_SDA 13
+#define GROVE_SCL 15
+#define I2C1_SDA_PIN 11
+#define I2C1_SCL_PIN 12
+#endif
 
 // Read UART sensor retry.
 #define SENSOR_RETRY 1000  // Max Serial characters
@@ -111,6 +121,8 @@
   X(NH3, "ppm", "NH3")       \
   X(CO, "ppm", "CO")         \
   X(NO2, "ppm", "NO2")       \
+  X(NOXI, "noxi", "NOXI")    \
+  X(VOCI, "voci", "VOCI")    \
   X(UCOUNT, "COUNT", "UCOUNT")
 
 #define X(unit, symbol, name) unit,
@@ -304,7 +316,13 @@ class Sensors {
 
   float getGeigerMicroSievertHour(void);
 
+  void initTOffset(float offset);
+
+  float getTOffset();
+
   void setTempOffset(float offset);
+
+  float getTempOffset();
 
   void setCO2AltitudeOffset(float altitude);
 
@@ -385,7 +403,9 @@ class Sensors {
   float temp = 0.0;  // Temperature (°C)
   float pres = 0.0;  // Pressure
   float alt = 0.0;
-  float gas = 0.0;  //
+  float gas = 0.0;
+  float voci = 0.0;
+  float noxi = 0.0;
 
   // temperature unit (C,K,F)
   TEMPUNIT temp_unit = TEMPUNIT::CELSIUS;
@@ -419,6 +439,7 @@ class Sensors {
   void CO2scd30Init();
   void CO2scd30Read();
   void setSCD30TempOffset(float offset);
+  float getSCD30TempOffset();
   void setSCD30AltitudeOffset(float offset);
   void CO2correctionAlt();
   float hpaCalculation(float altitude);
@@ -426,6 +447,7 @@ class Sensors {
   void CO2scd4xInit();
   void CO2scd4xRead();
   void setSCD4xTempOffset(float offset);
+  float getSCD4xTempOffset();
   void setSCD4xAltitudeOffset(float offset);
 
   void sen5xInit();

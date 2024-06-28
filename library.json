@@ -1,6 +1,6 @@
 {
   "name": "CanAirIO Air Quality Sensors Library",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "homepage":"https://canair.io",
   "keywords": 
   [ 
@@ -86,7 +86,7 @@
     {"name":"AM232X", "owner":"robtillaart", "version":"0.5.0"},
     {"name":"sps30", "owner":"paulvha","version":"1.4.17"},
     {"name":"MH-Z19", "owner":"wifwaf", "version":"1.5.4"},
-    {"name":"S8_UART", "owner":"jcomas", "version":"1.0.1"},
+    {"name":"S8_UART", "owner":"jcomas", "version":"1.0.2"},
     {"name":"Sensirion Core","owner":"sensirion","version":"0.6.0"},
     {"name":"Sensirion I2C SCD4x","owner":"sensirion","version":"0.4.0"},
     {"name":"Sensirion I2C SEN5X","owner":"sensirion","version":"0.3.0"},
