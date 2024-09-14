@@ -1054,7 +1054,7 @@ void Sensors::sgp41Read() {
 
   if (error) {
     Serial.print("Error trying to execute (): ");
-    DEBUG("-->[SLIB] sgp41 measureRaw error\t:", String(error));
+    DEBUG("-->[SLIB] sgp41 measureRaw error\t:", String(error).c_str());
     return;
   } else {
     unitRegister(UNIT::VOC);
@@ -1703,10 +1703,10 @@ void Sensors::sgp41Init() {
   uint16_t testResult;
   error = sgp41.executeSelfTest(testResult);
   if (error) {
-    DEBUG("-->[SLIB] sgp41 selftest try error\t:", String(error));
+    DEBUG("-->[SLIB] sgp41 selftest try error\t:", String(error).c_str());
     return;
   } else if (testResult != 0xD400) {
-    DEBUG("-->[SLIB] sgp41 selfTest fail error\t:", String(testResult));
+    DEBUG("-->[SLIB] sgp41 selfTest fail error\t:", String(testResult).c_str());
     return;
   }
   sensorRegister(SENSORS::SSGP41);
