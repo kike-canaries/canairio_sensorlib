@@ -125,8 +125,8 @@
   X(NO2, "ppm", "NO2")       \
   X(NOXI, "noxi", "NOXI")    \
   X(VOCI, "voci", "VOCI")    \
-  X(NOX, "nox", "NOX")    \
-  X(VOC, "voc", "VOC")    \
+  X(NOX, "nox", "NOX")       \
+  X(VOC, "voc", "VOC")       \
   X(UCOUNT, "COUNT", "UCOUNT")
 
 #define X(unit, symbol, name) unit,
@@ -208,7 +208,7 @@ class Sensors {
   /// Sensirion dust SPS30 library
   SPS30 sps30;
 
-  /// Sensirion sgp41 library (Rh, T, Voc, Nox) 
+  /// Sensirion sgp41 library (Rh, T, Voc, Nox)
   SensirionI2CSgp41 sgp41;
   uint8_t conditioning_s = 10;
 
