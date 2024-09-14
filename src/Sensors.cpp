@@ -1036,6 +1036,32 @@ void Sensors::CO2scd30Read() {
   }
 }
 
+void Sensors::sgp41Read() {
+  if (!isSensorRegistered(SENSORS::SSGP41)) return;
+
+  uint16_t error;
+  uint16_t defaultRh = 0x8000;
+  uint16_t defaultT = 0x6666;
+
+  if (conditioning_s > 0) {
+    // During NOx conditioning (10s) SRAW NOx will remain 0
+    error = sgp41.executeConditioning(defaultRh, defaultT, voc);
+    conditioning_s--;
+  } else {
+    // Read Measurement
+    error = sgp41.measureRawSignals(defaultRh, defaultT, voc, nox);
+  }
+
+  if (error) {
+    Serial.print("Error trying to execute (): ");
+    DEBUG("-->[SLIB] sgp41 measureRaw error\t:", String(error));
+    return;
+  } else {
+    unitRegister(UNIT::VOC);
+    unitRegister(UNIT::NOX);
+  }
+}
+
 void Sensors::CO2scd4xRead() {
   if (!isSensorRegistered(SENSORS::SSCD4X)) return;
   uint16_t tCO2 = 0;
@@ -1664,6 +1690,26 @@ void Sensors::setSCD30AltitudeOffset(float offset) {
     Serial.println("-->[SLIB] SCD30 new altitude offset\t: " + String(offset));
     scd30.setAltitudeOffset(uint16_t(offset));
   }
+}
+
+void Sensors::sgp41Init() {
+  sensorAnnounce(SENSORS::SSGP41);
+  uint16_t error;
+#ifndef Wire1
+  sgp41.begin(Wire);
+#else
+  sgp41.begin(Wire1);
+#endif
+  uint16_t testResult;
+  error = sgp41.executeSelfTest(testResult);
+  if (error) {
+    DEBUG("-->[SLIB] sgp41 selftest try error\t:", String(error));
+    return;
+  } else if (testResult != 0xD400) {
+    DEBUG("-->[SLIB] sgp41 selfTest fail error\t:", String(testResult));
+    return;
+  }
+  sensorRegister(SENSORS::SSGP41);
 }
 
 /// Sensirion SCD4X CO2 sensor init

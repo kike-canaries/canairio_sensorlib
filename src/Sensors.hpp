@@ -13,6 +13,7 @@
 #include <MHZ19.h>
 #include <SensirionI2CScd4x.h>
 #include <SensirionI2CSen5x.h>
+#include <SensirionI2CSgp41.h>
 #include <SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h>
 #include <cm1106_uart.h>
 #include <drivers/geiger.h>
@@ -124,6 +125,8 @@
   X(NO2, "ppm", "NO2")       \
   X(NOXI, "noxi", "NOXI")    \
   X(VOCI, "voci", "VOCI")    \
+  X(NOX, "nox", "NOX")    \
+  X(VOC, "voc", "VOC")    \
   X(UCOUNT, "COUNT", "UCOUNT")
 
 #define X(unit, symbol, name) unit,
@@ -154,6 +157,7 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
   X(SDFRNH3, "DFRNH3", 3) \
   X(SDFRNO2, "DFRNO2", 3) \
   X(SCAJOE, "CAJOE", 3)   \
+  X(SSGP41, "SGP41", 3)   \
   X(SCOUNT, "SCOUNT", 3)
 
 #define X(utype, uname, umaintype) utype,
@@ -201,8 +205,12 @@ class Sensors {
   /// Altitud hpa calculation
   float hpa = 0.0;
 
-  /// Sensirion library
+  /// Sensirion dust SPS30 library
   SPS30 sps30;
+
+  /// Sensirion sgp41 library (Rh, T, Voc, Nox) 
+  SensirionI2CSgp41 sgp41;
+  uint8_t conditioning_s = 10;
 
   /// only detect i2c sensors flag
   bool i2conly;
@@ -407,6 +415,8 @@ class Sensors {
   float gas = 0.0;
   float voci = 0.0;
   float noxi = 0.0;
+  uint16_t voc = 0;
+  uint16_t nox = 0;
 
   // temperature unit (C,K,F)
   TEMPUNIT temp_unit = TEMPUNIT::CELSIUS;
@@ -454,6 +464,9 @@ class Sensors {
   void sen5xInit();
   void sen5xRead();
   void setsen5xTempOffset(float offset);
+
+  void sgp41Init();
+  void sgp41Read();
 
   void GCJA5Init();
   void GCJA5Read();
