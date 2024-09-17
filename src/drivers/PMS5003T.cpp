@@ -24,7 +24,9 @@ bool PMS5003T::begin(void) {
   }
 
   if (pms.begin(this->_serial) == false) {
+    #if defined(ESP32)
     log_e("PMS failed");
+    #endif
     return false;
   }
 
@@ -94,7 +96,9 @@ float PMS5003T::getRelativeHumidity(void) {
  */
 bool PMS5003T::isBegin(void) {
   if (this->_isBegin == false) {
+#if defined(ESP32)
     log_d("Not-initialized");
+#endif
     return false;
   }
   return true;
@@ -106,7 +110,9 @@ void PMS5003T::end(void) {
   }
   _isBegin = false;
   delete _serial;
+#if defined(ESP32)
   log_d("De-initialize");
+#endif
 }
 
 /**
