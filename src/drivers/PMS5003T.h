@@ -11,13 +11,8 @@
  */
 class PMS5003T: public PMS5003TBase  {
 public:
-#if defined(ESP8266)
-  bool begin(Stream *_debugStream);
-#else
   bool begin(HardwareSerial &serial);
-#endif
   void end(void);
-
   void handle(void);
   bool isFailed(void);
   int getPm01Ae(void);
@@ -31,13 +26,7 @@ public:
 private:
   bool _isBegin = false;
   bool _isSleep = false;
-
-#if defined(ESP8266)
-  Stream *_debugStream;
-  const char *TAG = "PMS5003T";
-#else
   HardwareSerial *_serial;
-#endif
   PMSBase pms;
   bool begin(void);
   bool isBegin(void);
