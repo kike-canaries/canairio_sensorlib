@@ -1,3 +1,6 @@
+#ifndef PM_1006_H
+#define PM_1006_H
+
 #include <Arduino.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -40,3 +43,5 @@ class PM1006 {
    */
   bool read_pm25(uint16_t *pm);
 };
+
+#endif

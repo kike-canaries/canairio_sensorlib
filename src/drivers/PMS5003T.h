@@ -1,7 +1,6 @@
 #ifndef _PMS5003T_H_
 #define _PMS5003T_H_
 
-#include "../Main/BoardDef.h"
 #include "PMS.h"
 #include "PMS5003TBase.h"
 #include "Stream.h"
@@ -12,7 +11,6 @@
  */
 class PMS5003T: public PMS5003TBase  {
 public:
-  PMS5003T(BoardType def);
 #if defined(ESP8266)
   bool begin(Stream *_debugStream);
 #else
@@ -34,8 +32,6 @@ private:
   bool _isBegin = false;
   bool _isSleep = false;
 
-  BoardType _boardDef;
-  const BoardDef *bsp;
 #if defined(ESP8266)
   Stream *_debugStream;
   const char *TAG = "PMS5003T";

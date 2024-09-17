@@ -16,6 +16,7 @@
 #include <SensirionI2CSgp41.h>
 #include <SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h>
 #include <cm1106_uart.h>
+#include <drivers/PMS5003T.h>
 #include <drivers/geiger.h>
 #include <drivers/pm1006.h>
 #include <s8_uart.h>
@@ -266,6 +267,8 @@ class Sensors {
   DFRobot_GAS_I2C dfrNO2;
   /// Geiger CAJOE object sensor
   GEIGER *rad;
+  /// PMS5003T Plantower with T&H of Airgradient
+  PMS5003T *pms5003t_1;
 
   void init(u_int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 

@@ -30,13 +30,6 @@ bool PMS5003T::begin(HardwareSerial &serial) {
 #endif
 
 /**
- * @brief Construct a new PMS5003T::PMS5003T object
- *
- * @param def Board type @ref BoardType
- */
-PMS5003T::PMS5003T(BoardType def) : _boardDef(def) {}
-
-/**
  * @brief Init sensor
  *
  * @return true Success
@@ -54,17 +47,6 @@ bool PMS5003T::begin(void) {
   // }
 #endif
 
-  this->bsp = getBoardDef(this->_boardDef);
-  if (bsp == NULL) {
-    AgLog("Board [%d] not supported", this->_boardDef);
-    return false;
-  }
-
-  if (bsp->Pms5003.supported == false) {
-    AgLog("Board [%d] PMS5003 not supported", this->_boardDef);
-    return false;
-  }
-
 #if defined(ESP8266)
   bsp->Pms5003.uart_tx_pin;
   SoftwareSerial *uart =
@@ -81,24 +63,24 @@ bool PMS5003T::begin(void) {
     AgLog("Init Serial0");
     _serial->begin(9600, SERIAL_8N1);
 #else
-  if (this->_serial == &Serial) {
-    AgLog("Init Serial");
-    this->_serial->begin(9600, SERIAL_8N1, bsp->Pms5003.uart_rx_pin,
-                         bsp->Pms5003.uart_tx_pin);
+  // if (this->_serial == &Serial) {
+  //   AgLog("Init Serial");
+  //   this->_serial->begin(9600, SERIAL_8N1, bsp->Pms5003.uart_rx_pin,
+  //                        bsp->Pms5003.uart_tx_pin);
 #endif
-  } else {
-    /** Share with sensor air s8*/
-    if (bsp->SenseAirS8.supported == false) {
-      AgLog("Board [%d] PMS5003T_2 not supported", this->_boardDef);
-      return false;
-    }
+  // } else {
+    // /** Share with sensor air s8*/
+    // if (bsp->SenseAirS8.supported == false) {
+    //   AgLog("Board [%d] PMS5003T_2 not supported", this->_boardDef);
+    //   return false;
+    // }
 
-    AgLog("Init Serialx");
-    this->_serial->begin(9600, SERIAL_8N1, bsp->SenseAirS8.uart_rx_pin,
-                         bsp->SenseAirS8.uart_tx_pin);
-  }
+    // AgLog("Init Serialx");
+    // this->_serial->begin(9600, SERIAL_8N1, bsp->SenseAirS8.uart_rx_pin,
+    //                      bsp->SenseAirS8.uart_tx_pin);
+  // }
   if (pms.begin(this->_serial) == false) {
-    AgLog("PMS failed");
+    log_e("PMS failed");
     return false;
   }
 #endif
@@ -169,7 +151,7 @@ float PMS5003T::getRelativeHumidity(void) {
  */
 bool PMS5003T::isBegin(void) {
   if (this->_isBegin == false) {
-    AgLog("Not-initialized");
+    log_d("Not-initialized");
     return false;
   }
   return true;
@@ -185,7 +167,7 @@ void PMS5003T::end(void) {
 #else
   delete _serial;
 #endif
-  AgLog("De-initialize");
+  log_d("De-initialize");
 }
 
 /**

@@ -1,5 +1,4 @@
 #include "PMS.h"
-#include "../Main/BoardDef.h"
 
 /**
  * @brief Init and check that sensor has connected
