@@ -268,7 +268,7 @@ class Sensors {
   /// Geiger CAJOE object sensor
   GEIGER *rad;
   /// PMS5003T Plantower with T&H of Airgradient
-  PMS5003T *pms5003t_1;
+  PMS5003T *pm5003t;
 
   void init(u_int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
@@ -503,6 +503,7 @@ class Sensors {
   bool senseAirS8Init();
   bool senseAirS8Read();
   bool PM1006Init();
+  bool PM5003TInit();
 
   bool sps30I2CInit();
   bool sps30UARTInit();

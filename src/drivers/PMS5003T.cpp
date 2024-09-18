@@ -7,7 +7,7 @@
  * @return true Success
  * @return false Failure
  */
-bool PMS5003T::begin(HardwareSerial &serial) {
+bool PMS5003T::begin(Stream &serial) {
   this->_serial = &serial;
   return this->begin();
 }

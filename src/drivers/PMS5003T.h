@@ -11,7 +11,7 @@
  */
 class PMS5003T: public PMS5003TBase  {
 public:
-  bool begin(HardwareSerial &serial);
+  bool begin(Stream &serial);
   void end(void);
   void handle(void);
   bool isFailed(void);
@@ -26,7 +26,7 @@ public:
 private:
   bool _isBegin = false;
   bool _isSleep = false;
-  HardwareSerial *_serial;
+  Stream *_serial;
   PMSBase pms;
   bool begin(void);
   bool isBegin(void);

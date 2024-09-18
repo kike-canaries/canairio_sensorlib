@@ -1350,6 +1350,11 @@ bool Sensors::PM1006Init() {
   return pm1006Read();
 }
 
+bool Sensors::PM5003TInit(){
+  pm5003t = new PMS5003T();
+  return pm5003t->begin(*_serial);
+}
+
 bool Sensors::CO2CM1106Init() {
   DEBUG("-->[SLIB] try to enable sensor\t: CM1106..");
   cm1106 = new CM1106_UART(*_serial);
