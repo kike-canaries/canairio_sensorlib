@@ -779,6 +779,19 @@ bool Sensors::pm1006Read() {
 }
 
 /**
+ *  @brief PMS5003T particulate meter, T&H, sensors read.
+ *  @return true if header and sensor data is right.
+ */
+
+bool Sensors::pm5003TRead() {
+  if (!isSensorRegistered(SENSORS::P5003T)) return false;
+  pm5003t->handle();
+  pm25 = pm5003t->getPm25Ae();
+  unitRegister(UNIT::PM25);
+  return true;
+}
+
+/**
  * @brief PMSensor Serial read to basic string
  * @param SENSOR_RETRY attempts before failure
  * @return String buffer.
@@ -914,6 +927,12 @@ bool Sensors::pmSensorRead() {
     case SAIRS8:
       return senseAirS8Read();
       break;
+
+    case P5003T:
+      return pm5003TRead();
+      break;
+
+
 
     default:
       return false;
@@ -1298,6 +1317,13 @@ bool Sensors::pmSensorAutoDetect(u_int pms_type) {
     }
   }
 
+  if (pms_type == SENSORS::P5003T) {
+    if (PM5003TInit()) {
+      dev_uart_type = SENSORS::P5003T;
+      return true;
+    }
+  }
+
   if (pms_type == SENSORS::SMHZ19) {
     if (CO2Mhz19Init()) {
       dev_uart_type = SENSORS::SMHZ19;
@@ -1352,7 +1378,10 @@ bool Sensors::PM1006Init() {
 
 bool Sensors::PM5003TInit(){
   pm5003t = new PMS5003T();
-  return pm5003t->begin(*_serial);
+  bool pms_ready = pm5003t->begin(*_serial);
+  if (!pms_ready) return false;
+  sensorRegister(SENSORS::P5003T);
+  return pms_ready;
 }
 
 bool Sensors::CO2CM1106Init() {
@@ -1758,9 +1787,8 @@ void Sensors::setSCD4xTempOffset(float offset) {
 /// get SCD4x temperature compensation
 float Sensors::getSCD4xTempOffset() {
   float offset = 0.0;
-  uint16_t error;
   if (isSensorRegistered(SENSORS::SSCD4X)) {
-    scd4x.stopPeriodicMeasurement();
+    uint16_t error = scd4x.stopPeriodicMeasurement();
     if (error) {
       DEBUG("[SLIB] SCD4x stopPeriodicMeasurement()\t: error:", String(error).c_str());
       return 0.0;

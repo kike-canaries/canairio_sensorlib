@@ -144,6 +144,7 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
   X(SCM1106, "CM1106", 2) \
   X(SAIRS8, "SAIRS8", 2)  \
   X(IKEAVK, "IKEAVK", 1)  \
+  X(P5003T, "PM5003T", 1) \
   X(SSCD30, "SCD30", 2)   \
   X(SSCD4X, "SCD4X", 2)   \
   X(SSEN5X, "SEN5X", 1)   \
@@ -496,6 +497,7 @@ class Sensors {
   bool pmGCJA5Read();
   bool pmSDS011Read();
   bool pm1006Read();
+  bool pm5003TRead();
   bool CO2Mhz19Read();
   bool CO2CM1106Read();
   bool CO2Mhz19Init();
