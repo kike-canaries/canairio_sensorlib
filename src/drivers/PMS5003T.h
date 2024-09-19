@@ -11,7 +11,8 @@
  */
 class PMS5003T: public PMS5003TBase  {
 public:
-  bool begin(Stream &serial);
+  explicit PMS5003T(Stream &serial);
+  bool begin(void);
   void end(void);
   void handle(void);
   bool isFailed(void);
@@ -28,7 +29,6 @@ private:
   bool _isSleep = false;
   Stream *_serial;
   PMSBase pms;
-  bool begin(void);
   bool isBegin(void);
 };
 

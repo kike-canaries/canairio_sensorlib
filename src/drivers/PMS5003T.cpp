@@ -1,16 +1,11 @@
 #include "PMS5003T.h"
 
 /**
- * @brief Init Sensor
+ * @brief Constructor.
  *
- * @param serial Serial communication with sensor
- * @return true Success
- * @return false Failure
+ * @param serial the serial port, NOTE: the serial port has to be pre-configured
  */
-bool PMS5003T::begin(Stream &serial) {
-  this->_serial = &serial;
-  return this->begin();
-}
+PMS5003T::PMS5003T(Stream &serial) { this->_serial = &serial; }
 
 /**
  * @brief Init sensor

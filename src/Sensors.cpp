@@ -786,8 +786,16 @@ bool Sensors::pm1006Read() {
 bool Sensors::pm5003TRead() {
   if (!isSensorRegistered(SENSORS::P5003T)) return false;
   pm5003t->handle();
+  pm1 = pm5003t->getPm01Ae();
   pm25 = pm5003t->getPm25Ae();
+  pm10 = pm5003t->getPm10Ae();
+  temp = pm5003t->getTemperature();
+  humi = pm5003t->getRelativeHumidity();
+  unitRegister(UNIT::PM1);
   unitRegister(UNIT::PM25);
+  unitRegister(UNIT::PM10);
+  unitRegister(UNIT::HUM);
+  unitRegister(UNIT::TEMP);
   return true;
 }
 
@@ -1271,6 +1279,9 @@ bool Sensors::sensorSerialInit(u_int pms_type, int pms_rx, int pms_tx) {
   } else if (pms_type == SENSORS::IKEAVK) {
     DEBUG("-->[SLIB] UART detecting type\t: SENSEAIRS8");
     if (!serialInit(pms_type, PM1006::BIT_RATE, pms_rx, pms_tx)) return false;
+  } else if (pms_type == SENSORS::P5003T) {
+    DEBUG("-->[SLIB] UART detecting type\t: PMS5003T");
+    if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
   }
 
   // starting auto detection loop
@@ -1377,11 +1388,10 @@ bool Sensors::PM1006Init() {
 }
 
 bool Sensors::PM5003TInit(){
-  pm5003t = new PMS5003T();
-  bool pms_ready = pm5003t->begin(*_serial);
-  if (!pms_ready) return false;
+  pm5003t = new PMS5003T(*_serial);
+  if (!pm5003t->begin()) return false;
   sensorRegister(SENSORS::P5003T);
-  return pms_ready;
+  return true;
 }
 
 bool Sensors::CO2CM1106Init() {
