@@ -16,9 +16,9 @@
 #include <SensirionI2CSgp41.h>
 #include <SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h>
 #include <cm1106_uart.h>
+#include <drivers/PMS5003T.h>
 #include <drivers/geiger.h>
 #include <drivers/pm1006.h>
-#include <drivers/PMS5003T.h>
 #include <s8_uart.h>
 #include <sps30.h>
 

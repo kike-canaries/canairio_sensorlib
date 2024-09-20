@@ -2,7 +2,7 @@
 
 /**
  * @brief Init and check that sensor has connected
- * 
+ *
  * @param stream UART stream
  * @return true Sucecss
  * @return false Failure
@@ -11,7 +11,7 @@ bool PMSBase::begin(Stream *stream) {
   this->stream = stream;
 
   failed = true;
-  lastRead = 0; // To read buffer on handle without wait after 1.5sec
+  lastRead = 0;  // To read buffer on handle without wait after 1.5sec
 
   this->stream->flush();
 
@@ -36,7 +36,7 @@ bool PMSBase::begin(Stream *stream) {
  * Check result from method @isFailed before get value
  */
 void PMSBase::handle() {
-  uint32_t ms;
+  uint32_t ms = 0;
   if (lastRead == 0) {
     lastRead = millis();
     if (lastRead == 0) {
@@ -64,58 +64,58 @@ void PMSBase::handle() {
   while (stream->available()) {
     char value = stream->read();
     switch (step) {
-    case 0: {
-      if (value == 0x42) {
-        step = 1;
-        bufIndex = 0;
-        buf[bufIndex++] = value;
-      }
-      break;
-    }
-    case 1: {
-      if (value == 0x4d) {
-        step = 2;
-        buf[bufIndex++] = value;
-        // Serial.println("Got 0x4d");
-      } else {
-        step = 0;
-      }
-      break;
-    }
-    case 2: {
-      buf[bufIndex++] = value;
-      if (bufIndex >= 4) {
-        len = toValue(&buf[2]);
-        if (len != 28) {
-          // Serial.printf("Got good bad len %d\r\n", len);
-          len += 4;
-          step = 3;
-        } else {
-          // Serial.println("Got good len");
-          step = 4;
+      case 0: {
+        if (value == 0x42) {
+          step = 1;
+          bufIndex = 0;
+          buf[bufIndex++] = value;
         }
+        break;
       }
-      break;
-    }
-    case 3: {
-      bufIndex++;
-      if (bufIndex >= len) {
-        step = 0;
-        // Serial.println("Bad lengh read all buffer");
+      case 1: {
+        if (value == 0x4d) {
+          step = 2;
+          buf[bufIndex++] = value;
+          // Serial.println("Got 0x4d");
+        } else {
+          step = 0;
+        }
+        break;
       }
-      break;
-    }
-    case 4: {
-      buf[bufIndex++] = value;
-      if (bufIndex >= 32) {
-        result |= validate(buf);
-        step = 0;
-        // Serial.println("Got data");
+      case 2: {
+        buf[bufIndex++] = value;
+        if (bufIndex >= 4) {
+          len = toValue(&buf[2]);
+          if (len != 28) {
+            // Serial.printf("Got good bad len %d\r\n", len);
+            len += 4;
+            step = 3;
+          } else {
+            // Serial.println("Got good len");
+            step = 4;
+          }
+        }
+        break;
       }
-      break;
-    }
-    default:
-      break;
+      case 3: {
+        bufIndex++;
+        if (bufIndex >= len) {
+          step = 0;
+          // Serial.println("Bad lengh read all buffer");
+        }
+        break;
+      }
+      case 4: {
+        buf[bufIndex++] = value;
+        if (bufIndex >= 32) {
+          result |= validate(buf);
+          step = 0;
+          // Serial.println("Got data");
+        }
+        break;
+      }
+      default:
+        break;
     }
 
     // Reduce core panic: delay 1 ms each 32bytes data

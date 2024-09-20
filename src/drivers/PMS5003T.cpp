@@ -19,9 +19,9 @@ bool PMS5003T::begin(void) {
   }
 
   if (pms.begin(this->_serial) == false) {
-    #if defined(ESP32)
+#if defined(ESP32)
     log_e("PMS failed");
-    #endif
+#endif
     return false;
   }
 
@@ -70,18 +70,14 @@ int PMS5003T::convertPm25ToUsAqi(int pm25) { return pms.pm25ToAQI(pm25); }
  *
  * @return float Degree Celcius
  */
-float PMS5003T::getTemperature(void) {
-  return pms.getTemp()/10.0f;
-}
+float PMS5003T::getTemperature(void) { return pms.getTemp() / 10.0f; }
 
 /**
  * @brief Get humidity, Must call this method after  @ref readData() success
  *
  * @return float Percent (%)
  */
-float PMS5003T::getRelativeHumidity(void) {
-  return pms.getHum()/10.0f;
-}
+float PMS5003T::getRelativeHumidity(void) { return pms.getHum() / 10.0f; }
 
 /**
  * @brief Check device initialized or not
@@ -123,4 +119,3 @@ void PMS5003T::handle(void) { pms.handle(); }
  * @return false Communication timeout or sensor has removed
  */
 bool PMS5003T::isFailed(void) { return pms.isFailed(); }
-

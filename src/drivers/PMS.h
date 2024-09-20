@@ -4,7 +4,7 @@
 #include <Arduino.h>
 
 class PMSBase {
-public:
+ public:
   bool begin(Stream *stream);
   void handle();
   bool isFailed(void);
@@ -29,7 +29,7 @@ public:
 
   int pm25ToAQI(int pm02);
 
-private:
+ private:
   Stream *stream;
   char package[32];
   int packageIndex;

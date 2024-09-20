@@ -1,16 +1,17 @@
 #ifndef _PMS5003T_H_
 #define _PMS5003T_H_
 
+#include <HardwareSerial.h>
+
 #include "PMS.h"
 #include "PMS5003TBase.h"
 #include "Stream.h"
-#include <HardwareSerial.h>
 
 /**
  * @brief The class define how to handle PMS5003T sensor bas on @ref PMS class
  */
-class PMS5003T: public PMS5003TBase  {
-public:
+class PMS5003T : public PMS5003TBase {
+ public:
   explicit PMS5003T(Stream &serial);
   bool begin(void);
   void end(void);
@@ -24,7 +25,7 @@ public:
   float getTemperature(void);
   float getRelativeHumidity(void);
 
-private:
+ private:
   bool _isBegin = false;
   bool _isSleep = false;
   Stream *_serial;

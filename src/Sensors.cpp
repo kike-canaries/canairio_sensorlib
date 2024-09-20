@@ -1387,7 +1387,7 @@ bool Sensors::PM1006Init() {
   return pm1006Read();
 }
 
-bool Sensors::PM5003TInit(){
+bool Sensors::PM5003TInit() {
   pm5003t = new PMS5003T(*_serial);
   if (!pm5003t->begin()) return false;
   sensorRegister(SENSORS::P5003T);
