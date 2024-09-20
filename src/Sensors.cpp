@@ -940,8 +940,6 @@ bool Sensors::pmSensorRead() {
       return pm5003TRead();
       break;
 
-
-
     default:
       return false;
       break;
