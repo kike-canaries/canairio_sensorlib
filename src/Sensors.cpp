@@ -779,6 +779,27 @@ bool Sensors::pm1006Read() {
 }
 
 /**
+ *  @brief PMS5003T particulate meter, T&H, sensors read.
+ *  @return true if header and sensor data is right.
+ */
+
+bool Sensors::pm5003TRead() {
+  if (!isSensorRegistered(SENSORS::P5003T)) return false;
+  pm5003t->handle();
+  pm1 = pm5003t->getPm01Ae();
+  pm25 = pm5003t->getPm25Ae();
+  pm10 = pm5003t->getPm10Ae();
+  temp = pm5003t->getTemperature();
+  humi = pm5003t->getRelativeHumidity();
+  unitRegister(UNIT::PM1);
+  unitRegister(UNIT::PM25);
+  unitRegister(UNIT::PM10);
+  unitRegister(UNIT::HUM);
+  unitRegister(UNIT::TEMP);
+  return true;
+}
+
+/**
  * @brief PMSensor Serial read to basic string
  * @param SENSOR_RETRY attempts before failure
  * @return String buffer.
@@ -915,6 +936,10 @@ bool Sensors::pmSensorRead() {
       return senseAirS8Read();
       break;
 
+    case P5003T:
+      return pm5003TRead();
+      break;
+
     default:
       return false;
       break;
@@ -1033,6 +1058,32 @@ void Sensors::CO2scd30Read() {
     tempRegister(true);
     unitRegister(UNIT::CO2);
     unitRegister(UNIT::CO2HUM);
+  }
+}
+
+void Sensors::sgp41Read() {
+  if (!isSensorRegistered(SENSORS::SSGP41)) return;
+
+  uint16_t error;
+  uint16_t defaultRh = 0x8000;
+  uint16_t defaultT = 0x6666;
+
+  if (conditioning_s > 0) {
+    // During NOx conditioning (10s) SRAW NOx will remain 0
+    error = sgp41.executeConditioning(defaultRh, defaultT, voc);
+    conditioning_s--;
+  } else {
+    // Read Measurement
+    error = sgp41.measureRawSignals(defaultRh, defaultT, voc, nox);
+  }
+
+  if (error) {
+    Serial.print("Error trying to execute (): ");
+    DEBUG("-->[SLIB] sgp41 measureRaw error\t:", String(error).c_str());
+    return;
+  } else {
+    unitRegister(UNIT::VOC);
+    unitRegister(UNIT::NOX);
   }
 }
 
@@ -1226,6 +1277,9 @@ bool Sensors::sensorSerialInit(u_int pms_type, int pms_rx, int pms_tx) {
   } else if (pms_type == SENSORS::IKEAVK) {
     DEBUG("-->[SLIB] UART detecting type\t: SENSEAIRS8");
     if (!serialInit(pms_type, PM1006::BIT_RATE, pms_rx, pms_tx)) return false;
+  } else if (pms_type == SENSORS::P5003T) {
+    DEBUG("-->[SLIB] UART detecting type\t: PMS5003T");
+    if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
   }
 
   // starting auto detection loop
@@ -1268,6 +1322,13 @@ bool Sensors::pmSensorAutoDetect(u_int pms_type) {
   if (pms_type == SENSORS::IKEAVK) {
     if (PM1006Init()) {
       dev_uart_type = SENSORS::IKEAVK;
+      return true;
+    }
+  }
+
+  if (pms_type == SENSORS::P5003T) {
+    if (PM5003TInit()) {
+      dev_uart_type = SENSORS::P5003T;
       return true;
     }
   }
@@ -1322,6 +1383,13 @@ bool Sensors::PM1006Init() {
   pm1006 = new PM1006(*_serial);
   sensorRegister(SENSORS::IKEAVK);
   return pm1006Read();
+}
+
+bool Sensors::PM5003TInit() {
+  pm5003t = new PMS5003T(*_serial);
+  if (!pm5003t->begin()) return false;
+  sensorRegister(SENSORS::P5003T);
+  return true;
 }
 
 bool Sensors::CO2CM1106Init() {
@@ -1666,6 +1734,26 @@ void Sensors::setSCD30AltitudeOffset(float offset) {
   }
 }
 
+void Sensors::sgp41Init() {
+  sensorAnnounce(SENSORS::SSGP41);
+  uint16_t error;
+#ifndef Wire1
+  sgp41.begin(Wire);
+#else
+  sgp41.begin(Wire1);
+#endif
+  uint16_t testResult;
+  error = sgp41.executeSelfTest(testResult);
+  if (error) {
+    DEBUG("-->[SLIB] sgp41 selftest try error\t:", String(error).c_str());
+    return;
+  } else if (testResult != 0xD400) {
+    DEBUG("-->[SLIB] sgp41 selfTest fail error\t:", String(testResult).c_str());
+    return;
+  }
+  sensorRegister(SENSORS::SSGP41);
+}
+
 /// Sensirion SCD4X CO2 sensor init
 void Sensors::CO2scd4xInit() {
   sensorAnnounce(SENSORS::SSCD4X);
@@ -1707,9 +1795,8 @@ void Sensors::setSCD4xTempOffset(float offset) {
 /// get SCD4x temperature compensation
 float Sensors::getSCD4xTempOffset() {
   float offset = 0.0;
-  uint16_t error;
   if (isSensorRegistered(SENSORS::SSCD4X)) {
-    scd4x.stopPeriodicMeasurement();
+    uint16_t error = scd4x.stopPeriodicMeasurement();
     if (error) {
       DEBUG("[SLIB] SCD4x stopPeriodicMeasurement()\t: error:", String(error).c_str());
       return 0.0;
@@ -1970,8 +2057,9 @@ void Sensors::startI2C() {
   Wire.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);
   enableWire1();
 #endif
-#ifdef ESP32C3_AIRGRADIENT
-  Wire.begin(7, 6);
+#ifdef AG_OPENAIR
+  Wire.begin(AIRG_SDA, AIRG_SCL);
+  delay(1000);
 #endif
 }
 

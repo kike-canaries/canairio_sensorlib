@@ -90,6 +90,7 @@
     {"name":"Sensirion Core","owner":"sensirion","version":"0.6.0"},
     {"name":"Sensirion I2C SCD4x","owner":"sensirion","version":"0.4.0"},
     {"name":"Sensirion I2C SEN5X","owner":"sensirion","version":"0.3.0"},
+    {"name":"Sensirion I2C SGP41","owner":"sensirion","version":"1.0.0"},
     {"name":"DFRobot_MultiGasSensor","owner":"phzi","version":"2.0.0"},
 
     {"name":"AHTxx", "version":"https://github.com/enjoyneering/AHTxx.git#eb21571"},

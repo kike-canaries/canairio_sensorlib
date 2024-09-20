@@ -13,8 +13,10 @@
 #include <MHZ19.h>
 #include <SensirionI2CScd4x.h>
 #include <SensirionI2CSen5x.h>
+#include <SensirionI2CSgp41.h>
 #include <SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h>
 #include <cm1106_uart.h>
+#include <drivers/PMS5003T.h>
 #include <drivers/geiger.h>
 #include <drivers/pm1006.h>
 #include <s8_uart.h>
@@ -69,10 +71,11 @@
 #elif ESP32C3
 #define PMS_RX 20
 #define PMS_TX 21
-#elif ESP32C3_AIRGRADIENT
+#elif AG_OPENAIR
 #define PMS_RX 0
 #define PMS_TX 1
-
+#define AIRG_SDA 7
+#define AIRG_SCL 6
 #else              // **DEFAULT** for legacy CanAirIO devices:
 #define PMS_RX 17  // D1MIN1 / TTGOT7 / ESP32DEVKIT, also for main ESP32 dev boards use it
 #define PMS_TX 16
@@ -123,6 +126,8 @@
   X(NO2, "ppm", "NO2")       \
   X(NOXI, "noxi", "NOXI")    \
   X(VOCI, "voci", "VOCI")    \
+  X(NOX, "nox", "NOX")       \
+  X(VOC, "voc", "VOC")       \
   X(UCOUNT, "COUNT", "UCOUNT")
 
 #define X(unit, symbol, name) unit,
@@ -139,6 +144,7 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
   X(SCM1106, "CM1106", 2) \
   X(SAIRS8, "SAIRS8", 2)  \
   X(IKEAVK, "IKEAVK", 1)  \
+  X(P5003T, "PM5003T", 1) \
   X(SSCD30, "SCD30", 2)   \
   X(SSCD4X, "SCD4X", 2)   \
   X(SSEN5X, "SEN5X", 1)   \
@@ -153,6 +159,7 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
   X(SDFRNH3, "DFRNH3", 3) \
   X(SDFRNO2, "DFRNO2", 3) \
   X(SCAJOE, "CAJOE", 3)   \
+  X(SSGP41, "SGP41", 3)   \
   X(SCOUNT, "SCOUNT", 3)
 
 #define X(utype, uname, umaintype) utype,
@@ -200,8 +207,12 @@ class Sensors {
   /// Altitud hpa calculation
   float hpa = 0.0;
 
-  /// Sensirion library
+  /// Sensirion dust SPS30 library
   SPS30 sps30;
+
+  /// Sensirion sgp41 library (Rh, T, Voc, Nox)
+  SensirionI2CSgp41 sgp41;
+  uint8_t conditioning_s = 10;
 
   /// only detect i2c sensors flag
   bool i2conly;
@@ -257,6 +268,8 @@ class Sensors {
   DFRobot_GAS_I2C dfrNO2;
   /// Geiger CAJOE object sensor
   GEIGER *rad;
+  /// PMS5003T Plantower with T&H of Airgradient
+  PMS5003T *pm5003t;
 
   void init(u_int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
@@ -406,6 +419,8 @@ class Sensors {
   float gas = 0.0;
   float voci = 0.0;
   float noxi = 0.0;
+  uint16_t voc = 0;
+  uint16_t nox = 0;
 
   // temperature unit (C,K,F)
   TEMPUNIT temp_unit = TEMPUNIT::CELSIUS;
@@ -454,6 +469,9 @@ class Sensors {
   void sen5xRead();
   void setsen5xTempOffset(float offset);
 
+  void sgp41Init();
+  void sgp41Read();
+
   void GCJA5Init();
   void GCJA5Read();
 
@@ -479,6 +497,7 @@ class Sensors {
   bool pmGCJA5Read();
   bool pmSDS011Read();
   bool pm1006Read();
+  bool pm5003TRead();
   bool CO2Mhz19Read();
   bool CO2CM1106Read();
   bool CO2Mhz19Init();
@@ -486,6 +505,7 @@ class Sensors {
   bool senseAirS8Init();
   bool senseAirS8Read();
   bool PM1006Init();
+  bool PM5003TInit();
 
   bool sps30I2CInit();
   bool sps30UARTInit();
