@@ -779,6 +779,27 @@ bool Sensors::pm1006Read() {
 }
 
 /**
+ *  @brief PMS5003T particulate meter, T&H, sensors read.
+ *  @return true if header and sensor data is right.
+ */
+
+bool Sensors::pm5003TRead() {
+  if (!isSensorRegistered(SENSORS::P5003T)) return false;
+  pm5003t->handle();
+  pm1 = pm5003t->getPm01Ae();
+  pm25 = pm5003t->getPm25Ae();
+  pm10 = pm5003t->getPm10Ae();
+  temp = pm5003t->getTemperature();
+  humi = pm5003t->getRelativeHumidity();
+  unitRegister(UNIT::PM1);
+  unitRegister(UNIT::PM25);
+  unitRegister(UNIT::PM10);
+  unitRegister(UNIT::HUM);
+  unitRegister(UNIT::TEMP);
+  return true;
+}
+
+/**
  * @brief PMSensor Serial read to basic string
  * @param SENSOR_RETRY attempts before failure
  * @return String buffer.
@@ -913,6 +934,10 @@ bool Sensors::pmSensorRead() {
 
     case SAIRS8:
       return senseAirS8Read();
+      break;
+
+    case P5003T:
+      return pm5003TRead();
       break;
 
     default:
@@ -1252,6 +1277,9 @@ bool Sensors::sensorSerialInit(u_int pms_type, int pms_rx, int pms_tx) {
   } else if (pms_type == SENSORS::IKEAVK) {
     DEBUG("-->[SLIB] UART detecting type\t: SENSEAIRS8");
     if (!serialInit(pms_type, PM1006::BIT_RATE, pms_rx, pms_tx)) return false;
+  } else if (pms_type == SENSORS::P5003T) {
+    DEBUG("-->[SLIB] UART detecting type\t: PMS5003T");
+    if (!serialInit(pms_type, 9600, pms_rx, pms_tx)) return false;
   }
 
   // starting auto detection loop
@@ -1294,6 +1322,13 @@ bool Sensors::pmSensorAutoDetect(u_int pms_type) {
   if (pms_type == SENSORS::IKEAVK) {
     if (PM1006Init()) {
       dev_uart_type = SENSORS::IKEAVK;
+      return true;
+    }
+  }
+
+  if (pms_type == SENSORS::P5003T) {
+    if (PM5003TInit()) {
+      dev_uart_type = SENSORS::P5003T;
       return true;
     }
   }
@@ -1348,6 +1383,13 @@ bool Sensors::PM1006Init() {
   pm1006 = new PM1006(*_serial);
   sensorRegister(SENSORS::IKEAVK);
   return pm1006Read();
+}
+
+bool Sensors::PM5003TInit() {
+  pm5003t = new PMS5003T(*_serial);
+  if (!pm5003t->begin()) return false;
+  sensorRegister(SENSORS::P5003T);
+  return true;
 }
 
 bool Sensors::CO2CM1106Init() {
@@ -1753,9 +1795,8 @@ void Sensors::setSCD4xTempOffset(float offset) {
 /// get SCD4x temperature compensation
 float Sensors::getSCD4xTempOffset() {
   float offset = 0.0;
-  uint16_t error;
   if (isSensorRegistered(SENSORS::SSCD4X)) {
-    scd4x.stopPeriodicMeasurement();
+    uint16_t error = scd4x.stopPeriodicMeasurement();
     if (error) {
       DEBUG("[SLIB] SCD4x stopPeriodicMeasurement()\t: error:", String(error).c_str());
       return 0.0;

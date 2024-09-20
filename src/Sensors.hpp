@@ -16,6 +16,7 @@
 #include <SensirionI2CSgp41.h>
 #include <SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h>
 #include <cm1106_uart.h>
+#include <drivers/PMS5003T.h>
 #include <drivers/geiger.h>
 #include <drivers/pm1006.h>
 #include <s8_uart.h>
@@ -143,6 +144,7 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
   X(SCM1106, "CM1106", 2) \
   X(SAIRS8, "SAIRS8", 2)  \
   X(IKEAVK, "IKEAVK", 1)  \
+  X(P5003T, "PM5003T", 1) \
   X(SSCD30, "SCD30", 2)   \
   X(SSCD4X, "SCD4X", 2)   \
   X(SSEN5X, "SEN5X", 1)   \
@@ -266,6 +268,8 @@ class Sensors {
   DFRobot_GAS_I2C dfrNO2;
   /// Geiger CAJOE object sensor
   GEIGER *rad;
+  /// PMS5003T Plantower with T&H of Airgradient
+  PMS5003T *pm5003t;
 
   void init(u_int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
@@ -493,6 +497,7 @@ class Sensors {
   bool pmGCJA5Read();
   bool pmSDS011Read();
   bool pm1006Read();
+  bool pm5003TRead();
   bool CO2Mhz19Read();
   bool CO2CM1106Read();
   bool CO2Mhz19Init();
@@ -500,6 +505,7 @@ class Sensors {
   bool senseAirS8Init();
   bool senseAirS8Read();
   bool PM1006Init();
+  bool PM5003TInit();
 
   bool sps30I2CInit();
   bool sps30UARTInit();
