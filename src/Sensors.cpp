@@ -83,6 +83,7 @@ bool Sensors::readAllSensors() {
   DFRobotNH3Read();
   DFRobotNO2Read();
   geigerRead();
+  sgp41Read();
 
 #ifdef DHT11_ENABLED
   dhtRead();
@@ -140,6 +141,7 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
   DFRobotCOInit();
   DFRobotNH3Init();
   DFRobotNO2Init();
+  sgp41Init();
 
 #ifdef DHT11_ENABLED
   dhtInit();
