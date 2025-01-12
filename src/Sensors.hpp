@@ -33,19 +33,18 @@
  * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
  ***************************************************************/
 
+// provisional pins. Config those via CLI
 #ifdef WEMOSOLED
 #define PMS_RX 13  // config for Wemos board & TTGO18650
 #define PMS_TX 15  // some old TTGO18650 have PMS_RX 18 & PMS_TX 17
 #elif HELTEC
-#define PMS_RX 17  // config for Heltec board, ESP32Sboard & ESPDUINO-32. Use Uart2
-#define PMS_TX \
-  18  // some old ESP32Sboard have PMS_RX 27 & PMS_TX 25. Jump Uart2 tx from 16 to 18. !6 used by
-      // Oled.
+#define PMS_RX 17
+#define PMS_TX 18
 #elif TTGO_TQ
 #define PMS_RX 13
 #define PMS_TX 18
 #elif M5COREINK
-#define PMS_RX 13  // config for backward header in M5CoreInk
+#define PMS_RX 13
 #define PMS_TX 14
 #elif TTGO_TDISPLAY
 #define PMS_RX 13
@@ -57,7 +56,7 @@
 #define PMS_RX RX
 #define PMS_TX TX
 #elif M5STICKCPLUS
-#define PMS_RX 36  // provisional for M5StickCPlus board for now
+#define PMS_RX 36
 #define PMS_TX 0
 #elif M5COREINK
 #define PMS_RX 13
@@ -68,17 +67,20 @@
 #elif M5PICOD4
 #define PMS_RX 3
 #define PMS_TX 1
-#elif ESP32C3
-#define PMS_RX 20
-#define PMS_TX 21
 #elif AG_OPENAIR
 #define PMS_RX 0
 #define PMS_TX 1
 #define AIRG_SDA 7
 #define AIRG_SCL 6
-#else              // **DEFAULT** for legacy CanAirIO devices:
-#define PMS_RX 17  // D1MIN1 / TTGOT7 / ESP32DEVKIT, also for main ESP32 dev boards use it
+#elif TTGO_T7
+#define PMS_RX 17
 #define PMS_TX 16
+#elif ESP32DEVKIT
+#define PMS_RX 17
+#define PMS_TX 16
+#else
+#define PMS_RX -1  // DEFAULTS for other boards. Please setup it via CLI
+#define PMS_TX -1
 #endif
 
 // I2C pins for M5COREINK and M5STICKCPLUS
