@@ -13,8 +13,10 @@
 #include <MHZ19.h>
 #include <SensirionI2CScd4x.h>
 #include <SensirionI2CSen5x.h>
+#include <SensirionI2CSgp41.h>
 #include <SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h>
 #include <cm1106_uart.h>
+#include <drivers/PMS5003T.h>
 #include <drivers/geiger.h>
 #include <drivers/pm1006.h>
 #include <s8_uart.h>
@@ -24,26 +26,25 @@
 #include <dht_nonblocking.h>
 #endif
 
-#define CSL_VERSION "0.7.4"
-#define CSL_REVISION 383
+#define CSL_VERSION "0.7.5"
+#define CSL_REVISION 384
 
 /***************************************************************
  * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
  ***************************************************************/
 
+// provisional pins. Config those via CLI
 #ifdef WEMOSOLED
 #define PMS_RX 13  // config for Wemos board & TTGO18650
 #define PMS_TX 15  // some old TTGO18650 have PMS_RX 18 & PMS_TX 17
 #elif HELTEC
-#define PMS_RX 17  // config for Heltec board, ESP32Sboard & ESPDUINO-32. Use Uart2
-#define PMS_TX \
-  18  // some old ESP32Sboard have PMS_RX 27 & PMS_TX 25. Jump Uart2 tx from 16 to 18. !6 used by
-      // Oled.
+#define PMS_RX 17
+#define PMS_TX 18
 #elif TTGO_TQ
 #define PMS_RX 13
 #define PMS_TX 18
 #elif M5COREINK
-#define PMS_RX 13  // config for backward header in M5CoreInk
+#define PMS_RX 13
 #define PMS_TX 14
 #elif TTGO_TDISPLAY
 #define PMS_RX 13
@@ -55,7 +56,7 @@
 #define PMS_RX RX
 #define PMS_TX TX
 #elif M5STICKCPLUS
-#define PMS_RX 36  // provisional for M5StickCPlus board for now
+#define PMS_RX 36
 #define PMS_TX 0
 #elif M5COREINK
 #define PMS_RX 13
@@ -66,13 +67,20 @@
 #elif M5PICOD4
 #define PMS_RX 3
 #define PMS_TX 1
-#elif ESP32C3
-#define PMS_RX 20
-#define PMS_TX 21
-
-#else              // **DEFAULT** for legacy CanAirIO devices:
-#define PMS_RX 17  // D1MIN1 / TTGOT7 / ESP32DEVKIT, also for main ESP32 dev boards use it
+#elif AG_OPENAIR
+#define PMS_RX 0
+#define PMS_TX 1
+#define AIRG_SDA 7
+#define AIRG_SCL 6
+#elif TTGO_T7
+#define PMS_RX 17
 #define PMS_TX 16
+#elif ESP32DEVKIT
+#define PMS_RX 17
+#define PMS_TX 16
+#else
+#define PMS_RX -1  // DEFAULTS for other boards. Please setup it via CLI
+#define PMS_TX -1
 #endif
 
 // I2C pins for M5COREINK and M5STICKCPLUS
@@ -80,6 +88,13 @@
 #define HAT_I2C_SCL 26
 #define EXT_I2C_SDA 32
 #define EXT_I2C_SCL 33
+
+#ifdef M5AIRQ
+#define GROVE_SDA 13
+#define GROVE_SCL 15
+#define I2C1_SDA_PIN 11
+#define I2C1_SCL_PIN 12
+#endif
 
 // Read UART sensor retry.
 #define SENSOR_RETRY 1000  // Max Serial characters
@@ -111,6 +126,10 @@
   X(NH3, "ppm", "NH3")       \
   X(CO, "ppm", "CO")         \
   X(NO2, "ppm", "NO2")       \
+  X(NOXI, "noxi", "NOXI")    \
+  X(VOCI, "voci", "VOCI")    \
+  X(NOX, "nox", "NOX")       \
+  X(VOC, "voc", "VOC")       \
   X(UCOUNT, "COUNT", "UCOUNT")
 
 #define X(unit, symbol, name) unit,
@@ -127,6 +146,7 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
   X(SCM1106, "CM1106", 2) \
   X(SAIRS8, "SAIRS8", 2)  \
   X(IKEAVK, "IKEAVK", 1)  \
+  X(P5003T, "PM5003T", 1) \
   X(SSCD30, "SCD30", 2)   \
   X(SSCD4X, "SCD4X", 2)   \
   X(SSEN5X, "SEN5X", 1)   \
@@ -141,6 +161,7 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
   X(SDFRNH3, "DFRNH3", 3) \
   X(SDFRNO2, "DFRNO2", 3) \
   X(SCAJOE, "CAJOE", 3)   \
+  X(SSGP41, "SGP41", 3)   \
   X(SCOUNT, "SCOUNT", 3)
 
 #define X(utype, uname, umaintype) utype,
@@ -188,8 +209,12 @@ class Sensors {
   /// Altitud hpa calculation
   float hpa = 0.0;
 
-  /// Sensirion library
+  /// Sensirion dust SPS30 library
   SPS30 sps30;
+
+  /// Sensirion sgp41 library (Rh, T, Voc, Nox)
+  SensirionI2CSgp41 sgp41;
+  uint8_t conditioning_s = 10;
 
   /// only detect i2c sensors flag
   bool i2conly;
@@ -245,6 +270,8 @@ class Sensors {
   DFRobot_GAS_I2C dfrNO2;
   /// Geiger CAJOE object sensor
   GEIGER *rad;
+  /// PMS5003T Plantower with T&H of Airgradient
+  PMS5003T *pm5003t;
 
   void init(u_int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
@@ -304,7 +331,13 @@ class Sensors {
 
   float getGeigerMicroSievertHour(void);
 
+  void initTOffset(float offset);
+
+  float getTOffset();
+
   void setTempOffset(float offset);
+
+  float getTempOffset();
 
   void setCO2AltitudeOffset(float altitude);
 
@@ -385,7 +418,11 @@ class Sensors {
   float temp = 0.0;  // Temperature (°C)
   float pres = 0.0;  // Pressure
   float alt = 0.0;
-  float gas = 0.0;  //
+  float gas = 0.0;
+  float voci = 0.0;
+  float noxi = 0.0;
+  uint16_t voc = 0;
+  uint16_t nox = 0;
 
   // temperature unit (C,K,F)
   TEMPUNIT temp_unit = TEMPUNIT::CELSIUS;
@@ -419,6 +456,7 @@ class Sensors {
   void CO2scd30Init();
   void CO2scd30Read();
   void setSCD30TempOffset(float offset);
+  float getSCD30TempOffset();
   void setSCD30AltitudeOffset(float offset);
   void CO2correctionAlt();
   float hpaCalculation(float altitude);
@@ -426,11 +464,15 @@ class Sensors {
   void CO2scd4xInit();
   void CO2scd4xRead();
   void setSCD4xTempOffset(float offset);
+  float getSCD4xTempOffset();
   void setSCD4xAltitudeOffset(float offset);
 
   void sen5xInit();
   void sen5xRead();
   void setsen5xTempOffset(float offset);
+
+  void sgp41Init();
+  void sgp41Read();
 
   void GCJA5Init();
   void GCJA5Read();
@@ -457,6 +499,7 @@ class Sensors {
   bool pmGCJA5Read();
   bool pmSDS011Read();
   bool pm1006Read();
+  bool pm5003TRead();
   bool CO2Mhz19Read();
   bool CO2CM1106Read();
   bool CO2Mhz19Init();
@@ -464,6 +507,7 @@ class Sensors {
   bool senseAirS8Init();
   bool senseAirS8Read();
   bool PM1006Init();
+  bool PM5003TInit();
 
   bool sps30I2CInit();
   bool sps30UARTInit();

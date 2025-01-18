@@ -1,3 +1,6 @@
+#ifndef GEIGER_H_
+#define GEIGER_H_
+
 #include <Arduino.h>
 
 #include "MovingSum.h"
@@ -29,3 +32,5 @@ class GEIGER {
   uint32_t getTics();
   float getUSvh();
 };
+
+#endif
