@@ -1594,7 +1594,7 @@ void Sensors::sps30DeviceInfo() {
 
 void Sensors::am2320Init() {
   sensorAnnounce(SENSORS::SAM232X);
-#ifndef Wife1
+#ifndef Wire1
   if (!am2320.begin()) return;
 #else
   am2320 = AM232X(&Wire);
@@ -1747,12 +1747,8 @@ void Sensors::setSCD30AltitudeOffset(float offset) {
 void Sensors::sgp41Init() {
   sensorAnnounce(SENSORS::SSGP41);
   uint16_t error;
-#ifndef Wire1
-  sgp41.begin(Wire);
-#else
-  sgp41.begin(Wire1);
-#endif
   uint16_t testResult;
+  sgp41.begin(Wire);
   error = sgp41.executeSelfTest(testResult);
   if (error) {
     DEBUG("-->[SLIB] sgp41 selftest try error\t:", String(error).c_str());
@@ -2060,6 +2056,7 @@ void Sensors::startI2C() {
   enableWire1();
 #endif
 #ifdef M5ATOM
+  Wire.begin();
   enableWire1();
 #endif
 #ifdef ESP32C3
@@ -2098,7 +2095,7 @@ void Sensors::enableWire1() {
 #endif
 #ifdef TTGO_T7S3
   Wire1.flush();
-  Wire1.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);  // M5CoreInk hat pines (header on top)
+  Wire1.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);  // Alternative I2C port
 #endif
 }
 
