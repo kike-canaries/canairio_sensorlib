@@ -132,9 +132,9 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
   if (!sps30I2CInit()) {
     sen5xInit();
   }
-  bmp280Init();
-  bme280Init();
-  bme680Init();
+  // bmp280Init();
+  // bme280Init();
+  // bme680Init();
   am2320Init();
   sht31Init();
   aht10Init();
@@ -1610,25 +1610,25 @@ void Sensors::am2320Init() {
 void Sensors::sht31Init() {
   sensorAnnounce(SENSORS::SSHT31);
   sht31 = Adafruit_SHT31();
-#ifndef Wire1
-  if (!sht31.begin()) return;
-#else
+  #ifndef ESP8266
   if (!sht31.begin()) {
     sht31 = Adafruit_SHT31(&Wire1);
     if (!sht31.begin()) return;
   }
-#endif
+  #else
+  if (!sht31.begin()) return;
+  #endif
   sensorRegister(SENSORS::SSHT31);
 }
 
 void Sensors::bme280Init() {
   sensorAnnounce(SENSORS::SBME280);
-#ifndef Wire1
-  if (!bme280.begin() && !bme280.begin(BME280_ADDRESS_ALTERNATE)) return;
-#else
+#ifndef ESP8266
   if (!bme280.begin() && !bme280.begin(BME280_ADDRESS_ALTERNATE) &&
       !bme280.begin(BME280_ADDRESS, &Wire1) && !bme280.begin(BME280_ADDRESS_ALTERNATE, &Wire1))
     return;
+#else
+  if (!bme280.begin() && !bme280.begin(BME280_ADDRESS_ALTERNATE)) return;
 #endif
   sensorRegister(SENSORS::SBME280);
 }
@@ -1636,13 +1636,13 @@ void Sensors::bme280Init() {
 /// Environment BMP280 sensor init
 void Sensors::bmp280Init() {
   sensorAnnounce(SENSORS::SBMP280);
-#ifndef Wire1
-  if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return;
-#else
+#ifndef ESP8266
   if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) {
     bmp280 = Adafruit_BMP280(&Wire1);
     if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return;
   }
+#else
+  if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return;
 #endif
   bmp280.setSampling(Adafruit_BMP280::MODE_NORMAL,      // Operating Mode.
                      Adafruit_BMP280::SAMPLING_X2,      // Temp. oversampling
@@ -1661,7 +1661,14 @@ void Sensors::bmp280Init() {
 /// Bosch BME680 sensor init
 void Sensors::bme680Init() {
   sensorAnnounce(SENSORS::SBME680);
+  #ifndef ESP8266
+  if (bme680.begin() == false) {
+    bme680 = Adafruit_BME680(&Wire1);
+    if (!bme680.begin()) return;
+  }
+  #else
   if (!bme680.begin()) return;
+  #endif
   bme680.setTemperatureOversampling(BME680_OS_8X);
   bme680.setHumidityOversampling(BME680_OS_2X);
   bme680.setPressureOversampling(BME680_OS_4X);
@@ -1673,6 +1680,7 @@ void Sensors::bme680Init() {
 /// AHTXX sensors init
 void Sensors::aht10Init() {
   sensorAnnounce(SENSORS::SAHTXX);
+  // TODO: this sensor only works in Wire0
   aht10 = AHTxx(AHTXX_ADDRESS_X38, AHT1x_SENSOR);
 #ifdef M5STICKCPLUS  // issue: https://github.com/enjoyneering/AHTxx/issues/11
   if (!aht10.begin(EXT_I2C_SDA, EXT_I2C_SCL, 100000, 50000)) return;
@@ -1685,10 +1693,10 @@ void Sensors::aht10Init() {
 /// Sensirion SCD30 CO2/T/H sensor init
 void Sensors::CO2scd30Init() {
   sensorAnnounce(SENSORS::SSCD30);
-#ifndef Wire1
-  if (!scd30.begin()) return;
-#else
+#ifndef ESP8266
   if (!scd30.begin() && !scd30.begin(SCD30_I2CADDR_DEFAULT, &Wire1, SCD30_CHIP_ID)) return;
+#else
+  if (!scd30.begin()) return;
 #endif
   delay(10);
 
@@ -1866,11 +1874,13 @@ void Sensors::setsen5xTempOffset(float offset) {
 /// Panasonic GCJA5 sensor init
 void Sensors::GCJA5Init() {
   sensorAnnounce(SENSORS::SGCJA5);
-#ifndef Wire1
+  #ifndef ESP8266
+  if (pmGCJA5.begin() == false) {
+    if (!pmGCJA5.begin(Wire1)) return;
+  }
+  #else
   if (!pmGCJA5.begin()) return;
-#else
-  if (!pmGCJA5.begin() && !pmGCJA5.begin(Wire1)) return;
-#endif
+  #endif
   sensorRegister(SENSORS::SGCJA5);
 }
 
@@ -2054,6 +2064,9 @@ void Sensors::startI2C() {
 #endif
 #ifdef ESP32C3
   Wire.begin(19, 18);
+#endif
+#ifdef TTGO_T7S3
+  Wire.begin(GROVE_SDA, GROVE_SCL);
 #endif
 #ifdef M5AIRQ
   Wire.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);

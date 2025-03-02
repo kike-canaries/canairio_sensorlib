@@ -71,8 +71,8 @@ void powerEnableSensors() {
   digitalWrite(POWER_HOLD, HIGH);
   pinMode(GROVE_SDA, OUTPUT);
   pinMode(GROVE_SCL, OUTPUT);
-  Wire.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);
-  Wire1.begin(GROVE_SDA, GROVE_SCL);
+  // Wire.begin(GROVE_SDA, GROVE_SCL);  // defined in the library when build flag TTGO_T7S3 is set
+  // Wire1.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);
 }
 
 void setup() {

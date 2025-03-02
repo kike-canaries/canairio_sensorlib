@@ -96,6 +96,11 @@
 #define I2C1_SCL_PIN 12
 #endif
 
+#ifdef TTGO_T7S3
+#define GROVE_SDA 13
+#define GROVE_SCL 14
+#endif
+
 // Read UART sensor retry.
 #define SENSOR_RETRY 1000  // Max Serial characters
 
