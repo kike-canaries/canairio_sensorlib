@@ -58,6 +58,7 @@ void onSensorDataOk() {
   Serial.println("======= E X A M P L E   T E S T =========");
   printSensorsDetected();
   printSensorsValues();
+  delay(5000);
 }
 
 void onSensorDataError(const char* msg) {}
@@ -93,4 +94,5 @@ void setup() {
 
 void loop() {
   sensors.loop();  // read sensor data and showed it
+  delay(100);
 }

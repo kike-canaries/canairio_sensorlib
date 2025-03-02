@@ -132,9 +132,9 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
   if (!sps30I2CInit()) {
     sen5xInit();
   }
-  // bmp280Init();
-  // bme280Init();
-  // bme680Init();
+  bmp280Init();
+  bme280Init();
+  bme680Init();
   am2320Init();
   sht31Init();
   aht10Init();
@@ -1610,14 +1610,14 @@ void Sensors::am2320Init() {
 void Sensors::sht31Init() {
   sensorAnnounce(SENSORS::SSHT31);
   sht31 = Adafruit_SHT31();
-  #ifndef ESP8266
+#ifndef ESP8266
   if (!sht31.begin()) {
     sht31 = Adafruit_SHT31(&Wire1);
     if (!sht31.begin()) return;
   }
-  #else
+#else
   if (!sht31.begin()) return;
-  #endif
+#endif
   sensorRegister(SENSORS::SSHT31);
 }
 
@@ -1661,14 +1661,14 @@ void Sensors::bmp280Init() {
 /// Bosch BME680 sensor init
 void Sensors::bme680Init() {
   sensorAnnounce(SENSORS::SBME680);
-  #ifndef ESP8266
+#ifndef ESP8266
   if (bme680.begin() == false) {
     bme680 = Adafruit_BME680(&Wire1);
     if (!bme680.begin()) return;
   }
-  #else
+#else
   if (!bme680.begin()) return;
-  #endif
+#endif
   bme680.setTemperatureOversampling(BME680_OS_8X);
   bme680.setHumidityOversampling(BME680_OS_2X);
   bme680.setPressureOversampling(BME680_OS_4X);
@@ -1874,13 +1874,13 @@ void Sensors::setsen5xTempOffset(float offset) {
 /// Panasonic GCJA5 sensor init
 void Sensors::GCJA5Init() {
   sensorAnnounce(SENSORS::SGCJA5);
-  #ifndef ESP8266
+#ifndef ESP8266
   if (pmGCJA5.begin() == false) {
     if (!pmGCJA5.begin(Wire1)) return;
   }
-  #else
+#else
   if (!pmGCJA5.begin()) return;
-  #endif
+#endif
   sensorRegister(SENSORS::SGCJA5);
 }
 
@@ -2067,6 +2067,7 @@ void Sensors::startI2C() {
 #endif
 #ifdef TTGO_T7S3
   Wire.begin(GROVE_SDA, GROVE_SCL);
+  enableWire1();
 #endif
 #ifdef M5AIRQ
   Wire.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);
@@ -2094,6 +2095,10 @@ void Sensors::enableWire1() {
 #ifdef M5AIRQ
   Wire1.flush();
   Wire1.begin(GROVE_SDA, GROVE_SCL);
+#endif
+#ifdef TTGO_T7S3
+  Wire1.flush();
+  Wire1.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);  // M5CoreInk hat pines (header on top)
 #endif
 }
 

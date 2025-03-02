@@ -57,7 +57,7 @@ void onSensorDataOk() {
   Serial.println("======= E X A M P L E   T E S T =========");
   printSensorsDetected();
   printSensorsValues();
-  delay(2000);
+  delay(5000);
 }
 
 void onSensorDataError(const char* msg) {}
@@ -77,8 +77,8 @@ void powerEnableSensors() {
 
 void setup() {
   Serial.begin(115200);
-  delay(2000);           // Only for debugging
-  powerEnableSensors();  // M5AirQ enable sensors
+  delay(4000);           // Only for debugging
+  powerEnableSensors();  // enable sensors (optional)
 
   delay(100);
   Serial.println("\n== Sensor test setup ==\n");
