@@ -1871,7 +1871,7 @@ void Sensors::setsen5xTempOffset(float offset) {
 void Sensors::GCJA5Init() {
   sensorAnnounce(SENSORS::SGCJA5);
 #ifndef Wire1
-  if (!pmGCJA5.begin()) return; 
+  if (!pmGCJA5.begin()) return;
 #else
   if (pmGCJA5.begin() == false) {
     if (!pmGCJA5.begin(Wire1)) return;
