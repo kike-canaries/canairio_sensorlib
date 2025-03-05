@@ -791,7 +791,7 @@ bool Sensors::pm5003TRead() {
   pm1 = pm5003t->getPm01Ae();
   pm25 = pm5003t->getPm25Ae();
   pm10 = pm5003t->getPm10Ae();
-  temp = pm5003t->getTemperature();
+  temp = pm5003t->getTemperature() - toffset;
   humi = pm5003t->getRelativeHumidity();
   unitRegister(UNIT::PM1);
   unitRegister(UNIT::PM25);
@@ -1131,7 +1131,7 @@ void Sensors::sen5xRead() {
   pm10 = (u_int16_t)massConcentrationPm4p0;
   voci = vocIndex;
   noxi = noxIndex;
-  temp = ambientTemperature;
+  temp = ambientTemperature - toffset;
   humi = ambientHumidity;
   dataReady = true;
   DEBUG("-->[SLIB] SEN5x read\t\t: done!");
