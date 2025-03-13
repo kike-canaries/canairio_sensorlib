@@ -68,7 +68,6 @@ bool Sensors::readAllSensors() {
 
   CO2scd30Read();
   GCJA5Read();
-  sps30Read();
   CO2scd4xRead();
   if (!sps30Read()) {
     sen5xRead();
@@ -126,7 +125,6 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
 
   startI2C();
   CO2scd30Init();
-  sps30I2CInit();
   GCJA5Init();
   CO2scd4xInit();
   if (!sps30I2CInit()) {
@@ -1505,7 +1503,7 @@ bool Sensors::sps30I2CInit() {
   if (dev_uart_type == SENSORS::SSPS30) return false;
   sensorAnnounce(SENSORS::SSPS30);
   // set driver debug level
-  if (CORE_DEBUG_LEVEL > 0) sps30.EnableDebugging(true);
+  // if (CORE_DEBUG_LEVEL > 0) sps30.EnableDebugging(true);
   // Begin communication channel;
   if (sps30.begin(&Wire) == false) {
     sps30Errorloop((char *)"[E][SLIB] I2C SPS30 could not set channel.", 0);
@@ -1514,11 +1512,11 @@ bool Sensors::sps30I2CInit() {
 
   if (!sps30tests()) return false;
 
-  DEBUG("-->[SLIB] SPS30 Detected SPS30 via I2C.");
+  DEBUG("-->[SLIB] SPS30 Detected via\t: I2C");
 
   // start measurement
   if (sps30.start()) {
-    DEBUG("-->[SLIB] SPS30 Measurement OK");
+    DEBUG("-->[SLIB] SPS30 measurement \t: OK");
     if (sps30.I2C_expect() == 4)
       DEBUG("[W][SLIB] SPS30 setup message\t: I2C buffersize only PM values  \r\n");
     sensorRegister(SENSORS::SSPS30);
@@ -1751,10 +1749,10 @@ void Sensors::sgp41Init() {
   sgp41.begin(Wire);
   error = sgp41.executeSelfTest(testResult);
   if (error) {
-    DEBUG("-->[SLIB] sgp41 selftest try error\t:", String(error).c_str());
+    DEBUG("-->[SLIB] sgp41 selftest error\t:", String(error).c_str());
     return;
   } else if (testResult != 0xD400) {
-    DEBUG("-->[SLIB] sgp41 selfTest fail error\t:", String(testResult).c_str());
+    DEBUG("-->[SLIB] sgp41 selfTest error\t:", String(testResult).c_str());
     return;
   }
   sensorRegister(SENSORS::SSGP41);
@@ -2060,7 +2058,10 @@ void Sensors::startI2C() {
   enableWire1();
 #endif
 #ifdef ESP32C3
-  Wire.begin(19, 18);
+Wire.begin(19, 18);
+#endif
+#ifdef ESP32S2
+  Wire.begin(33,35);
 #endif
 #ifdef TTGO_T7S3
   Wire.begin(GROVE_SDA, GROVE_SCL);
