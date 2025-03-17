@@ -2058,10 +2058,10 @@ void Sensors::startI2C() {
   enableWire1();
 #endif
 #ifdef ESP32C3
-Wire.begin(19, 18);
+  Wire.begin(19, 18);
 #endif
 #ifdef ESP32S2
-  Wire.begin(33,35);
+  Wire.begin(33, 35);
 #endif
 #ifdef TTGO_T7S3
   Wire.begin(GROVE_SDA, GROVE_SCL);
