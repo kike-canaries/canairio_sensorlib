@@ -392,6 +392,8 @@ class Sensors {
 
   void printSensorsRegistered(bool debug = false);
 
+  void startI2C();
+
  private:
 #ifdef DHT11_ENABLED
   /// DHT library
@@ -527,8 +529,6 @@ class Sensors {
   void geigerRead();
 
   void onSensorError(const char *msg);
-
-  void startI2C();
 
   void enableWire1();
 
