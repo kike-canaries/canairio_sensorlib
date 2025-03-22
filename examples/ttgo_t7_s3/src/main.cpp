@@ -1,7 +1,7 @@
 /**
  * @file main.cpp
  * @author Antonio Vanegas @hpsaturn
- * @date June 2018 - 2024
+ * @date June 2018 - 2025
  * @brief CanAirIO M5AirQ test
  * @license GPL3
  *
@@ -16,17 +16,16 @@
  */
 
 #include <Arduino.h>
-
+#include "Wire.h"
 #include <Sensors.hpp>
 
-#define POWER_HOLD 46  // M5AirQ main board
-#define SEN55_POWER_EN 10
+#define POWER_HOLD 3 // power sensors board enable pin
 
-#define GROVE_SDA 13
-#define GROVE_SCL 15
+#define GROVE_SDA 13 // original grove port (defaults)
+#define GROVE_SCL 14
 
-#define I2C1_SDA_PIN 11
-#define I2C1_SCL_PIN 12
+#define I2C1_SDA_PIN 8 // Wire1 alternative pins
+#define I2C1_SCL_PIN 9
 
 void printSensorsDetected() {
   uint16_t sensors_count = sensors.getSensorsRegisteredCount();
@@ -70,14 +69,16 @@ void powerEnableSensors() {
   Serial.println("-->[POWR] == enable sensors ==");
   pinMode(POWER_HOLD, OUTPUT);
   digitalWrite(POWER_HOLD, HIGH);
-  pinMode(SEN55_POWER_EN, OUTPUT);
-  digitalWrite(SEN55_POWER_EN, LOW);
+  pinMode(GROVE_SDA, OUTPUT);
+  pinMode(GROVE_SCL, OUTPUT);
+  // Wire.begin(GROVE_SDA, GROVE_SCL);  // defined in the library when build flag TTGO_T7S3 is set
+  // Wire1.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);
 }
 
 void setup() {
   Serial.begin(115200);
-  delay(2000);           // Only for debugging
-  powerEnableSensors();  // M5AirQ enable sensors
+  delay(4000);           // Only for debugging
+  powerEnableSensors();  // enable sensors (optional)
 
   delay(100);
   Serial.println("\n== Sensor test setup ==\n");

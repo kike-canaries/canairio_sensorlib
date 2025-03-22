@@ -96,6 +96,13 @@
 #define I2C1_SCL_PIN 12
 #endif
 
+#ifdef TTGO_T7S3
+#define GROVE_SDA 13
+#define GROVE_SCL 14
+#define I2C1_SDA_PIN 8
+#define I2C1_SCL_PIN 9
+#endif
+
 // Read UART sensor retry.
 #define SENSOR_RETRY 1000  // Max Serial characters
 
@@ -391,6 +398,8 @@ class Sensors {
 
   void printSensorsRegistered(bool debug = false);
 
+  void startI2C();
+
  private:
 #ifdef DHT11_ENABLED
   /// DHT library
@@ -529,8 +538,6 @@ class Sensors {
   void geigerRead();
 
   void onSensorError(const char *msg);
-
-  void startI2C();
 
   void enableWire1();
 
