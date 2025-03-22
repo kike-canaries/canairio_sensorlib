@@ -82,6 +82,8 @@ bool Sensors::readAllSensors() {
   DFRobotCORead();
   DFRobotNH3Read();
   DFRobotNO2Read();
+  DFRobotO3Init();
+  DFRobotO3Read();
   geigerRead();
   sgp41Read();
 
@@ -141,6 +143,7 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
   DFRobotCOInit();
   DFRobotNH3Init();
   DFRobotNO2Init();
+  DFRobotO3Init();
   sgp41Init();
 
 #ifdef DHT11_ENABLED
@@ -415,6 +418,9 @@ float Sensors::getCO() { return co; }
 /// get NO2 value in ppm
 float Sensors::getNO2() { return no2; }
 
+/// get O3 value in ppm
+float Sensors::getO3() { return o3;}
+
 /**
  * @brief UART only: check if the UART sensor is registered
  * @return bool true if the UART sensor is registered, false otherwise.
@@ -628,6 +634,8 @@ float Sensors::getUnitValue(UNIT unit) {
       return co;
     case NO2:
       return no2;
+    case O3:
+      return o3;
     default:
       return 0.0;
   }
@@ -1182,6 +1190,13 @@ void Sensors::DFRobotNO2Read() {
   if (!dfrNO2.begin()) return;
   no2 = dfrNO2.readGasConcentrationPPM();
   unitRegister(UNIT::NO2);
+}
+
+void Sensors::DFRobotO3Read() {
+  if (!isSensorRegistered(SENSORS::SDFRO3)) return;
+  if (!dfrO3.begin()) return;
+  o3 = dfrO3.readGasConcentrationPPM();
+  unitRegister(UNIT::O3);
 }
 
 #ifdef DHT11_ENABLED
@@ -1913,6 +1928,19 @@ void Sensors::DFRobotNO2Init() {
   sensorRegister(SENSORS::SDFRNO2);
 }
 
+/// DFRobot GAS (NO2) sensors init
+void Sensors::DFRobotO3Init() {
+  sensorAnnounce(SENSORS::SDFRO3);
+  dfrO3 =
+      DFRobot_GAS_I2C(&Wire, 0x79);  // Be sure that your group of i2c address is 7, and A0= A1=
+  if (!dfrO3.begin()) return;
+  // Mode of obtaining data: the main controller needs to request the sensor for data
+  dfrO3.changeAcquireMode(dfrO3.PASSIVITY);
+  // Turn on temperature compensation: gas.ON : turn on
+  dfrO3.setTempCompensation(dfrO3.ON);
+  sensorRegister(SENSORS::SDFRO3);
+}
+
 // Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
 void Sensors::CO2correctionAlt() {
   DEBUG("-->[SLIB] CO2 altitud original\t:", String(CO2Val).c_str());
@@ -1979,9 +2007,10 @@ void Sensors::resetAllVariables() {
   alt = 0.0;
   gas = 0.0;
   pres = 0.0;
-  nh3 = 0;
+  nh3 = 0.0;
   co = 0;
-  no2 = 0;
+  no2 = 0.0;
+  o3 = 0.0;
   if (rad != nullptr) rad->clear();
 }
 

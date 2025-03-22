@@ -126,6 +126,7 @@
   X(NH3, "ppm", "NH3")       \
   X(CO, "ppm", "CO")         \
   X(NO2, "ppm", "NO2")       \
+  X(O3, "ppm", "O3")         \
   X(NOXI, "noxi", "NOXI")    \
   X(VOCI, "voci", "VOCI")    \
   X(NOX, "nox", "NOX")       \
@@ -160,6 +161,7 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
   X(SDFRCO, "DFRCO", 3)   \
   X(SDFRNH3, "DFRNH3", 3) \
   X(SDFRNO2, "DFRNO2", 3) \
+  X(SDFRO3, "DFRO3", 3)   \
   X(SCAJOE, "CAJOE", 3)   \
   X(SSGP41, "SGP41", 3)   \
   X(SCOUNT, "SCOUNT", 3)
@@ -268,6 +270,8 @@ class Sensors {
   DFRobot_GAS_I2C dfrNH3;
   /// DFRobot gravity NO2 object sensor add 0x7B
   DFRobot_GAS_I2C dfrNO2;
+  /// DFRobot gravity O3 object sensor add 0x79
+  DFRobot_GAS_I2C dfrO3;
   /// Geiger CAJOE object sensor
   GEIGER *rad;
   /// PMS5003T Plantower with T&H of Airgradient
@@ -324,6 +328,8 @@ class Sensors {
   float getCO();
 
   float getNO2();
+
+  float getO3();
 
   void enableGeigerSensor(int gpio);
 
@@ -434,6 +440,7 @@ class Sensors {
   float nh3;  // Amonium in ppm
   float co;   // Carbon monoxide in ppm
   float no2;  // Nitrogen dioxide in ppm
+  float o3;   // Ozone in ppm
 
   void am2320Init();
   void am2320Read();
@@ -489,6 +496,8 @@ class Sensors {
   void DFRobotCORead();
   void DFRobotNO2Init();
   void DFRobotNO2Read();
+  void DFRobotO3Init();
+  void DFRobotO3Read();
 
   // UART sensors methods:
 
