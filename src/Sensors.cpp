@@ -416,7 +416,7 @@ float Sensors::getCO() { return co; }
 float Sensors::getNO2() { return no2; }
 
 /// get O3 value in ppm
-float Sensors::getO3() { return o3;}
+float Sensors::getO3() { return o3; }
 
 /**
  * @brief UART only: check if the UART sensor is registered
@@ -1934,8 +1934,7 @@ void Sensors::DFRobotNO2Init() {
 /// DFRobot GAS (NO2) sensors init
 void Sensors::DFRobotO3Init() {
   sensorAnnounce(SENSORS::SDFRO3);
-  dfrO3 =
-      DFRobot_GAS_I2C(&Wire, 0x79);  // Be sure that your group of i2c address is 7, and A0= A1=
+  dfrO3 = DFRobot_GAS_I2C(&Wire, 0x79);  // Be sure that your group of i2c address is 7, and A0= A1=
   if (!dfrO3.begin()) return;
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrO3.changeAcquireMode(dfrO3.PASSIVITY);
