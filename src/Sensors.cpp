@@ -82,7 +82,6 @@ bool Sensors::readAllSensors() {
   DFRobotCORead();
   DFRobotNH3Read();
   DFRobotNO2Read();
-  DFRobotO3Init();
   DFRobotO3Read();
   geigerRead();
   sgp41Read();
