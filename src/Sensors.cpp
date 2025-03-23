@@ -2172,12 +2172,12 @@ bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, i
       else
         Serial2.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx, false);
       _serial = &Serial2;
-      break;
 #else
       DEBUG("-->[SLIB] Force UART port \t: Serial1");
       Serial1.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx);
       _serial = &Serial1;
 #endif
+      break;
 #endif
     default:
 
