@@ -68,7 +68,6 @@ bool Sensors::readAllSensors() {
 
   CO2scd30Read();
   GCJA5Read();
-  sps30Read();
   CO2scd4xRead();
   if (!sps30Read()) {
     sen5xRead();
@@ -82,6 +81,7 @@ bool Sensors::readAllSensors() {
   DFRobotCORead();
   DFRobotNH3Read();
   DFRobotNO2Read();
+  DFRobotO3Read();
   geigerRead();
   sgp41Read();
 
@@ -126,7 +126,6 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
 
   startI2C();
   CO2scd30Init();
-  sps30I2CInit();
   GCJA5Init();
   CO2scd4xInit();
   if (!sps30I2CInit()) {
@@ -141,6 +140,7 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
   DFRobotCOInit();
   DFRobotNH3Init();
   DFRobotNO2Init();
+  DFRobotO3Init();
   sgp41Init();
 
 #ifdef DHT11_ENABLED
@@ -415,6 +415,9 @@ float Sensors::getCO() { return co; }
 /// get NO2 value in ppm
 float Sensors::getNO2() { return no2; }
 
+/// get O3 value in ppm
+float Sensors::getO3() { return o3; }
+
 /**
  * @brief UART only: check if the UART sensor is registered
  * @return bool true if the UART sensor is registered, false otherwise.
@@ -628,6 +631,8 @@ float Sensors::getUnitValue(UNIT unit) {
       return co;
     case NO2:
       return no2;
+    case O3:
+      return o3;
     default:
       return 0.0;
   }
@@ -791,7 +796,7 @@ bool Sensors::pm5003TRead() {
   pm1 = pm5003t->getPm01Ae();
   pm25 = pm5003t->getPm25Ae();
   pm10 = pm5003t->getPm10Ae();
-  temp = pm5003t->getTemperature();
+  temp = pm5003t->getTemperature() - toffset;
   humi = pm5003t->getRelativeHumidity();
   unitRegister(UNIT::PM1);
   unitRegister(UNIT::PM25);
@@ -1131,7 +1136,7 @@ void Sensors::sen5xRead() {
   pm10 = (u_int16_t)massConcentrationPm4p0;
   voci = vocIndex;
   noxi = noxIndex;
-  temp = ambientTemperature;
+  temp = ambientTemperature - toffset;
   humi = ambientHumidity;
   dataReady = true;
   DEBUG("-->[SLIB] SEN5x read\t\t: done!");
@@ -1182,6 +1187,13 @@ void Sensors::DFRobotNO2Read() {
   if (!dfrNO2.begin()) return;
   no2 = dfrNO2.readGasConcentrationPPM();
   unitRegister(UNIT::NO2);
+}
+
+void Sensors::DFRobotO3Read() {
+  if (!isSensorRegistered(SENSORS::SDFRO3)) return;
+  if (!dfrO3.begin()) return;
+  o3 = dfrO3.readGasConcentrationPPM();
+  unitRegister(UNIT::O3);
 }
 
 #ifdef DHT11_ENABLED
@@ -1505,7 +1517,7 @@ bool Sensors::sps30I2CInit() {
   if (dev_uart_type == SENSORS::SSPS30) return false;
   sensorAnnounce(SENSORS::SSPS30);
   // set driver debug level
-  if (CORE_DEBUG_LEVEL > 0) sps30.EnableDebugging(true);
+  // if (CORE_DEBUG_LEVEL > 0) sps30.EnableDebugging(true);
   // Begin communication channel;
   if (sps30.begin(&Wire) == false) {
     sps30Errorloop((char *)"[E][SLIB] I2C SPS30 could not set channel.", 0);
@@ -1514,11 +1526,11 @@ bool Sensors::sps30I2CInit() {
 
   if (!sps30tests()) return false;
 
-  DEBUG("-->[SLIB] SPS30 Detected SPS30 via I2C.");
+  DEBUG("-->[SLIB] SPS30 Detected via\t: I2C");
 
   // start measurement
   if (sps30.start()) {
-    DEBUG("-->[SLIB] SPS30 Measurement OK");
+    DEBUG("-->[SLIB] SPS30 measurement \t: OK");
     if (sps30.I2C_expect() == 4)
       DEBUG("[W][SLIB] SPS30 setup message\t: I2C buffersize only PM values  \r\n");
     sensorRegister(SENSORS::SSPS30);
@@ -1594,7 +1606,7 @@ void Sensors::sps30DeviceInfo() {
 
 void Sensors::am2320Init() {
   sensorAnnounce(SENSORS::SAM232X);
-#ifndef Wife1
+#ifndef Wire1
   if (!am2320.begin()) return;
 #else
   am2320 = AM232X(&Wire);
@@ -1661,7 +1673,14 @@ void Sensors::bmp280Init() {
 /// Bosch BME680 sensor init
 void Sensors::bme680Init() {
   sensorAnnounce(SENSORS::SBME680);
+#ifndef Wire1
   if (!bme680.begin()) return;
+#else
+  if (bme680.begin() == false) {
+    bme680 = Adafruit_BME680(&Wire1);
+    if (!bme680.begin()) return;
+  }
+#endif
   bme680.setTemperatureOversampling(BME680_OS_8X);
   bme680.setHumidityOversampling(BME680_OS_2X);
   bme680.setPressureOversampling(BME680_OS_4X);
@@ -1673,6 +1692,7 @@ void Sensors::bme680Init() {
 /// AHTXX sensors init
 void Sensors::aht10Init() {
   sensorAnnounce(SENSORS::SAHTXX);
+  // TODO: this sensor only works in Wire0
   aht10 = AHTxx(AHTXX_ADDRESS_X38, AHT1x_SENSOR);
 #ifdef M5STICKCPLUS  // issue: https://github.com/enjoyneering/AHTxx/issues/11
   if (!aht10.begin(EXT_I2C_SDA, EXT_I2C_SCL, 100000, 50000)) return;
@@ -1739,18 +1759,14 @@ void Sensors::setSCD30AltitudeOffset(float offset) {
 void Sensors::sgp41Init() {
   sensorAnnounce(SENSORS::SSGP41);
   uint16_t error;
-#ifndef Wire1
-  sgp41.begin(Wire);
-#else
-  sgp41.begin(Wire1);
-#endif
   uint16_t testResult;
+  sgp41.begin(Wire);
   error = sgp41.executeSelfTest(testResult);
   if (error) {
-    DEBUG("-->[SLIB] sgp41 selftest try error\t:", String(error).c_str());
+    DEBUG("-->[SLIB] sgp41 selftest error\t:", String(error).c_str());
     return;
   } else if (testResult != 0xD400) {
-    DEBUG("-->[SLIB] sgp41 selfTest fail error\t:", String(testResult).c_str());
+    DEBUG("-->[SLIB] sgp41 selfTest error\t:", String(testResult).c_str());
     return;
   }
   sensorRegister(SENSORS::SSGP41);
@@ -1869,7 +1885,9 @@ void Sensors::GCJA5Init() {
 #ifndef Wire1
   if (!pmGCJA5.begin()) return;
 #else
-  if (!pmGCJA5.begin() && !pmGCJA5.begin(Wire1)) return;
+  if (pmGCJA5.begin() == false) {
+    if (!pmGCJA5.begin(Wire1)) return;
+  }
 #endif
   sensorRegister(SENSORS::SGCJA5);
 }
@@ -1911,6 +1929,18 @@ void Sensors::DFRobotNO2Init() {
   // Turn on temperature compensation: gas.ON : turn on
   dfrNO2.setTempCompensation(dfrNO2.ON);
   sensorRegister(SENSORS::SDFRNO2);
+}
+
+/// DFRobot GAS (NO2) sensors init
+void Sensors::DFRobotO3Init() {
+  sensorAnnounce(SENSORS::SDFRO3);
+  dfrO3 = DFRobot_GAS_I2C(&Wire, 0x79);  // Be sure that your group of i2c address is 7, and A0= A1=
+  if (!dfrO3.begin()) return;
+  // Mode of obtaining data: the main controller needs to request the sensor for data
+  dfrO3.changeAcquireMode(dfrO3.PASSIVITY);
+  // Turn on temperature compensation: gas.ON : turn on
+  dfrO3.setTempCompensation(dfrO3.ON);
+  sensorRegister(SENSORS::SDFRO3);
 }
 
 // Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
@@ -1979,9 +2009,10 @@ void Sensors::resetAllVariables() {
   alt = 0.0;
   gas = 0.0;
   pres = 0.0;
-  nh3 = 0;
+  nh3 = 0.0;
   co = 0;
-  no2 = 0;
+  no2 = 0.0;
+  o3 = 0.0;
   if (rad != nullptr) rad->clear();
 }
 
@@ -2050,10 +2081,18 @@ void Sensors::startI2C() {
   enableWire1();
 #endif
 #ifdef M5ATOM
+  Wire.begin();
   enableWire1();
 #endif
 #ifdef ESP32C3
   Wire.begin(19, 18);
+#endif
+#ifdef ESP32S2
+  Wire.begin(33, 35);
+#endif
+#ifdef TTGO_T7S3
+  Wire.begin(GROVE_SDA, GROVE_SCL);
+  enableWire1();
 #endif
 #ifdef M5AIRQ
   Wire.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);
@@ -2081,6 +2120,10 @@ void Sensors::enableWire1() {
 #ifdef M5AIRQ
   Wire1.flush();
   Wire1.begin(GROVE_SDA, GROVE_SCL);
+#endif
+#ifdef TTGO_T7S3
+  Wire1.flush();
+  Wire1.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);  // Alternative I2C port
 #endif
 }
 
@@ -2129,12 +2172,12 @@ bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, i
       else
         Serial2.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx, false);
       _serial = &Serial2;
-      break;
 #else
       DEBUG("-->[SLIB] Force UART port \t: Serial1");
       Serial1.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx);
       _serial = &Serial1;
 #endif
+      break;
 #endif
     default:
 

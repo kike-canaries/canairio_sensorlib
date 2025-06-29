@@ -21,7 +21,8 @@
 void onSensorDataOk() {
     Serial.println("-->[MAIN] NH3: " + String(sensors.getNH3()));
     Serial.println("-->[MAIN] CO: " + String(sensors.getCO()));
-    Serial.println("-->[MAIN] NO2: " + String(sensors.getNO2()));)
+    Serial.println("-->[MAIN] NO2: " + String(sensors.getNO2()));
+    Serial.println("-->[MAIN] O3: " + String(sensors.getO3()));
 }
 
 void onSensorDataError(const char* msg) {
@@ -48,7 +49,7 @@ void setup() {
     sensors.init(SENSORS::SDFRCO);                         // detect CO sensor
     sensors.init(SENSORS::SDFRNH3);                        // detect NH3 sensor
     sensors.init(SENSORS::SDFRNO2);                        // detect NO2 sensor
-
+    sensors.init(SENSORS::SDFRO3);                         // detect O3 sensor
     delay(500);
 }
 
