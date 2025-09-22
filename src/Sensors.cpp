@@ -90,6 +90,8 @@ bool Sensors::readAllSensors() {
 
   disableWire1();
 
+  noiseRead(); ////////////REVISAR/////////////////
+
   printValues();
   printSensorsRegistered(devmode);
   printUnitsRegistered(devmode);
@@ -144,6 +146,8 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
 #ifdef DHT11_ENABLED
   dhtInit();
 #endif
+
+  noiseInit();   ////////////REVISAR/////////////////
 
   printSensorsRegistered(true);
 }
@@ -626,6 +630,8 @@ float Sensors::getUnitValue(UNIT unit) {
       return co;
     case NO2:
       return no2;
+    case NOISE_AVG_LEGAL:
+      return db;
     default:
       return 0.0;
   }
@@ -1917,6 +1923,11 @@ void Sensors::DFRobotNO2Init() {
   sensorRegister(SENSORS::SDFRNO2);
 }
 
+
+void Noise::noiseInit() {
+  
+}
+
 // Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
 void Sensors::CO2correctionAlt() {
   DEBUG("-->[SLIB] CO2 altitud original\t:", String(CO2Val).c_str());
@@ -2033,6 +2044,9 @@ float Sensors::getGeigerMicroSievertHour(void) {
     return rad->getUSvh();
 }
 
+
+void Sensors::noiseRead(void) {
+}
 // #########################################################################
 
 void Sensors::DEBUG(const char *text, const char *textb) {

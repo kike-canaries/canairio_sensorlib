@@ -33,7 +33,8 @@
     "particulate matter",
     "PM2.5",
     "PM1.0",
-    "PM10"
+    "PM10",
+    "Jaleometro"
   ],
   "description":"Generic sensor manager, abstratctions and bindings of multiple air sensors libraries: Honeywell, Plantower, Panasonic, Sensirion, Nova, etc. and CO2 sensors. Also it handling others environment sensors. This library is for general purpose but also is the sensors library base of CanAirIO project.",
   "repository":

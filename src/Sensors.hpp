@@ -21,13 +21,14 @@
 #include <drivers/pm1006.h>
 #include <s8_uart.h>
 #include <sps30.h>
+#include <drivers/noise.h>
 
 #ifdef DHT11_ENABLED
 #include <dht_nonblocking.h>
 #endif
 
 #define CSL_VERSION "0.7.5"
-#define CSL_REVISION 384
+#define CSL_REVISION 385
 
 /***************************************************************
  * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -137,6 +138,8 @@
   X(VOCI, "voci", "VOCI")    \
   X(NOX, "nox", "NOX")       \
   X(VOC, "voc", "VOC")       \
+  X(NOISE_AVG_LEGAL, "db", "NOISE_AVG_LEGAL")     \
+  X(NOISE_AVG_LEGAL_MAX, "db", "NOISE_AVG_LEGAL_MAX")\
   X(UCOUNT, "COUNT", "UCOUNT")
 
 #define X(unit, symbol, name) unit,
@@ -169,6 +172,7 @@ typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
   X(SDFRNO2, "DFRNO2", 3) \
   X(SCAJOE, "CAJOE", 3)   \
   X(SSGP41, "SGP41", 3)   \
+  X(NOISE, "NOISE", 3)    \
   X(SCOUNT, "SCOUNT", 3)
 
 #define X(utype, uname, umaintype) utype,
@@ -279,6 +283,8 @@ class Sensors {
   GEIGER *rad;
   /// PMS5003T Plantower with T&H of Airgradient
   PMS5003T *pm5003t;
+  // RUIDO Medidor de ruido ambiental
+  Noise *noise;
 
   void init(u_int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
@@ -444,6 +450,9 @@ class Sensors {
   float co;   // Carbon monoxide in ppm
   float no2;  // Nitrogen dioxide in ppm
 
+  float db;  //  Noise in db
+
+
   void am2320Init();
   void am2320Read();
 
@@ -527,6 +536,9 @@ class Sensors {
   void sps30DeviceInfo();
 
   void geigerRead();
+
+  void noiseInit();   ///////////////////////////////REVISAR///////////////////
+  void noiseRead();   ///////////////////////////////REVISAR//////////////////
 
   void onSensorError(const char *msg);
 
