@@ -22,7 +22,7 @@ char const *sensors_device_names[] = {SENSORS_TYPES};
 int sensors_device_types[] = {SENSORS_TYPES};
 #undef X
 
-uint8_t sensors_registered[SCOUNT]; 
+uint8_t sensors_registered[SCOUNT];
 
 /***********************************************************************************
  *  P U B L I C   M E T H O D S
@@ -443,6 +443,10 @@ float Sensors::getNoiseMin() { return noiseMinValue; }
 float Sensors::getNoiseLegalAverage() { return noiseAvgLegalValue; }
 
 float Sensors::getNoiseLegalMaximum() { return noiseAvgLegalMaxValue; }
+float Sensors::getNoiseLd() { return noiseLdValue; }
+float Sensors::getNoiseLe() { return noiseLeValue; }
+float Sensors::getNoiseLn() { return noiseLnValue; }
+float Sensors::getNoiseLden() { return noiseLdenValue; }
 #endif
 
 /**
@@ -672,6 +676,14 @@ float Sensors::getUnitValue(UNIT unit) {
       return noiseAvgLegalValue;
     case NOISEAVGLEGALMAX:
       return noiseAvgLegalMaxValue;
+    case NOISELD:
+      return noiseLdValue;
+    case NOISELE:
+      return noiseLeValue;
+    case NOISELN:
+      return noiseLnValue;
+    case NOISELDEN:
+      return noiseLdenValue;
     default:
       return 0.0;
   }
@@ -1248,11 +1260,19 @@ bool Sensors::noiseSensorAutoDetect() {
   }
 
   for (uint8_t addr = MIN_I2C_ADDRESS; addr <= MAX_I2C_ADDRESS; addr++) {
+    if (devmode && (addr % 16 == 0)) Serial.printf("-->[SLIB] Scanning I2C addr: 0x%02X\r\n", addr);
     if (!noiseSensorDevicePresent(*noiseWire, addr)) continue;
+    if (devmode) Serial.printf("-->[SLIB] Found device at: 0x%02X, reading identity...\r\n", addr);
 
-    SensorIdentity identity{};
-    if (!noiseSensorReadIdentity(*noiseWire, addr, identity)) continue;
-    if (identity.sensorType != NoiseSensorI2CSlave::SENSOR_TYPE_NOISE) continue;
+    uint8_t status = 0xFF;
+    if (!noiseSensorReadStatus(*noiseWire, addr, status)) {
+      if (devmode) Serial.printf("-->[SLIB] Failed to read status at: 0x%02X\r\n", addr);
+      continue;
+    }
+    if (!(status == 0x00 || status == 0x01)) {
+      if (devmode) Serial.printf("-->[SLIB] Wrong status at: 0x%02X (0x%02X)\r\n", addr, status);
+      continue;
+    }
 
     noiseSensorEnabled = true;
     noiseSensorAddress = addr;
@@ -1267,8 +1287,9 @@ bool Sensors::noiseSensorAutoDetect() {
 }
 
 void Sensors::noiseSensorService() {
-  if (noiseSensorEnabled || noiseScanDone) return;
-  noiseSensorAutoDetect();
+  if (!noiseSensorEnabled && !noiseScanDone) {
+    noiseSensorAutoDetect();
+  }
 }
 
 void Sensors::noiseSensorCollect() {
@@ -1283,12 +1304,18 @@ void Sensors::noiseSensorCollect() {
     return;
   }
   if (!noiseSensorReadData(*noiseWire, noiseSensorAddress, noiseSensorData)) return;
-  noiseInstant = noiseSensorData.noise;
-  noiseAvgValue = noiseSensorData.noiseAvg;
-  noisePeakValue = noiseSensorData.noisePeak;
-  noiseMinValue = noiseSensorData.noiseMin;
-  noiseAvgLegalValue = noiseSensorData.noiseAvgLegal;
-  noiseAvgLegalMaxValue = noiseSensorData.noiseAvgLegalMax;
+  noiseInstant =
+      noiseSensorData
+          .noiseAvgDb;  // Use DB as instant? Or raw? I'll use noiseAvgDb for 'NOISE' unit usually
+  noiseAvgValue = noiseSensorData.noiseAvgDb;
+  noisePeakValue = noiseSensorData.noisePeakDb;
+  noiseMinValue = noiseSensorData.noiseMinDb;
+  noiseAvgLegalValue = noiseSensorData.noiseAvgLegalDb;        // Use DB version
+  noiseAvgLegalMaxValue = noiseSensorData.noiseAvgLegalMaxDb;  // Use DB version
+  noiseLdValue = noiseSensorData.Ld;
+  noiseLeValue = noiseSensorData.Le;
+  noiseLnValue = noiseSensorData.Ln;
+  noiseLdenValue = noiseSensorData.noiseLden;
 
   unitRegister(UNIT::NOISE);
   dataReady = true;
@@ -1298,34 +1325,48 @@ void Sensors::noiseSensorCollect() {
   unitRegister(UNIT::NOISEMIN);
   unitRegister(UNIT::NOISEAVGLEGAL);
   unitRegister(UNIT::NOISEAVGLEGALMAX);
+  unitRegister(UNIT::NOISELD);
+  unitRegister(UNIT::NOISELE);
+  unitRegister(UNIT::NOISELN);
+  unitRegister(UNIT::NOISELDEN);
 }
 
-bool Sensors::noiseSensorReadIdentity(TwoWire &wire, uint8_t address, SensorIdentity &out) {
-  wire.beginTransmission(address);
-  wire.write(CMD_PING);
-  if (wire.endTransmission() != 0) return false;
-  delayMicroseconds(200);
-
-  uint8_t got = wire.requestFrom(address, (uint8_t)sizeof(SensorIdentity));
-  if (got != sizeof(SensorIdentity)) return false;
-
-  wire.readBytes(reinterpret_cast<uint8_t *>(&out), sizeof(SensorIdentity));
-  return true;
+bool Sensors::noiseSensorReadStatus(TwoWire &wire, uint8_t address, uint8_t &status) {
+  int retries = 3;
+  while (retries-- > 0) {
+    wire.beginTransmission(address);
+    wire.write(CMD_GET_STATUS);
+    if (wire.endTransmission(true) == 0) {
+      delay(10);
+      uint8_t got = wire.requestFrom(address, (uint8_t)1);
+      if (got == 1) {
+        status = wire.read();
+        return true;
+      }
+    }
+    delay(100);
+  }
+  return false;
 }
 
 bool Sensors::noiseSensorReadData(TwoWire &wire, uint8_t address, SensorData &out) {
-  wire.beginTransmission(address);
-  wire.write(CMD_GET_DATA);
-  if (wire.endTransmission() != 0) return false;
-  delayMicroseconds(200);
-
-  uint8_t got = wire.requestFrom(address, (uint8_t)sizeof(SensorData));
-  if (got != sizeof(SensorData)) return false;
-
-  uint8_t buffer[sizeof(SensorData)] = {0};
-  wire.readBytes(buffer, sizeof(SensorData));
-  memcpy(&out, buffer, sizeof(SensorData));
-  return true;
+  int retries = 3;
+  while (retries-- > 0) {
+    wire.beginTransmission(address);
+    wire.write(CMD_GET_DATA);
+    if (wire.endTransmission(true) == 0) {
+      delay(5);
+      uint8_t buffer[sizeof(SensorData)] = {0};
+      uint8_t got = wire.requestFrom(address, (uint8_t)sizeof(SensorData));
+      if (got == sizeof(SensorData)) {
+        wire.readBytes(buffer, sizeof(SensorData));
+        memcpy(&out, buffer, sizeof(SensorData));
+        return true;
+      }
+    }
+    delay(100);
+  }
+  return false;
 }
 
 bool Sensors::noiseSensorDevicePresent(TwoWire &wire, uint8_t address) {
@@ -1337,8 +1378,14 @@ void Sensors::noiseSensorInitWire() {
   if (noiseWireReady) return;
 
   noiseWire = &Wire;
+  noiseWire->setClock(100000);
+#if defined(ARDUINO_ARCH_ESP32)
+  noiseWire->setBufferSize(64);
+  noiseWire->setTimeOut(150);
+#endif
   noiseWireReady = true;
 }
+
 #endif
 
 #ifdef DHT11_ENABLED
@@ -1443,8 +1490,7 @@ bool Sensors::sensorSerialInit(u_int pms_type, int pms_rx, int pms_tx) {
 
   // starting auto detection loop
   int try_sensor_init = 0;
-  while (!pmSensorAutoDetect(pms_type) && try_sensor_init++ < 2)
-    ;
+  while (!pmSensorAutoDetect(pms_type) && try_sensor_init++ < 2);
 
   // get device selected..
   if (dev_uart_type >= 0) {
@@ -2165,6 +2211,10 @@ void Sensors::resetAllVariables() {
   noiseMinValue = 0.0;
   noiseAvgLegalValue = 0.0;
   noiseAvgLegalMaxValue = 0.0;
+  noiseLdValue = 0.0;
+  noiseLeValue = 0.0;
+  noiseLnValue = 0.0;
+  noiseLdenValue = 0.0;
 #endif
   if (rad != nullptr) rad->clear();
 }
@@ -2239,9 +2289,14 @@ void Sensors::startI2C() {
 #endif
 #ifdef ESP32C3
   Wire.begin(19, 18);
-#endif
-#ifdef ESP32S2
+#elif defined(ESP32S2)
   Wire.begin(33, 35);
+#elif defined(ESP32S3)
+  Wire.begin();
+  if (devmode) Serial.printf("-->[SLIB] I2C Wire started (S3) SDA:%d, SCL:%d\r\n", SDA, SCL);
+#elif defined(ARDUINO_ARCH_ESP32)
+  Wire.begin();
+  if (devmode) Serial.printf("-->[SLIB] I2C Wire started (ESP32) SDA:%d, SCL:%d\r\n", SDA, SCL);
 #endif
 #ifdef TTGO_T7S3
   Wire.begin(GROVE_SDA, GROVE_SCL);

@@ -1,7 +1,6 @@
 #ifndef Sensors_hpp
 #define Sensors_hpp
 
-#include <Arduino.h>
 #include <AHTxx.h>
 #include <AM232X.h>
 #include <Adafruit_BME280.h>
@@ -10,32 +9,32 @@
 #include <Adafruit_SCD30.h>
 #include <Adafruit_SHT31.h>
 #include <Adafruit_Sensor.h>
+#include <Arduino.h>
 #include <DFRobot_MultiGasSensor.h>
 #include <MHZ19.h>
 #include <SensirionI2CScd4x.h>
 #include <SensirionI2CSen5x.h>
 #include <SensirionI2CSgp41.h>
 #include <SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h>
+#include <Wire.h>
 #include <cm1106_uart.h>
 #include <drivers/PMS5003T.h>
 #include <drivers/geiger.h>
 #include <drivers/pm1006.h>
 #include <s8_uart.h>
 #include <sps30.h>
-#include <Wire.h>
 
-#if defined(ARDUINO_ARCH_ESP32) &&                                              \
+#if defined(ARDUINO_ARCH_ESP32) &&                                               \
     (defined(CONFIG_IDF_TARGET_ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32S2) || \
      defined(CONFIG_IDF_TARGET_ESP32S3) || defined(ARDUINO_ESP32C3_DEV) ||       \
-     defined(ARDUINO_ESP32S2_DEV) || defined(ARDUINO_ESP32S3_DEV) ||            \
-     defined(ARDUINO_LOLIN_C3_MINI) || defined(ARDUINO_LOLIN_S2_MINI) ||        \
-     defined(ARDUINO_LOLIN_S3_MINI) || defined(ESP32C3) || defined(ESP32S2) ||  \
-     defined(ESP32S3))
+     defined(ARDUINO_ESP32S2_DEV) || defined(ARDUINO_ESP32S3_DEV) ||             \
+     defined(ARDUINO_LOLIN_C3_MINI) || defined(ARDUINO_LOLIN_S2_MINI) ||         \
+     defined(ARDUINO_LOLIN_S3_MINI) || defined(ESP32C3) || defined(ESP32S2) || defined(ESP32S3))
 #define CSL_NOISE_SENSOR_SUPPORTED 1
 #endif
 
 #ifdef CSL_NOISE_SENSOR_SUPPORTED
-#include <NoiseSensorI2CSlave.h>
+#include "drivers/NoiseSlave.h"
 #endif
 
 #ifdef DHT11_ENABLED
@@ -119,7 +118,6 @@
 #define I2C1_SCL_PIN 9
 #endif
 
-
 // Read UART sensor retry.
 #define SENSOR_RETRY 1000  // Max Serial characters
 
@@ -127,40 +125,44 @@
 #define SENSOR_COMMS SERIALPORT2
 
 // Sensors units definitions (symbol/name)
-#define SENSOR_UNITS         \
-  X(NUNIT, "NUNIT", "NUNIT") \
-  X(PM1, "ug/m3", "PM1")     \
-  X(PM25, "ug/m3", "PM2.5")  \
-  X(PM4, "ug/m3", "PM4")     \
-  X(PM10, "ug/m3", "PM10")   \
-  X(TEMP, "C", "T")          \
-  X(TEMPK, "K", "T")         \
-  X(TEMPF, "F", "T")         \
-  X(HUM, "%", "H")           \
-  X(CO2, "ppm", "CO2")       \
-  X(CO2TEMP, "C", "CO2T")    \
-  X(CO2TEMPK, "K", "CO2TK")  \
-  X(CO2TEMPF, "F", "CO2TF")  \
-  X(CO2HUM, "%", "CO2H")     \
-  X(PRESS, "hPa", "P")       \
-  X(ALT, "m", "Alt")         \
-  X(GAS, "Ohm", "Gas")       \
-  X(CPM, "CPM", "RAD")       \
-  X(RAD, "uSv/h", "RAD")     \
-  X(NH3, "ppm", "NH3")       \
-  X(CO, "ppm", "CO")         \
-  X(NO2, "ppm", "NO2")       \
-  X(O3, "ppm", "O3")         \
-  X(NOXI, "noxi", "NOXI")    \
-  X(VOCI, "voci", "VOCI")    \
-  X(NOX, "nox", "NOX")       \
-  X(VOC, "voc", "VOC")       \
-  X(NOISE, "dB", "Noise")    \
-  X(NOISEAVG, "dB", "NoiseAvg") \
-  X(NOISEPEAK, "dB", "NoisePeak") \
-  X(NOISEMIN, "dB", "NoiseMin") \
-  X(NOISEAVGLEGAL, "dB", "NoiseAvgLegal") \
+#define SENSOR_UNITS                            \
+  X(NUNIT, "NUNIT", "NUNIT")                    \
+  X(PM1, "ug/m3", "PM1")                        \
+  X(PM25, "ug/m3", "PM2.5")                     \
+  X(PM4, "ug/m3", "PM4")                        \
+  X(PM10, "ug/m3", "PM10")                      \
+  X(TEMP, "C", "T")                             \
+  X(TEMPK, "K", "T")                            \
+  X(TEMPF, "F", "T")                            \
+  X(HUM, "%", "H")                              \
+  X(CO2, "ppm", "CO2")                          \
+  X(CO2TEMP, "C", "CO2T")                       \
+  X(CO2TEMPK, "K", "CO2TK")                     \
+  X(CO2TEMPF, "F", "CO2TF")                     \
+  X(CO2HUM, "%", "CO2H")                        \
+  X(PRESS, "hPa", "P")                          \
+  X(ALT, "m", "Alt")                            \
+  X(GAS, "Ohm", "Gas")                          \
+  X(CPM, "CPM", "RAD")                          \
+  X(RAD, "uSv/h", "RAD")                        \
+  X(NH3, "ppm", "NH3")                          \
+  X(CO, "ppm", "CO")                            \
+  X(NO2, "ppm", "NO2")                          \
+  X(O3, "ppm", "O3")                            \
+  X(NOXI, "noxi", "NOXI")                       \
+  X(VOCI, "voci", "VOCI")                       \
+  X(NOX, "nox", "NOX")                          \
+  X(VOC, "voc", "VOC")                          \
+  X(NOISE, "dB", "Noise")                       \
+  X(NOISEAVG, "dB", "NoiseAvg")                 \
+  X(NOISEPEAK, "dB", "NoisePeak")               \
+  X(NOISEMIN, "dB", "NoiseMin")                 \
+  X(NOISEAVGLEGAL, "dB", "NoiseAvgLegal")       \
   X(NOISEAVGLEGALMAX, "dB", "NoiseAvgLegalMax") \
+  X(NOISELD, "dB", "Ld")                        \
+  X(NOISELE, "dB", "Le")                        \
+  X(NOISELN, "dB", "Ln")                        \
+  X(NOISELDEN, "dB", "Lden")                    \
   X(UCOUNT, "COUNT", "UCOUNT")
 
 #define X(unit, symbol, name) unit,
@@ -376,6 +378,13 @@ class Sensors {
   float getNoiseLegalAverage();
 
   float getNoiseLegalMaximum();
+  float getNoiseLd();
+  float getNoiseLe();
+  float getNoiseLn();
+  float getNoiseLden();
+  bool sendNoiseSensorTime(uint32_t unixTime);
+  bool syncNoiseSensorTime();
+  void setNoiseSensorTimeSyncInterval(uint32_t intervalMs);
 #endif
 
   uint32_t getGeigerCPM(void);
@@ -495,7 +504,7 @@ class Sensors {
   bool noiseWireReady = false;
   uint8_t noiseSensorAddress = 0;
 #if __cplusplus >= 201103L
-  static_assert(sizeof(SensorData) == 32, "SensorData size mismatch");
+  static_assert(sizeof(SensorData) == 68, "SensorData size mismatch");
 #endif
 #endif
   bool noiseSensorEnabled = false;
@@ -505,7 +514,14 @@ class Sensors {
   float noiseMinValue = 0.0;
   float noiseAvgLegalValue = 0.0;
   float noiseAvgLegalMaxValue = 0.0;
+  float noiseLdValue = 0.0;
+  float noiseLeValue = 0.0;
+  float noiseLnValue = 0.0;
+  float noiseLdenValue = 0.0;
   bool noiseScanDone = false;
+  uint32_t noiseLastTimeSyncMs = 0;
+  uint32_t noiseTimeSyncIntervalMs = 86400000;
+  bool noiseTimeSyncEnabled = true;
 
   void am2320Init();
   void am2320Read();
@@ -625,7 +641,7 @@ class Sensors {
   bool noiseSensorAutoDetect();
   void noiseSensorService();
   void noiseSensorCollect();
-  bool noiseSensorReadIdentity(TwoWire &wire, uint8_t address, SensorIdentity &out);
+  bool noiseSensorReadStatus(TwoWire &wire, uint8_t address, uint8_t &status);
   bool noiseSensorReadData(TwoWire &wire, uint8_t address, SensorData &out);
   bool noiseSensorDevicePresent(TwoWire &wire, uint8_t address);
   void noiseSensorInitWire();
