@@ -4,36 +4,37 @@
  * @date June 2018 - 2020
  * @brief Particle meter sensor tests
  * @license GPL3
- * 
+ *
  * Full documentation:
  * https://github.com/kike-canaries/canairio_sensorlib#canairio-air-quality-sensors-library
- * 
+ *
  * Full implementation for WiFi and Bluetooth Air Quality fixed and mobile station:
  * https://github.com/kike-canaries/canairio_firmware#canairio-firmware
- * 
+ *
  * CanAirIO project docs:
  * https://canair.io/docs
  */
 
 #include <Arduino.h>
+
 #include <Sensors.hpp>
-#include "seeed_line_chart.h" 
+
+#include "seeed_line_chart.h"
 
 TFT_eSPI tft;
 TFT_eSprite spr = TFT_eSprite(&tft);  // Sprite
 
-#define MAX_SIZE 30 // maximum size of data
-doubles data;       // Initilising a doubles type to store data
+#define MAX_SIZE 30  // maximum size of data
+doubles data;        // Initilising a doubles type to store data
 int brightness;
 int header_height;
 int btn_trigger;
 int sampleTime = 1;  // default to 1 second
 String title;
 
-UNIT current_unit = UNIT::PM25; 
+UNIT current_unit = UNIT::PM25;
 
-
-int guiShowGraphHeader(String title){
+int guiShowGraphHeader(String title) {
   auto header = text(0, 0)
                     .value(title.c_str())
                     .align(center)
@@ -52,7 +53,7 @@ void guiShowSensor(UNIT unit) {
   header_height = guiShowGraphHeader(title);
 
   // Settings for the line graph
-  auto content = line_chart(20, header_height);    //(x,y) where the line graph begins
+  auto content = line_chart(20, header_height);  //(x,y) where the line graph begins
   content
       .height(spr.height() - header_height * 1.5)  // actual height of the line chart
       .width(spr.width() - content.x() * 2)        // actual width of the line chart
@@ -77,14 +78,14 @@ void printSensorsDetected() {
     Serial.print(sensor);
     Serial.print(",");
   }
-  Serial.println(); 
+  Serial.println();
 }
 
-void updateSensorTitle(){
+void updateSensorTitle() {
   float uValue = sensors.getUnitValue(current_unit);
   String uName = sensors.getUnitName(current_unit);
   String uSymb = sensors.getUnitSymbol(current_unit);
-  title = uName + " " +String(uValue) + " (" + uSymb + ")";
+  title = uName + " " + String(uValue) + " (" + uSymb + ")";
 }
 
 bool selectNextUnit() {
@@ -106,7 +107,7 @@ void buttonsLoop() {
     updateSensorTitle();
     btn_trigger = 0;
   } else if (digitalRead(WIO_KEY_A) == LOW && btn_trigger++ > 100) {
-    NVIC_SystemReset(); 
+    NVIC_SystemReset();
     btn_trigger = 0;
   } else if (digitalRead(WIO_5S_UP) == LOW && btn_trigger++ > 5) {
     sampleTime = sampleTime + 1;
@@ -120,29 +121,28 @@ void buttonsLoop() {
 }
 
 void guiLoop() {
-  static uint32_t pmGuiTimeStamp = 0;                 
-    if ((millis() - pmGuiTimeStamp > 80)) {  
-        pmGuiTimeStamp = millis();
-        guiShowSensor(current_unit);
-    }
+  static uint32_t pmGuiTimeStamp = 0;
+  if ((millis() - pmGuiTimeStamp > 80)) {
+    pmGuiTimeStamp = millis();
+    guiShowSensor(current_unit);
+  }
 }
 
 void onSensorDataOk() {
-    printSensorsDetected();
-    updateSensorTitle();
-    float uValue = sensors.getUnitValue(current_unit);
-    if (data.size() > MAX_SIZE) data.pop();  // keep the old line chart front
-    data.push(uValue);
-    
-    Serial.println("=========================================");
+  printSensorsDetected();
+  updateSensorTitle();
+  float uValue = sensors.getUnitValue(current_unit);
+  if (data.size() > MAX_SIZE) data.pop();  // keep the old line chart front
+  data.push(uValue);
+
+  Serial.println("=========================================");
 }
 
-void onSensorDataError(const char * msg){ 
-}
+void onSensorDataError(const char* msg) {}
 
 /******************************************************************************
-*  M A I N
-******************************************************************************/
+ *  M A I N
+ ******************************************************************************/
 
 void setup() {
   Serial.begin(115200);
@@ -151,7 +151,7 @@ void setup() {
 
   Serial.println("-->[SETUP] Detecting sensors..");
 
-  sensors.setSampleTime(sampleTime);                        // config sensors sample time interval
+  sensors.setSampleTime(sampleTime);               // config sensors sample time interval
   sensors.setOnDataCallBack(&onSensorDataOk);      // all data read callback
   sensors.setOnErrorCallBack(&onSensorDataError);  // [optional] error callback
   sensors.setDebugMode(true);                      // [optional] debug mode
@@ -180,7 +180,7 @@ void setup() {
 }
 
 void loop() {
-  sensors.loop();  // read sensor data and showed it 
+  sensors.loop();  // read sensor data and showed it
   buttonsLoop();
   guiLoop();
   delay(20);
