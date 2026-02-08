@@ -1685,8 +1685,12 @@ bool Sensors::sps30UARTInit() {
   sensorAnnounce(SENSORS::SSPS30);
   // set driver debug level
   if (CORE_DEBUG_LEVEL > 0) sps30.EnableDebugging(true);
-  // Begin communication channel;
+  // Begin communication channel (non-ESP32: use Stream* e.g. SoftwareSerial; ESP32: SENSOR_COMMS)
+#if defined(ARDUINO_ARCH_ESP32)
   if (!sps30.begin(SENSOR_COMMS)) {
+#else
+  if (_serial == nullptr || !sps30.begin(*_serial)) {
+#endif
     sps30Errorloop((char *)"[E][SLIB] UART SPS30 could not initialize communication channel.", 0);
     return false;
   }
@@ -2297,6 +2301,9 @@ void Sensors::startI2C() {
 #elif defined(ARDUINO_ARCH_ESP32)
   Wire.begin();
   if (devmode) Serial.printf("-->[SLIB] I2C Wire started (ESP32) SDA:%d, SCL:%d\r\n", SDA, SCL);
+#elif defined(ARDUINO_ARCH_ESP8266)
+  Wire.begin(SDA, SCL);
+  if (devmode) Serial.printf("-->[SLIB] I2C Wire started (ESP8266) SDA:%d, SCL:%d\r\n", SDA, SCL);
 #endif
 #ifdef TTGO_T7S3
   Wire.begin(GROVE_SDA, GROVE_SCL);

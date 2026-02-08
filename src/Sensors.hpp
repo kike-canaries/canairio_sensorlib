@@ -121,8 +121,12 @@
 // Read UART sensor retry.
 #define SENSOR_RETRY 1000  // Max Serial characters
 
-// UART defualt port
+// UART default port (ESP8266 has no Serial2, use SoftwareSerial via default branch)
+#if defined(ARDUINO_ARCH_ESP32)
 #define SENSOR_COMMS SERIALPORT2
+#else
+#define SENSOR_COMMS 3  // Custom value: use default (SoftwareSerial) path on ESP8266
+#endif
 
 // Sensors units definitions (symbol/name)
 #define SENSOR_UNITS                            \
