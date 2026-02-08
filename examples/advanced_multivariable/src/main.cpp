@@ -20,7 +20,7 @@
 #include <Sensors.hpp>
 
 #if defined(ARDUINO_ARCH_ESP8266)
-#define MAIN_HW_EN_PIN 2   // ESP8266: GPIO2 (e.g. NodeMCU D4), enable pin for booster
+#define MAIN_HW_EN_PIN 2  // ESP8266: GPIO2 (e.g. NodeMCU D4), enable pin for booster
 #else
 #define MAIN_HW_EN_PIN 27  // ESP32: Only for setup with booster board with enable pin
 #endif
