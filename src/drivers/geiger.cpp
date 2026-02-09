@@ -58,6 +58,23 @@ GEIGER::GEIGER(int gpio, bool debug) {
 #endif
 }
 
+GEIGER::~GEIGER() {
+#ifdef ESP32
+  if (geiger_timer) {
+    timerEnd(geiger_timer);
+    geiger_timer = NULL;
+  }
+  if (geiger_timerMux) {
+    delete geiger_timerMux;
+    geiger_timerMux = NULL;
+  }
+  if (cajoe_fms) {
+    delete cajoe_fms;
+    cajoe_fms = NULL;
+  }
+#endif
+}
+
 // #########################################################################
 // Geiger counts evaluation
 // CAJOE kit comes with a Chinese J305 geiger tube
@@ -103,11 +120,11 @@ bool GEIGER::read() {
 /**
  * Converts CPM to uSv/h units (J305 tube)
  */
-float GEIGER::getUSvh() { return float(this->tics_cpm) * J305_CONV_FACTOR; }
+float GEIGER::getUSvh() const { return float(this->tics_cpm) * J305_CONV_FACTOR; }
 /**
  * Returns CPM
  */
-uint32_t GEIGER::getTics() { return this->tics_cpm; }
+uint32_t GEIGER::getTics() const { return this->tics_cpm; }
 
 void GEIGER::clear() {
   tics_cpm = 0;

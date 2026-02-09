@@ -239,13 +239,13 @@ class Sensors {
   /// Temperature offset (for final temp output)
   float toffset = 0.0;
 
-  /// Altitud compensation variable
+  /// Altitude compensation variable
   float altoffset = 0.0;
 
   /// Sea level pressure (hPa)
   float sealevel = 1013.25;
 
-  /// Altitud hpa calculation
+  /// Altitude hpa calculation
   float hpa = 0.0;
 
   /// Sensirion dust SPS30 library
@@ -314,6 +314,9 @@ class Sensors {
   /// PMS5003T Plantower with T&H of Airgradient
   PMS5003T *pm5003t;
 
+  Sensors();
+  ~Sensors();
+
   void init(u_int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
   void loop();
@@ -332,76 +335,76 @@ class Sensors {
 
   void setDebugMode(bool enable);
 
-  bool isUARTSensorConfigured();
+  bool isUARTSensorConfigured() const;
 
-  int getUARTDeviceTypeSelected();
+  int getUARTDeviceTypeSelected() const;
 
-  uint16_t getPM1();
+  uint16_t getPM1() const;
 
-  uint16_t getPM25();
+  uint16_t getPM25() const;
 
-  uint16_t getPM4();
+  uint16_t getPM4() const;
 
-  uint16_t getPM10();
+  uint16_t getPM10() const;
 
-  uint16_t getCO2();
+  uint16_t getCO2() const;
 
-  float getCO2humi();
+  float getCO2humi() const;
 
-  float getCO2temp();
+  float getCO2temp() const;
 
-  float getTemperature();
+  float getTemperature() const;
 
-  float getHumidity();
+  float getHumidity() const;
 
-  float getPressure();
+  float getPressure() const;
 
-  float getAltitude();
+  float getAltitude() const;
 
-  float getGas();
+  float getGas() const;
 
-  float getNH3();
+  float getNH3() const;
 
-  float getCO();
+  float getCO() const;
 
-  float getNO2();
+  float getNO2() const;
 
-  float getO3();
+  float getO3() const;
 
   void enableGeigerSensor(int gpio);
 
 #ifdef CSL_NOISE_SENSOR_SUPPORTED
-  float getNoise();
+  float getNoise() const;
 
-  float getNoiseAverage();
+  float getNoiseAverage() const;
 
-  float getNoisePeak();
+  float getNoisePeak() const;
 
-  float getNoiseMin();
+  float getNoiseMin() const;
 
-  float getNoiseLegalAverage();
+  float getNoiseLegalAverage() const;
 
-  float getNoiseLegalMaximum();
-  float getNoiseLd();
-  float getNoiseLe();
-  float getNoiseLn();
-  float getNoiseLden();
+  float getNoiseLegalMaximum() const;
+  float getNoiseLd() const;
+  float getNoiseLe() const;
+  float getNoiseLn() const;
+  float getNoiseLden() const;
   bool sendNoiseSensorTime(uint32_t unixTime);
   bool syncNoiseSensorTime();
   void setNoiseSensorTimeSyncInterval(uint32_t intervalMs);
 #endif
 
-  uint32_t getGeigerCPM(void);
+  uint32_t getGeigerCPM(void) const;
 
-  float getGeigerMicroSievertHour(void);
+  float getGeigerMicroSievertHour(void) const;
 
   void initTOffset(float offset);
 
-  float getTOffset();
+  float getTOffset() const;
 
   void setTempOffset(float offset);
 
-  float getTempOffset();
+  float getTempOffset() const;
 
   void setCO2AltitudeOffset(float altitude);
 
@@ -411,27 +414,27 @@ class Sensors {
 
   void detectI2COnly(bool enable);
 
-  String getLibraryVersion();
+  String getLibraryVersion() const;
 
-  int16_t getLibraryRevision();
+  int16_t getLibraryRevision() const;
 
-  bool isSensorRegistered(SENSORS sensor);
+  bool isSensorRegistered(SENSORS sensor) const;
 
   uint8_t *getSensorsRegistered();
 
-  uint8_t getSensorsRegisteredCount();
+  uint8_t getSensorsRegisteredCount() const;
 
-  String getSensorName(SENSORS sensor);
+  String getSensorName(SENSORS sensor) const;
 
-  SensorGroup getSensorGroup(SENSORS sensor);
+  SensorGroup getSensorGroup(SENSORS sensor) const;
 
-  uint8_t getUnitsRegisteredCount();
+  uint8_t getUnitsRegisteredCount() const;
 
-  bool isUnitRegistered(UNIT unit);
+  bool isUnitRegistered(UNIT unit) const;
 
-  String getUnitName(UNIT unit);
+  String getUnitName(UNIT unit) const;
 
-  String getUnitSymbol(UNIT unit);
+  String getUnitSymbol(UNIT unit) const;
 
   UNIT getNextUnit();
 
@@ -548,7 +551,7 @@ class Sensors {
   void CO2scd30Init();
   void CO2scd30Read();
   void setSCD30TempOffset(float offset);
-  float getSCD30TempOffset();
+  float getSCD30TempOffset() const;
   void setSCD30AltitudeOffset(float offset);
   void CO2correctionAlt();
   float hpaCalculation(float altitude);
@@ -556,7 +559,7 @@ class Sensors {
   void CO2scd4xInit();
   void CO2scd4xRead();
   void setSCD4xTempOffset(float offset);
-  float getSCD4xTempOffset();
+  float getSCD4xTempOffset() const;
   void setSCD4xAltitudeOffset(float offset);
 
   void sen5xInit();
@@ -621,11 +624,11 @@ class Sensors {
 
   bool serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx);
 
-  String hwSerialRead(unsigned int lenght_buffer);
+  String hwSerialRead(unsigned int length_buffer);
 
   void restart();  // restart serial (it isn't works sometimes)
 
-  void DEBUG(const char *text, const char *textb = "");
+  void DEBUG(const char *text, const char *textb = "") const;
 
   void printValues();
 
