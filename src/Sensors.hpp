@@ -526,6 +526,8 @@ class Sensors {
   float noiseLnValue = 0.0;
   float noiseLdenValue = 0.0;
   bool noiseScanDone = false;
+  uint32_t noiseLastScanMs = 0;
+  uint32_t noiseScanRetryMs = 5000;
   uint32_t noiseLastTimeSyncMs = 0;
   uint32_t noiseTimeSyncIntervalMs = 86400000;
   bool noiseTimeSyncEnabled = true;
@@ -667,3 +669,4 @@ extern Sensors sensors;
 #endif
 
 #endif
+

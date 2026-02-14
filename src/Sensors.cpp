@@ -1303,8 +1303,9 @@ void Sensors::DFRobotO3Read() {
 #ifdef CSL_NOISE_SENSOR_SUPPORTED
 bool Sensors::noiseSensorAutoDetect() {
   if (noiseSensorEnabled) return true;
-  if (noiseScanDone) return false;
+  if (noiseScanDone && (millis() - noiseLastScanMs < noiseScanRetryMs)) return false;
   noiseScanDone = true;
+  noiseLastScanMs = millis();
 
   noiseSensorInitWire();
   if (noiseWire == nullptr) {
@@ -1313,8 +1314,10 @@ bool Sensors::noiseSensorAutoDetect() {
   }
 
   for (uint8_t addr = MIN_I2C_ADDRESS; addr <= MAX_I2C_ADDRESS; addr++) {
-    if (devmode && (addr % 16 == 0)) Serial.printf("-->[SLIB] Scanning I2C addr: 0x%02X\r\n", addr);
-    if (!noiseSensorDevicePresent(*noiseWire, addr)) continue;
+    if (devmode && (addr == MIN_I2C_ADDRESS || (addr % 16 == 0))) Serial.printf("-->[SLIB] Scanning I2C addr: 0x%02X\r\n", addr);
+    bool present = noiseSensorDevicePresent(*noiseWire, addr);
+    if (devmode && addr == MIN_I2C_ADDRESS) Serial.printf("-->[SLIB] Probe 0x%02X: %s\r\n", addr, present ? "ACK" : "NACK");
+    if (!present) continue;
     if (devmode) Serial.printf("-->[SLIB] Found device at: 0x%02X, reading identity...\r\n", addr);
 
     uint8_t status = 0xFF;
@@ -1322,7 +1325,7 @@ bool Sensors::noiseSensorAutoDetect() {
       if (devmode) Serial.printf("-->[SLIB] Failed to read status at: 0x%02X\r\n", addr);
       continue;
     }
-    if (!(status == 0x00 || status == 0x01)) {
+    if (status > 0x07) {
       if (devmode) Serial.printf("-->[SLIB] Wrong status at: 0x%02X (0x%02X)\r\n", addr, status);
       continue;
     }
@@ -1340,7 +1343,8 @@ bool Sensors::noiseSensorAutoDetect() {
 }
 
 void Sensors::noiseSensorService() {
-  if (!noiseSensorEnabled && !noiseScanDone) {
+  if (noiseSensorEnabled) return;
+  if (!noiseScanDone || (millis() - noiseLastScanMs >= noiseScanRetryMs)) {
     noiseSensorAutoDetect();
   }
 }
@@ -2345,7 +2349,10 @@ void Sensors::startI2C() {
   Wire.begin();
   enableWire1();
 #endif
-#ifdef ESP32C3
+#if defined(SLIB_I2C_SDA) && defined(SLIB_I2C_SCL)
+  Wire.begin(SLIB_I2C_SDA, SLIB_I2C_SCL);
+  if (devmode) Serial.printf("-->[SLIB] I2C Wire started (custom) SDA:%d, SCL:%d\r\n", SLIB_I2C_SDA, SLIB_I2C_SCL);
+#elif defined(ESP32C3)
   Wire.begin(19, 18);
 #elif defined(ESP32S2)
   Wire.begin(33, 35);
@@ -2487,3 +2494,9 @@ bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, i
 #if !defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_SENSORSHANDLER)
 Sensors sensors;
 #endif
+
+
+
+
+
+
