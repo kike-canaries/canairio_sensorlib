@@ -1274,6 +1274,7 @@ void Sensors::GCJA5Read() {
 
 void Sensors::DFRobotNH3Read() {
   if (!isSensorRegistered(SENSORS::SDFRNH3)) return;
+  delay(300);  // Give sensor time for measurement in PASSIVITY mode
   if (!dfrNH3.begin()) return;
   nh3 = dfrNH3.readGasConcentrationPPM();
   unitRegister(UNIT::NH3);
@@ -1281,6 +1282,7 @@ void Sensors::DFRobotNH3Read() {
 
 void Sensors::DFRobotCORead() {
   if (!isSensorRegistered(SENSORS::SDFRCO)) return;
+  delay(300);  // Give sensor time for measurement in PASSIVITY mode
   if (!dfrCO.begin()) return;
   co = dfrCO.readGasConcentrationPPM();
   unitRegister(UNIT::CO);
@@ -1288,6 +1290,7 @@ void Sensors::DFRobotCORead() {
 
 void Sensors::DFRobotNO2Read() {
   if (!isSensorRegistered(SENSORS::SDFRNO2)) return;
+  delay(300);  // Give sensor time for measurement in PASSIVITY mode
   if (!dfrNO2.begin()) return;
   no2 = dfrNO2.readGasConcentrationPPM();
   unitRegister(UNIT::NO2);
@@ -1295,6 +1298,7 @@ void Sensors::DFRobotNO2Read() {
 
 void Sensors::DFRobotO3Read() {
   if (!isSensorRegistered(SENSORS::SDFRO3)) return;
+  delay(300);  // Give sensor time for measurement in PASSIVITY mode
   if (!dfrO3.begin()) return;
   o3 = dfrO3.readGasConcentrationPPM();
   unitRegister(UNIT::O3);
@@ -1369,10 +1373,19 @@ void Sensors::noiseSensorCollect() {
   noiseMinValue = noiseSensorData.noiseMinDb;
   noiseAvgLegalValue = noiseSensorData.noiseAvgLegalDb;        // Use DB version
   noiseAvgLegalMaxValue = noiseSensorData.noiseAvgLegalMaxDb;  // Use DB version
-  noiseLdValue = noiseSensorData.Ld;
-  noiseLeValue = noiseSensorData.Le;
-  noiseLnValue = noiseSensorData.Ln;
-  noiseLdenValue = noiseSensorData.noiseLden;
+
+  // Ld/Le/Ln/Lden: sensor returns 0 when period has no samples (e.g. Ld/Le=0 at night).
+  // Preserve last valid value so UI shows recent data instead of 0.
+  static constexpr float NOISE_PERIOD_MIN_VALID_DB = 15.0f;  // below this, 0 = "no data"
+  auto updateIfValid = [](float newVal, float &stored) {
+    if (!isnan(newVal) && newVal >= NOISE_PERIOD_MIN_VALID_DB) {
+      stored = newVal;
+    }
+  };
+  updateIfValid(noiseSensorData.Ld, noiseLdValue);
+  updateIfValid(noiseSensorData.Le, noiseLeValue);
+  updateIfValid(noiseSensorData.Ln, noiseLnValue);
+  updateIfValid(noiseSensorData.noiseLden, noiseLdenValue);
 
   unitRegister(UNIT::NOISE);
   dataReady = true;
@@ -2148,11 +2161,22 @@ void Sensors::GCJA5Init() {
 /// DFRobot GAS (CO) sensors init
 void Sensors::DFRobotCOInit() {
   sensorAnnounce(SENSORS::SDFRCO);
+  // Switch DFRobot sensors from default group 6 (0x74-0x77) to group 7 (0x78-0x7B)
+  // Required for addresses 0x78, 0x79, 0x7A, 0x7B. Try each group-6 address.
+  for (uint8_t addr = 0x74; addr <= 0x77; addr++) {
+    DFRobot_GAS_I2C temp(&Wire, addr);
+    if (temp.begin()) {
+      temp.changeI2cAddrGroup(7);
+      delay(200);  // Allow sensor to switch address group
+    }
+  }
+  delay(300);  // Let bus stabilize after address changes
   dfrCO =
       DFRobot_GAS_I2C(&Wire, 0x78);  // Be sure that your group of i2c address is 7, and A0=0 A1=0
   if (!dfrCO.begin()) return;
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrCO.changeAcquireMode(dfrCO.PASSIVITY);
+  delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
   // Turn on temperature compensation: gas.ON : turn on
   dfrCO.setTempCompensation(dfrCO.ON);
   sensorRegister(SENSORS::SDFRCO);
@@ -2166,6 +2190,7 @@ void Sensors::DFRobotNH3Init() {
   if (!dfrNH3.begin()) return;
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrNH3.changeAcquireMode(dfrNH3.PASSIVITY);
+  delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
   // Turn on temperature compensation: gas.ON : turn on
   dfrNH3.setTempCompensation(dfrNH3.ON);
   sensorRegister(SENSORS::SDFRNH3);
@@ -2179,18 +2204,20 @@ void Sensors::DFRobotNO2Init() {
   if (!dfrNO2.begin()) return;
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrNO2.changeAcquireMode(dfrNO2.PASSIVITY);
+  delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
   // Turn on temperature compensation: gas.ON : turn on
   dfrNO2.setTempCompensation(dfrNO2.ON);
   sensorRegister(SENSORS::SDFRNO2);
 }
 
-/// DFRobot GAS (NO2) sensors init
+/// DFRobot GAS (O3) sensors init
 void Sensors::DFRobotO3Init() {
   sensorAnnounce(SENSORS::SDFRO3);
-  dfrO3 = DFRobot_GAS_I2C(&Wire, 0x79);  // Be sure that your group of i2c address is 7, and A0= A1=
+  dfrO3 = DFRobot_GAS_I2C(&Wire, 0x79);  // Be sure that your group of i2c address is 7, and A0=0 A1=1
   if (!dfrO3.begin()) return;
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrO3.changeAcquireMode(dfrO3.PASSIVITY);
+  delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
   // Turn on temperature compensation: gas.ON : turn on
   dfrO3.setTempCompensation(dfrO3.ON);
   sensorRegister(SENSORS::SDFRO3);
