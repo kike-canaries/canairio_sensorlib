@@ -81,7 +81,7 @@ void setup() {
   sensors.setOnDataCallBack(&onSensorDataOk);    // all data read callback
   sensors.setDebugMode(true);                    // [optional] debug mode
   sensors.detectI2COnly(false);                  // not force to only i2c sensors
-  sensors.setTemperatureUnit(TEMPUNIT::KELVIN);  // comment for Celsius or set Fahrenheit
+  // sensors.setTemperatureUnit(TEMPUNIT::KELVIN);  // comment for Celsius or set Fahrenheit
   // sensors.init(SENSORS::Auto, 13, 12);          // Auto detection (Custom UART sensor pins
   // example)
   sensors.init();  // Auto detection (UART and i2c sensors)

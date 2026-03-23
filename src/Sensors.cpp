@@ -2,6 +2,18 @@
 
 #include <math.h>
 
+/** Default I2C clock (Hz) when many devices share the bus; override with -D SLIB_I2C_CLOCK_HZ=400000 */
+#ifndef SLIB_I2C_CLOCK_HZ
+#define SLIB_I2C_CLOCK_HZ 100000
+#endif
+
+static void dfrGasBeginFailed(const char *gasName, uint8_t i2cAddr) {
+  Serial.printf(
+      "[W][SLIB] DFRobot %s begin failed — I2C 0x%02X (wiring/DIP; try -D DFROBOT_MEMS_LEGACY_GROUP7=0 or "
+      "=1)\r\n",
+      gasName, i2cAddr);
+}
+
 // Units and sensors registers
 
 #define X(unit, symbol, name) symbol,
@@ -1274,34 +1286,46 @@ void Sensors::GCJA5Read() {
 
 void Sensors::DFRobotNH3Read() {
   if (!isSensorRegistered(SENSORS::SDFRNH3)) return;
-  delay(300);  // Give sensor time for measurement in PASSIVITY mode
-  if (!dfrNH3.begin()) return;
   nh3 = dfrNH3.readGasConcentrationPPM();
   unitRegister(UNIT::NH3);
+  dataReady = true;
+  if (temp == 0.0) {
+    temp = dfrNH3.readTempC() - toffset;
+    tempRegister(false);
+  }
 }
 
 void Sensors::DFRobotCORead() {
   if (!isSensorRegistered(SENSORS::SDFRCO)) return;
-  delay(300);  // Give sensor time for measurement in PASSIVITY mode
-  if (!dfrCO.begin()) return;
   co = dfrCO.readGasConcentrationPPM();
   unitRegister(UNIT::CO);
+  dataReady = true;
+  if (temp == 0.0) {
+    temp = dfrCO.readTempC() - toffset;
+    tempRegister(false);
+  }
 }
 
 void Sensors::DFRobotNO2Read() {
   if (!isSensorRegistered(SENSORS::SDFRNO2)) return;
-  delay(300);  // Give sensor time for measurement in PASSIVITY mode
-  if (!dfrNO2.begin()) return;
   no2 = dfrNO2.readGasConcentrationPPM();
   unitRegister(UNIT::NO2);
+  dataReady = true;
+  if (temp == 0.0) {
+    temp = dfrNO2.readTempC() - toffset;
+    tempRegister(false);
+  }
 }
 
 void Sensors::DFRobotO3Read() {
   if (!isSensorRegistered(SENSORS::SDFRO3)) return;
-  delay(300);  // Give sensor time for measurement in PASSIVITY mode
-  if (!dfrO3.begin()) return;
   o3 = dfrO3.readGasConcentrationPPM();
   unitRegister(UNIT::O3);
+  dataReady = true;
+  if (temp == 0.0) {
+    temp = dfrO3.readTempC() - toffset;
+    tempRegister(false);
+  }
 }
 
 #ifdef CSL_NOISE_SENSOR_SUPPORTED
@@ -1347,10 +1371,8 @@ bool Sensors::noiseSensorAutoDetect() {
 }
 
 void Sensors::noiseSensorService() {
-  if (noiseSensorEnabled) return;
-  if (!noiseScanDone || (millis() - noiseLastScanMs >= noiseScanRetryMs)) {
-    noiseSensorAutoDetect();
-  }
+  if (noiseSensorEnabled || noiseScanDone) return;
+  noiseSensorAutoDetect();
 }
 
 void Sensors::noiseSensorCollect() {
@@ -2161,19 +2183,22 @@ void Sensors::GCJA5Init() {
 /// DFRobot GAS (CO) sensors init
 void Sensors::DFRobotCOInit() {
   sensorAnnounce(SENSORS::SDFRCO);
-  // Switch DFRobot sensors from default group 6 (0x74-0x77) to group 7 (0x78-0x7B)
-  // Required for addresses 0x78, 0x79, 0x7A, 0x7B. Try each group-6 address.
+#if DFROBOT_MEMS_LEGACY_GROUP7
+  // MEMS MiCS only: move I2C group 6 (0x74-0x77) -> group 7 (0x78-0x7B). Not for SEN0466/SEN0472.
   for (uint8_t addr = 0x74; addr <= 0x77; addr++) {
     DFRobot_GAS_I2C temp(&Wire, addr);
     if (temp.begin()) {
       temp.changeI2cAddrGroup(7);
-      delay(200);  // Allow sensor to switch address group
+      delay(200);
     }
   }
-  delay(300);  // Let bus stabilize after address changes
-  dfrCO =
-      DFRobot_GAS_I2C(&Wire, 0x78);  // Be sure that your group of i2c address is 7, and A0=0 A1=0
-  if (!dfrCO.begin()) return;
+  delay(300);
+#endif
+  dfrCO = DFRobot_GAS_I2C(&Wire, DFROBOT_CO_I2C_ADDR);
+  if (!dfrCO.begin()) {
+    dfrGasBeginFailed("CO", DFROBOT_CO_I2C_ADDR);
+    return;
+  }
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrCO.changeAcquireMode(dfrCO.PASSIVITY);
   delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
@@ -2185,9 +2210,11 @@ void Sensors::DFRobotCOInit() {
 /// DFRobot GAS (NH3) sensors init
 void Sensors::DFRobotNH3Init() {
   sensorAnnounce(SENSORS::SDFRNH3);
-  dfrNH3 = DFRobot_GAS_I2C(&Wire, 0x7A);  // 0x77 y 0x75 used by bme680. Be sure that your group of
-                                          // i2c address is 7, and A0=1 A1=0
-  if (!dfrNH3.begin()) return;
+  dfrNH3 = DFRobot_GAS_I2C(&Wire, DFROBOT_NH3_I2C_ADDR);
+  if (!dfrNH3.begin()) {
+    dfrGasBeginFailed("NH3", DFROBOT_NH3_I2C_ADDR);
+    return;
+  }
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrNH3.changeAcquireMode(dfrNH3.PASSIVITY);
   delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
@@ -2199,9 +2226,11 @@ void Sensors::DFRobotNH3Init() {
 /// DFRobot GAS (NO2) sensors init
 void Sensors::DFRobotNO2Init() {
   sensorAnnounce(SENSORS::SDFRNO2);
-  dfrNO2 =
-      DFRobot_GAS_I2C(&Wire, 0x7B);  // Be sure that your group of i2c address is 7, and A0=1 A1=1
-  if (!dfrNO2.begin()) return;
+  dfrNO2 = DFRobot_GAS_I2C(&Wire, DFROBOT_NO2_I2C_ADDR);
+  if (!dfrNO2.begin()) {
+    dfrGasBeginFailed("NO2", DFROBOT_NO2_I2C_ADDR);
+    return;
+  }
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrNO2.changeAcquireMode(dfrNO2.PASSIVITY);
   delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
@@ -2213,8 +2242,11 @@ void Sensors::DFRobotNO2Init() {
 /// DFRobot GAS (O3) sensors init
 void Sensors::DFRobotO3Init() {
   sensorAnnounce(SENSORS::SDFRO3);
-  dfrO3 = DFRobot_GAS_I2C(&Wire, 0x79);  // Be sure that your group of i2c address is 7, and A0=0 A1=1
-  if (!dfrO3.begin()) return;
+  dfrO3 = DFRobot_GAS_I2C(&Wire, DFROBOT_O3_I2C_ADDR);
+  if (!dfrO3.begin()) {
+    dfrGasBeginFailed("O3", DFROBOT_O3_I2C_ADDR);
+    return;
+  }
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrO3.changeAcquireMode(dfrO3.PASSIVITY);
   delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
@@ -2404,6 +2436,10 @@ void Sensors::startI2C() {
 #ifdef AG_OPENAIR
   Wire.begin(AIRG_SDA, AIRG_SCL);
   delay(1000);
+#endif
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+  Wire.setClock(SLIB_I2C_CLOCK_HZ);
+  if (devmode) Serial.printf("-->[SLIB] I2C clock set to %lu Hz\r\n", (unsigned long)SLIB_I2C_CLOCK_HZ);
 #endif
 }
 

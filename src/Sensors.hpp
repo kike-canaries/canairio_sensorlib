@@ -45,6 +45,44 @@
 #define CSL_REVISION 385
 
 /***************************************************************
+ * D F R o b o t   G r a v i t y   g a s   ( S E N 0 4 6 5 – S E N 0 4 7 6 / M E M S )
+ ***************************************************************/
+/**
+ * DFRobot Gravity gas — two supported setups:
+ *
+ * 1) Default (DFROBOT_MEMS_LEGACY_GROUP7=0): electrochemical wiki — I2C group 6, 0x74–0x77 per DIP.
+ *    CO @ 0x74, O3 @ 0x75 (set O3 DIP so it does not share 0x74 with CO).
+ *
+ * 2) CanAirIO / MEMS group 7 (DFROBOT_MEMS_LEGACY_GROUP7=1): matches canair.io/docs/dfrobot_sensors.html
+ *    — CO @ 0x78, O3 @ 0x79, NH3 @ 0x7A, NO2 @ 0x7B; DFRobotCOInit() runs changeI2cAddrGroup(7) on 0x74–0x77.
+ *
+ * Override: -D DFROBOT_CO_I2C_ADDR=0x76 -D DFROBOT_O3_I2C_ADDR=0x77
+ */
+#ifndef DFROBOT_MEMS_LEGACY_GROUP7
+#define DFROBOT_MEMS_LEGACY_GROUP7 0
+#endif
+#ifndef DFROBOT_CO_I2C_ADDR
+#if DFROBOT_MEMS_LEGACY_GROUP7
+#define DFROBOT_CO_I2C_ADDR 0x78
+#else
+#define DFROBOT_CO_I2C_ADDR 0x74
+#endif
+#endif
+#ifndef DFROBOT_O3_I2C_ADDR
+#if DFROBOT_MEMS_LEGACY_GROUP7
+#define DFROBOT_O3_I2C_ADDR 0x79
+#else
+#define DFROBOT_O3_I2C_ADDR 0x75
+#endif
+#endif
+#ifndef DFROBOT_NH3_I2C_ADDR
+#define DFROBOT_NH3_I2C_ADDR 0x7A
+#endif
+#ifndef DFROBOT_NO2_I2C_ADDR
+#define DFROBOT_NO2_I2C_ADDR 0x7B
+#endif
+
+/***************************************************************
  * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
  ***************************************************************/
 
