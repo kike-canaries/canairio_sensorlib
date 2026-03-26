@@ -2,14 +2,16 @@
 
 #include <math.h>
 
-/** Default I2C clock (Hz) when many devices share the bus; override with -D SLIB_I2C_CLOCK_HZ=400000 */
+/** Default I2C clock (Hz) when many devices share the bus; override with -D
+ * SLIB_I2C_CLOCK_HZ=400000 */
 #ifndef SLIB_I2C_CLOCK_HZ
 #define SLIB_I2C_CLOCK_HZ 100000
 #endif
 
 static void dfrGasBeginFailed(const char *gasName, uint8_t i2cAddr) {
   Serial.printf(
-      "[W][SLIB] DFRobot %s begin failed — I2C 0x%02X (wiring/DIP; try -D DFROBOT_MEMS_LEGACY_GROUP7=0 or "
+      "[W][SLIB] DFRobot %s begin failed — I2C 0x%02X (wiring/DIP; try -D "
+      "DFROBOT_MEMS_LEGACY_GROUP7=0 or "
       "=1)\r\n",
       gasName, i2cAddr);
 }
@@ -1342,9 +1344,11 @@ bool Sensors::noiseSensorAutoDetect() {
   }
 
   for (uint8_t addr = MIN_I2C_ADDRESS; addr <= MAX_I2C_ADDRESS; addr++) {
-    if (devmode && (addr == MIN_I2C_ADDRESS || (addr % 16 == 0))) Serial.printf("-->[SLIB] Scanning I2C addr: 0x%02X\r\n", addr);
+    if (devmode && (addr == MIN_I2C_ADDRESS || (addr % 16 == 0)))
+      Serial.printf("-->[SLIB] Scanning I2C addr: 0x%02X\r\n", addr);
     bool present = noiseSensorDevicePresent(*noiseWire, addr);
-    if (devmode && addr == MIN_I2C_ADDRESS) Serial.printf("-->[SLIB] Probe 0x%02X: %s\r\n", addr, present ? "ACK" : "NACK");
+    if (devmode && addr == MIN_I2C_ADDRESS)
+      Serial.printf("-->[SLIB] Probe 0x%02X: %s\r\n", addr, present ? "ACK" : "NACK");
     if (!present) continue;
     if (devmode) Serial.printf("-->[SLIB] Found device at: 0x%02X, reading identity...\r\n", addr);
 
@@ -2410,7 +2414,9 @@ void Sensors::startI2C() {
 #endif
 #if defined(SLIB_I2C_SDA) && defined(SLIB_I2C_SCL)
   Wire.begin(SLIB_I2C_SDA, SLIB_I2C_SCL);
-  if (devmode) Serial.printf("-->[SLIB] I2C Wire started (custom) SDA:%d, SCL:%d\r\n", SLIB_I2C_SDA, SLIB_I2C_SCL);
+  if (devmode)
+    Serial.printf("-->[SLIB] I2C Wire started (custom) SDA:%d, SCL:%d\r\n", SLIB_I2C_SDA,
+                  SLIB_I2C_SCL);
 #elif defined(ESP32C3)
   Wire.begin(19, 18);
 #elif defined(ESP32S2)
@@ -2439,7 +2445,8 @@ void Sensors::startI2C() {
 #endif
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
   Wire.setClock(SLIB_I2C_CLOCK_HZ);
-  if (devmode) Serial.printf("-->[SLIB] I2C clock set to %lu Hz\r\n", (unsigned long)SLIB_I2C_CLOCK_HZ);
+  if (devmode)
+    Serial.printf("-->[SLIB] I2C clock set to %lu Hz\r\n", (unsigned long)SLIB_I2C_CLOCK_HZ);
 #endif
 }
 
@@ -2557,9 +2564,3 @@ bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, i
 #if !defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_SENSORSHANDLER)
 Sensors sensors;
 #endif
-
-
-
-
-
-

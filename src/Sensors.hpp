@@ -53,8 +53,9 @@
  * 1) Default (DFROBOT_MEMS_LEGACY_GROUP7=0): electrochemical wiki — I2C group 6, 0x74–0x77 per DIP.
  *    CO @ 0x74, O3 @ 0x75 (set O3 DIP so it does not share 0x74 with CO).
  *
- * 2) CanAirIO / MEMS group 7 (DFROBOT_MEMS_LEGACY_GROUP7=1): matches canair.io/docs/dfrobot_sensors.html
- *    — CO @ 0x78, O3 @ 0x79, NH3 @ 0x7A, NO2 @ 0x7B; DFRobotCOInit() runs changeI2cAddrGroup(7) on 0x74–0x77.
+ * 2) CanAirIO / MEMS group 7 (DFROBOT_MEMS_LEGACY_GROUP7=1): matches
+ * canair.io/docs/dfrobot_sensors.html — CO @ 0x78, O3 @ 0x79, NH3 @ 0x7A, NO2 @ 0x7B;
+ * DFRobotCOInit() runs changeI2cAddrGroup(7) on 0x74–0x77.
  *
  * Override: -D DFROBOT_CO_I2C_ADDR=0x76 -D DFROBOT_O3_I2C_ADDR=0x77
  */
@@ -707,4 +708,3 @@ extern Sensors sensors;
 #endif
 
 #endif
-
