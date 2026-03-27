@@ -1,6 +1,6 @@
-#include "Sensors.hpp"
-
 #include <math.h>
+
+#include "Sensors.hpp"
 
 /** Default I2C clock (Hz) when many devices share the bus; override with -D
  * SLIB_I2C_CLOCK_HZ=400000 */
