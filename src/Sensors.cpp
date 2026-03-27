@@ -1,6 +1,6 @@
-#include <math.h>
-
 #include "Sensors.hpp"
+
+#include <math.h>
 
 /** Default I2C clock (Hz) when many devices share the bus; override with -D
  * SLIB_I2C_CLOCK_HZ=400000 */
@@ -1586,7 +1586,8 @@ bool Sensors::sensorSerialInit(u_int pms_type, int pms_rx, int pms_tx) {
 
   // starting auto detection loop
   int try_sensor_init = 0;
-  while (!pmSensorAutoDetect(pms_type) && try_sensor_init++ < 2);
+  while (!pmSensorAutoDetect(pms_type) && try_sensor_init++ < 2) {
+  }
 
   // get device selected..
   if (dev_uart_type >= 0) {
@@ -1780,7 +1781,9 @@ bool Sensors::senseAirS8Init() {
 bool Sensors::sps30UARTInit() {
   sensorAnnounce(SENSORS::SSPS30);
   // set driver debug level
-  if (CORE_DEBUG_LEVEL > 0) sps30.EnableDebugging(true);
+  if (CORE_DEBUG_LEVEL > 0) {
+    sps30.EnableDebugging(true);
+  }
   // Begin communication channel (non-ESP32: use Stream* e.g. SoftwareSerial; ESP32: SENSOR_COMMS)
 #if defined(ARDUINO_ARCH_ESP32)
   if (!sps30.begin(SENSOR_COMMS)) {
