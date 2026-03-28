@@ -1,7 +1,6 @@
 #ifndef Sensors_hpp
 #define Sensors_hpp
 
-#include <Arduino.h>
 #include <AHTxx.h>
 #include <AM232X.h>
 #include <Adafruit_BME280.h>
@@ -10,32 +9,32 @@
 #include <Adafruit_SCD30.h>
 #include <Adafruit_SHT31.h>
 #include <Adafruit_Sensor.h>
+#include <Arduino.h>
 #include <DFRobot_MultiGasSensor.h>
 #include <MHZ19.h>
 #include <SensirionI2CScd4x.h>
 #include <SensirionI2CSen5x.h>
 #include <SensirionI2CSgp41.h>
 #include <SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h>
+#include <Wire.h>
 #include <cm1106_uart.h>
 #include <drivers/PMS5003T.h>
 #include <drivers/geiger.h>
 #include <drivers/pm1006.h>
 #include <s8_uart.h>
 #include <sps30.h>
-#include <Wire.h>
 
-#if defined(ARDUINO_ARCH_ESP32) &&                                              \
+#if defined(ARDUINO_ARCH_ESP32) &&                                               \
     (defined(CONFIG_IDF_TARGET_ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32S2) || \
      defined(CONFIG_IDF_TARGET_ESP32S3) || defined(ARDUINO_ESP32C3_DEV) ||       \
-     defined(ARDUINO_ESP32S2_DEV) || defined(ARDUINO_ESP32S3_DEV) ||            \
-     defined(ARDUINO_LOLIN_C3_MINI) || defined(ARDUINO_LOLIN_S2_MINI) ||        \
-     defined(ARDUINO_LOLIN_S3_MINI) || defined(ESP32C3) || defined(ESP32S2) ||  \
-     defined(ESP32S3))
+     defined(ARDUINO_ESP32S2_DEV) || defined(ARDUINO_ESP32S3_DEV) ||             \
+     defined(ARDUINO_LOLIN_C3_MINI) || defined(ARDUINO_LOLIN_S2_MINI) ||         \
+     defined(ARDUINO_LOLIN_S3_MINI) || defined(ESP32C3) || defined(ESP32S2) || defined(ESP32S3))
 #define CSL_NOISE_SENSOR_SUPPORTED 1
 #endif
 
 #ifdef CSL_NOISE_SENSOR_SUPPORTED
-#include <NoiseSensorI2CSlave.h>
+#include "drivers/NoiseSlave.h"
 #endif
 
 #ifdef DHT11_ENABLED
@@ -44,6 +43,45 @@
 
 #define CSL_VERSION "0.7.6"
 #define CSL_REVISION 385
+
+/***************************************************************
+ * D F R o b o t   G r a v i t y   g a s   ( S E N 0 4 6 5 – S E N 0 4 7 6 / M E M S )
+ ***************************************************************/
+/**
+ * DFRobot Gravity gas — two supported setups:
+ *
+ * 1) Default (DFROBOT_MEMS_LEGACY_GROUP7=0): electrochemical wiki — I2C group 6, 0x74–0x77 per DIP.
+ *    CO @ 0x74, O3 @ 0x75 (set O3 DIP so it does not share 0x74 with CO).
+ *
+ * 2) CanAirIO / MEMS group 7 (DFROBOT_MEMS_LEGACY_GROUP7=1): matches
+ * canair.io/docs/dfrobot_sensors.html — CO @ 0x78, O3 @ 0x79, NH3 @ 0x7A, NO2 @ 0x7B;
+ * DFRobotCOInit() runs changeI2cAddrGroup(7) on 0x74–0x77.
+ *
+ * Override: -D DFROBOT_CO_I2C_ADDR=0x76 -D DFROBOT_O3_I2C_ADDR=0x77
+ */
+#ifndef DFROBOT_MEMS_LEGACY_GROUP7
+#define DFROBOT_MEMS_LEGACY_GROUP7 0
+#endif
+#ifndef DFROBOT_CO_I2C_ADDR
+#if DFROBOT_MEMS_LEGACY_GROUP7
+#define DFROBOT_CO_I2C_ADDR 0x78
+#else
+#define DFROBOT_CO_I2C_ADDR 0x74
+#endif
+#endif
+#ifndef DFROBOT_O3_I2C_ADDR
+#if DFROBOT_MEMS_LEGACY_GROUP7
+#define DFROBOT_O3_I2C_ADDR 0x79
+#else
+#define DFROBOT_O3_I2C_ADDR 0x75
+#endif
+#endif
+#ifndef DFROBOT_NH3_I2C_ADDR
+#define DFROBOT_NH3_I2C_ADDR 0x7A
+#endif
+#ifndef DFROBOT_NO2_I2C_ADDR
+#define DFROBOT_NO2_I2C_ADDR 0x7B
+#endif
 
 /***************************************************************
  * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
@@ -119,48 +157,55 @@
 #define I2C1_SCL_PIN 9
 #endif
 
-
 // Read UART sensor retry.
 #define SENSOR_RETRY 1000  // Max Serial characters
 
-// UART defualt port
+// UART default port (ESP8266 has no Serial2, use SoftwareSerial via default branch)
+#if defined(ARDUINO_ARCH_ESP32)
 #define SENSOR_COMMS SERIALPORT2
+#else
+#define SENSOR_COMMS 3  // Custom value: use default (SoftwareSerial) path on ESP8266
+#endif
 
 // Sensors units definitions (symbol/name)
-#define SENSOR_UNITS         \
-  X(NUNIT, "NUNIT", "NUNIT") \
-  X(PM1, "ug/m3", "PM1")     \
-  X(PM25, "ug/m3", "PM2.5")  \
-  X(PM4, "ug/m3", "PM4")     \
-  X(PM10, "ug/m3", "PM10")   \
-  X(TEMP, "C", "T")          \
-  X(TEMPK, "K", "T")         \
-  X(TEMPF, "F", "T")         \
-  X(HUM, "%", "H")           \
-  X(CO2, "ppm", "CO2")       \
-  X(CO2TEMP, "C", "CO2T")    \
-  X(CO2TEMPK, "K", "CO2TK")  \
-  X(CO2TEMPF, "F", "CO2TF")  \
-  X(CO2HUM, "%", "CO2H")     \
-  X(PRESS, "hPa", "P")       \
-  X(ALT, "m", "Alt")         \
-  X(GAS, "Ohm", "Gas")       \
-  X(CPM, "CPM", "RAD")       \
-  X(RAD, "uSv/h", "RAD")     \
-  X(NH3, "ppm", "NH3")       \
-  X(CO, "ppm", "CO")         \
-  X(NO2, "ppm", "NO2")       \
-  X(O3, "ppm", "O3")         \
-  X(NOXI, "noxi", "NOXI")    \
-  X(VOCI, "voci", "VOCI")    \
-  X(NOX, "nox", "NOX")       \
-  X(VOC, "voc", "VOC")       \
-  X(NOISE, "dB", "Noise")    \
-  X(NOISEAVG, "dB", "NoiseAvg") \
-  X(NOISEPEAK, "dB", "NoisePeak") \
-  X(NOISEMIN, "dB", "NoiseMin") \
-  X(NOISEAVGLEGAL, "dB", "NoiseAvgLegal") \
+#define SENSOR_UNITS                            \
+  X(NUNIT, "NUNIT", "NUNIT")                    \
+  X(PM1, "ug/m3", "PM1")                        \
+  X(PM25, "ug/m3", "PM2.5")                     \
+  X(PM4, "ug/m3", "PM4")                        \
+  X(PM10, "ug/m3", "PM10")                      \
+  X(TEMP, "C", "T")                             \
+  X(TEMPK, "K", "T")                            \
+  X(TEMPF, "F", "T")                            \
+  X(HUM, "%", "H")                              \
+  X(CO2, "ppm", "CO2")                          \
+  X(CO2TEMP, "C", "CO2T")                       \
+  X(CO2TEMPK, "K", "CO2TK")                     \
+  X(CO2TEMPF, "F", "CO2TF")                     \
+  X(CO2HUM, "%", "CO2H")                        \
+  X(PRESS, "hPa", "P")                          \
+  X(ALT, "m", "Alt")                            \
+  X(GAS, "Ohm", "Gas")                          \
+  X(CPM, "CPM", "RAD")                          \
+  X(RAD, "uSv/h", "RAD")                        \
+  X(NH3, "ppm", "NH3")                          \
+  X(CO, "ppm", "CO")                            \
+  X(NO2, "ppm", "NO2")                          \
+  X(O3, "ppm", "O3")                            \
+  X(NOXI, "noxi", "NOXI")                       \
+  X(VOCI, "voci", "VOCI")                       \
+  X(NOX, "nox", "NOX")                          \
+  X(VOC, "voc", "VOC")                          \
+  X(NOISE, "dB", "Noise")                       \
+  X(NOISEAVG, "dB", "NoiseAvg")                 \
+  X(NOISEPEAK, "dB", "NoisePeak")               \
+  X(NOISEMIN, "dB", "NoiseMin")                 \
+  X(NOISEAVGLEGAL, "dB", "NoiseAvgLegal")       \
   X(NOISEAVGLEGALMAX, "dB", "NoiseAvgLegalMax") \
+  X(NOISELD, "dB", "Ld")                        \
+  X(NOISELE, "dB", "Le")                        \
+  X(NOISELN, "dB", "Ln")                        \
+  X(NOISELDEN, "dB", "Lden")                    \
   X(UCOUNT, "COUNT", "UCOUNT")
 
 #define X(unit, symbol, name) unit,
@@ -233,13 +278,13 @@ class Sensors {
   /// Temperature offset (for final temp output)
   float toffset = 0.0;
 
-  /// Altitud compensation variable
+  /// Altitude compensation variable
   float altoffset = 0.0;
 
   /// Sea level pressure (hPa)
   float sealevel = 1013.25;
 
-  /// Altitud hpa calculation
+  /// Altitude hpa calculation
   float hpa = 0.0;
 
   /// Sensirion dust SPS30 library
@@ -308,6 +353,9 @@ class Sensors {
   /// PMS5003T Plantower with T&H of Airgradient
   PMS5003T *pm5003t;
 
+  Sensors();
+  ~Sensors();
+
   void init(u_int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
   void loop();
@@ -326,69 +374,76 @@ class Sensors {
 
   void setDebugMode(bool enable);
 
-  bool isUARTSensorConfigured();
+  bool isUARTSensorConfigured() const;
 
-  int getUARTDeviceTypeSelected();
+  int getUARTDeviceTypeSelected() const;
 
-  uint16_t getPM1();
+  uint16_t getPM1() const;
 
-  uint16_t getPM25();
+  uint16_t getPM25() const;
 
-  uint16_t getPM4();
+  uint16_t getPM4() const;
 
-  uint16_t getPM10();
+  uint16_t getPM10() const;
 
-  uint16_t getCO2();
+  uint16_t getCO2() const;
 
-  float getCO2humi();
+  float getCO2humi() const;
 
-  float getCO2temp();
+  float getCO2temp() const;
 
-  float getTemperature();
+  float getTemperature() const;
 
-  float getHumidity();
+  float getHumidity() const;
 
-  float getPressure();
+  float getPressure() const;
 
-  float getAltitude();
+  float getAltitude() const;
 
-  float getGas();
+  float getGas() const;
 
-  float getNH3();
+  float getNH3() const;
 
-  float getCO();
+  float getCO() const;
 
-  float getNO2();
+  float getNO2() const;
 
-  float getO3();
+  float getO3() const;
 
   void enableGeigerSensor(int gpio);
 
 #ifdef CSL_NOISE_SENSOR_SUPPORTED
-  float getNoise();
+  float getNoise() const;
 
-  float getNoiseAverage();
+  float getNoiseAverage() const;
 
-  float getNoisePeak();
+  float getNoisePeak() const;
 
-  float getNoiseMin();
+  float getNoiseMin() const;
 
-  float getNoiseLegalAverage();
+  float getNoiseLegalAverage() const;
 
-  float getNoiseLegalMaximum();
+  float getNoiseLegalMaximum() const;
+  float getNoiseLd() const;
+  float getNoiseLe() const;
+  float getNoiseLn() const;
+  float getNoiseLden() const;
+  bool sendNoiseSensorTime(uint32_t unixTime);
+  bool syncNoiseSensorTime();
+  void setNoiseSensorTimeSyncInterval(uint32_t intervalMs);
 #endif
 
-  uint32_t getGeigerCPM(void);
+  uint32_t getGeigerCPM(void) const;
 
-  float getGeigerMicroSievertHour(void);
+  float getGeigerMicroSievertHour(void) const;
 
   void initTOffset(float offset);
 
-  float getTOffset();
+  float getTOffset() const;
 
   void setTempOffset(float offset);
 
-  float getTempOffset();
+  float getTempOffset() const;
 
   void setCO2AltitudeOffset(float altitude);
 
@@ -398,27 +453,27 @@ class Sensors {
 
   void detectI2COnly(bool enable);
 
-  String getLibraryVersion();
+  String getLibraryVersion() const;
 
-  int16_t getLibraryRevision();
+  int16_t getLibraryRevision() const;
 
-  bool isSensorRegistered(SENSORS sensor);
+  bool isSensorRegistered(SENSORS sensor) const;
 
   uint8_t *getSensorsRegistered();
 
-  uint8_t getSensorsRegisteredCount();
+  uint8_t getSensorsRegisteredCount() const;
 
-  String getSensorName(SENSORS sensor);
+  String getSensorName(SENSORS sensor) const;
 
-  SensorGroup getSensorGroup(SENSORS sensor);
+  SensorGroup getSensorGroup(SENSORS sensor) const;
 
-  uint8_t getUnitsRegisteredCount();
+  uint8_t getUnitsRegisteredCount() const;
 
-  bool isUnitRegistered(UNIT unit);
+  bool isUnitRegistered(UNIT unit) const;
 
-  String getUnitName(UNIT unit);
+  String getUnitName(UNIT unit) const;
 
-  String getUnitSymbol(UNIT unit);
+  String getUnitSymbol(UNIT unit) const;
 
   UNIT getNextUnit();
 
@@ -495,7 +550,7 @@ class Sensors {
   bool noiseWireReady = false;
   uint8_t noiseSensorAddress = 0;
 #if __cplusplus >= 201103L
-  static_assert(sizeof(SensorData) == 32, "SensorData size mismatch");
+  static_assert(sizeof(SensorData) == 68, "SensorData size mismatch");
 #endif
 #endif
   bool noiseSensorEnabled = false;
@@ -505,7 +560,16 @@ class Sensors {
   float noiseMinValue = 0.0;
   float noiseAvgLegalValue = 0.0;
   float noiseAvgLegalMaxValue = 0.0;
+  float noiseLdValue = 0.0;
+  float noiseLeValue = 0.0;
+  float noiseLnValue = 0.0;
+  float noiseLdenValue = 0.0;
   bool noiseScanDone = false;
+  uint32_t noiseLastScanMs = 0;
+  uint32_t noiseScanRetryMs = 5000;
+  uint32_t noiseLastTimeSyncMs = 0;
+  uint32_t noiseTimeSyncIntervalMs = 86400000;
+  bool noiseTimeSyncEnabled = true;
 
   void am2320Init();
   void am2320Read();
@@ -528,7 +592,7 @@ class Sensors {
   void CO2scd30Init();
   void CO2scd30Read();
   void setSCD30TempOffset(float offset);
-  float getSCD30TempOffset();
+  float getSCD30TempOffset() const;
   void setSCD30AltitudeOffset(float offset);
   void CO2correctionAlt();
   float hpaCalculation(float altitude);
@@ -536,7 +600,7 @@ class Sensors {
   void CO2scd4xInit();
   void CO2scd4xRead();
   void setSCD4xTempOffset(float offset);
-  float getSCD4xTempOffset();
+  float getSCD4xTempOffset() const;
   void setSCD4xAltitudeOffset(float offset);
 
   void sen5xInit();
@@ -601,11 +665,11 @@ class Sensors {
 
   bool serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx);
 
-  String hwSerialRead(unsigned int lenght_buffer);
+  String hwSerialRead(unsigned int length_buffer);
 
   void restart();  // restart serial (it isn't works sometimes)
 
-  void DEBUG(const char *text, const char *textb = "");
+  void DEBUG(const char *text, const char *textb = "") const;
 
   void printValues();
 
@@ -625,7 +689,7 @@ class Sensors {
   bool noiseSensorAutoDetect();
   void noiseSensorService();
   void noiseSensorCollect();
-  bool noiseSensorReadIdentity(TwoWire &wire, uint8_t address, SensorIdentity &out);
+  bool noiseSensorReadStatus(TwoWire &wire, uint8_t address, uint8_t &status);
   bool noiseSensorReadData(TwoWire &wire, uint8_t address, SensorData &out);
   bool noiseSensorDevicePresent(TwoWire &wire, uint8_t address);
   void noiseSensorInitWire();

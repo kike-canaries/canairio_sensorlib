@@ -4,7 +4,7 @@
  * @brief Init and check that sensor has connected
  *
  * @param stream UART stream
- * @return true Sucecss
+ * @return true Success
  * @return false Failure
  */
 bool PMSBase::begin(Stream *stream) {
@@ -101,7 +101,7 @@ void PMSBase::handle() {
         bufIndex++;
         if (bufIndex >= len) {
           step = 0;
-          // Serial.println("Bad lengh read all buffer");
+          // Serial.println("Bad length read all buffer");
         }
         break;
       }

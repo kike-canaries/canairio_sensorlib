@@ -16,15 +16,17 @@
  */
 
 #include <Arduino.h>
-#include "Wire.h"
+
 #include <Sensors.hpp>
 
-#define POWER_HOLD 3 // power sensors board enable pin
+#include "Wire.h"
 
-#define GROVE_SDA 13 // original grove port (defaults)
+#define POWER_HOLD 3  // power sensors board enable pin
+
+#define GROVE_SDA 13  // original grove port (defaults)
 #define GROVE_SCL 14
 
-#define I2C1_SDA_PIN 8 // Wire1 alternative pins
+#define I2C1_SDA_PIN 8  // Wire1 alternative pins
 #define I2C1_SCL_PIN 9
 
 void printSensorsDetected() {

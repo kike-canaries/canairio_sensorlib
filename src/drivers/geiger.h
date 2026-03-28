@@ -27,10 +27,11 @@ class GEIGER {
    * @param debug debug mode enable/disable
    */
   explicit GEIGER(int gpio = -1, bool debug = false);
+  virtual ~GEIGER();
   bool read();
   void clear();
-  uint32_t getTics();
-  float getUSvh();
+  uint32_t getTics() const;
+  float getUSvh() const;
 };
 
 #endif
