@@ -628,6 +628,9 @@ class Sensors {
   void DFRobotO3Init();
   void DFRobotO3Read();
 
+  float dfrGasTempCompensation(float rawPpm, float temperature, uint8_t gasType);
+  float dfrGasPressCompensation(float ppm, float pressure);
+
   // UART sensors methods:
 
   bool sensorSerialInit(u_int pms_type, int rx, int tx);

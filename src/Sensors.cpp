@@ -1288,44 +1288,60 @@ void Sensors::GCJA5Read() {
 
 void Sensors::DFRobotNH3Read() {
   if (!isSensorRegistered(SENSORS::SDFRNH3)) return;
-  nh3 = dfrNH3.readGasConcentrationPPM();
+  float rawPpm = dfrNH3.readGasConcentrationPPM();
+  float dfrInternalTemp = dfrNH3.readTempC();
+  float compensationTemp = (temp != 0.0) ? temp : (dfrInternalTemp - toffset);
+  nh3 = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::NH3);
+  if (pres > 0.0) nh3 = dfrGasPressCompensation(nh3, pres);
   unitRegister(UNIT::NH3);
   dataReady = true;
   if (temp == 0.0) {
-    temp = dfrNH3.readTempC() - toffset;
+    temp = dfrInternalTemp - toffset;
     tempRegister(false);
   }
 }
 
 void Sensors::DFRobotCORead() {
   if (!isSensorRegistered(SENSORS::SDFRCO)) return;
-  co = dfrCO.readGasConcentrationPPM();
+  float rawPpm = dfrCO.readGasConcentrationPPM();
+  float dfrInternalTemp = dfrCO.readTempC();
+  float compensationTemp = (temp != 0.0) ? temp : (dfrInternalTemp - toffset);
+  co = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::CO);
+  if (pres > 0.0) co = dfrGasPressCompensation(co, pres);
   unitRegister(UNIT::CO);
   dataReady = true;
   if (temp == 0.0) {
-    temp = dfrCO.readTempC() - toffset;
+    temp = dfrInternalTemp - toffset;
     tempRegister(false);
   }
 }
 
 void Sensors::DFRobotNO2Read() {
   if (!isSensorRegistered(SENSORS::SDFRNO2)) return;
-  no2 = dfrNO2.readGasConcentrationPPM();
+  float rawPpm = dfrNO2.readGasConcentrationPPM();
+  float dfrInternalTemp = dfrNO2.readTempC();
+  float compensationTemp = (temp != 0.0) ? temp : (dfrInternalTemp - toffset);
+  no2 = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::NO2);
+  if (pres > 0.0) no2 = dfrGasPressCompensation(no2, pres);
   unitRegister(UNIT::NO2);
   dataReady = true;
   if (temp == 0.0) {
-    temp = dfrNO2.readTempC() - toffset;
+    temp = dfrInternalTemp - toffset;
     tempRegister(false);
   }
 }
 
 void Sensors::DFRobotO3Read() {
   if (!isSensorRegistered(SENSORS::SDFRO3)) return;
-  o3 = dfrO3.readGasConcentrationPPM();
+  float rawPpm = dfrO3.readGasConcentrationPPM();
+  float dfrInternalTemp = dfrO3.readTempC();
+  float compensationTemp = (temp != 0.0) ? temp : (dfrInternalTemp - toffset);
+  o3 = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::O3);
+  if (pres > 0.0) o3 = dfrGasPressCompensation(o3, pres);
   unitRegister(UNIT::O3);
   dataReady = true;
   if (temp == 0.0) {
-    temp = dfrO3.readTempC() - toffset;
+    temp = dfrInternalTemp - toffset;
     tempRegister(false);
   }
 }
@@ -2187,6 +2203,85 @@ void Sensors::GCJA5Init() {
   sensorRegister(SENSORS::SGCJA5);
 }
 
+/**
+ * @brief Temperature compensation for DFRobot gas sensors using external temperature.
+ *
+ * Reimplements the DFRobot library formulas (from DFRobot_MultiGasSensor.cpp)
+ * so we can feed the current ambient temperature from an external sensor
+ * (BME280, SHT31, etc.) instead of the stale onboard thermistor value that
+ * the library captures only once at init.
+ *
+ * @param rawPpm  Uncompensated gas concentration from readGasConcentrationPPM()
+ * @param temperature  Ambient temperature in °C (from external sensor)
+ * @param gasType  DFRobot gas type constant (DFRobot_GAS::CO, ::NH3, ::NO2, ::O3)
+ * @return Compensated gas concentration in PPM
+ */
+float Sensors::dfrGasTempCompensation(float rawPpm, float temperature, uint8_t gasType) {
+  float compensated = rawPpm;
+
+  switch (gasType) {
+    case DFRobot_GAS::CO:
+      if (temperature > -20 && temperature <= 20) {
+        compensated = rawPpm / (0.005 * temperature + 0.9);
+      } else if (temperature > 20 && temperature <= 40) {
+        compensated = rawPpm / (0.005 * temperature + 0.9) - (0.3 * temperature - 6);
+      }
+      break;
+
+    case DFRobot_GAS::NH3:
+      if (temperature > -20 && temperature <= 0) {
+        compensated = rawPpm / (0.006 * temperature + 0.95) - (-0.006 * temperature + 0.25);
+      } else if (temperature > 0 && temperature <= 20) {
+        compensated = rawPpm / (0.006 * temperature + 0.95) - (-0.012 * temperature + 0.25);
+      } else if (temperature > 20 && temperature <= 40) {
+        compensated = rawPpm / (0.005 * temperature + 1.08) - (-0.1 * temperature + 2);
+      }
+      break;
+
+    case DFRobot_GAS::NO2:
+      if (temperature > -20 && temperature <= 0) {
+        compensated = rawPpm / (0.005 * temperature + 0.9) - (-0.0025 * temperature + 0.005);
+      } else if (temperature > 0 && temperature <= 20) {
+        compensated = rawPpm / (0.005 * temperature + 0.9) - (0.005 * temperature + 0.005);
+      } else if (temperature > 20 && temperature <= 40) {
+        compensated = rawPpm / (0.005 * temperature + 0.9) - (0.0025 * temperature + 0.1);
+      }
+      break;
+
+    case DFRobot_GAS::O3:
+      if (temperature > -20 && temperature <= 0) {
+        compensated = rawPpm / (0.015 * temperature + 1.1) - 0.05;
+      } else if (temperature > 0 && temperature <= 20) {
+        compensated = rawPpm / 1.1 - (0.01 * temperature);
+      } else if (temperature > 20 && temperature <= 40) {
+        compensated = rawPpm / 1.1 - (-0.005 * temperature + 0.3);
+      }
+      break;
+
+    default:
+      break;
+  }
+
+  return (compensated >= 0) ? compensated : 0.0f;
+}
+
+/**
+ * @brief Pressure compensation for electrochemical gas sensors.
+ *
+ * Corrects for the effect of barometric pressure on the partial pressure of
+ * the target gas.  At higher pressure more molecules reach the electrode,
+ * inflating the apparent concentration.
+ *
+ * @param ppm  Gas concentration after temperature compensation
+ * @param pressure  Current barometric pressure in hPa (from BME280/BMP280/BME680)
+ * @return Pressure-compensated gas concentration in PPM
+ */
+float Sensors::dfrGasPressCompensation(float ppm, float pressure) {
+  static const float STANDARD_PRESSURE_HPA = 1013.25f;
+  if (pressure <= 0.0f) return ppm;
+  return ppm * (STANDARD_PRESSURE_HPA / pressure);
+}
+
 /// DFRobot GAS (CO) sensors init
 void Sensors::DFRobotCOInit() {
   sensorAnnounce(SENSORS::SDFRCO);
@@ -2209,8 +2304,8 @@ void Sensors::DFRobotCOInit() {
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrCO.changeAcquireMode(dfrCO.PASSIVITY);
   delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
-  // Turn on temperature compensation: gas.ON : turn on
-  dfrCO.setTempCompensation(dfrCO.ON);
+  // Disable internal compensation: we apply our own using external T/P sensors
+  dfrCO.setTempCompensation(dfrCO.OFF);
   sensorRegister(SENSORS::SDFRCO);
 }
 
@@ -2225,8 +2320,8 @@ void Sensors::DFRobotNH3Init() {
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrNH3.changeAcquireMode(dfrNH3.PASSIVITY);
   delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
-  // Turn on temperature compensation: gas.ON : turn on
-  dfrNH3.setTempCompensation(dfrNH3.ON);
+  // Disable internal compensation: we apply our own using external T/P sensors
+  dfrNH3.setTempCompensation(dfrNH3.OFF);
   sensorRegister(SENSORS::SDFRNH3);
 }
 
@@ -2241,8 +2336,8 @@ void Sensors::DFRobotNO2Init() {
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrNO2.changeAcquireMode(dfrNO2.PASSIVITY);
   delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
-  // Turn on temperature compensation: gas.ON : turn on
-  dfrNO2.setTempCompensation(dfrNO2.ON);
+  // Disable internal compensation: we apply our own using external T/P sensors
+  dfrNO2.setTempCompensation(dfrNO2.OFF);
   sensorRegister(SENSORS::SDFRNO2);
 }
 
@@ -2257,8 +2352,8 @@ void Sensors::DFRobotO3Init() {
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrO3.changeAcquireMode(dfrO3.PASSIVITY);
   delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
-  // Turn on temperature compensation: gas.ON : turn on
-  dfrO3.setTempCompensation(dfrO3.ON);
+  // Disable internal compensation: we apply our own using external T/P sensors
+  dfrO3.setTempCompensation(dfrO3.OFF);
   sensorRegister(SENSORS::SDFRO3);
 }
 
