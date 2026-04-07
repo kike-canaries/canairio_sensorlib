@@ -1290,12 +1290,13 @@ void Sensors::DFRobotNH3Read() {
   if (!isSensorRegistered(SENSORS::SDFRNH3)) return;
   float rawPpm = dfrNH3.readGasConcentrationPPM();
   float dfrInternalTemp = dfrNH3.readTempC();
-  float compensationTemp = (temp != 0.0) ? temp : (dfrInternalTemp - toffset);
+  bool hasExternalTempSensor = dfrHasExternalTempSensor();
+  float compensationTemp = hasExternalTempSensor ? temp : (dfrInternalTemp - toffset);
   nh3 = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::NH3);
   if (pres > 0.0) nh3 = dfrGasPressCompensation(nh3, pres);
   unitRegister(UNIT::NH3);
   dataReady = true;
-  if (temp == 0.0) {
+  if (!hasExternalTempSensor) {
     temp = dfrInternalTemp - toffset;
     tempRegister(false);
   }
@@ -1305,12 +1306,13 @@ void Sensors::DFRobotCORead() {
   if (!isSensorRegistered(SENSORS::SDFRCO)) return;
   float rawPpm = dfrCO.readGasConcentrationPPM();
   float dfrInternalTemp = dfrCO.readTempC();
-  float compensationTemp = (temp != 0.0) ? temp : (dfrInternalTemp - toffset);
+  bool hasExternalTempSensor = dfrHasExternalTempSensor();
+  float compensationTemp = hasExternalTempSensor ? temp : (dfrInternalTemp - toffset);
   co = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::CO);
   if (pres > 0.0) co = dfrGasPressCompensation(co, pres);
   unitRegister(UNIT::CO);
   dataReady = true;
-  if (temp == 0.0) {
+  if (!hasExternalTempSensor) {
     temp = dfrInternalTemp - toffset;
     tempRegister(false);
   }
@@ -1320,12 +1322,13 @@ void Sensors::DFRobotNO2Read() {
   if (!isSensorRegistered(SENSORS::SDFRNO2)) return;
   float rawPpm = dfrNO2.readGasConcentrationPPM();
   float dfrInternalTemp = dfrNO2.readTempC();
-  float compensationTemp = (temp != 0.0) ? temp : (dfrInternalTemp - toffset);
+  bool hasExternalTempSensor = dfrHasExternalTempSensor();
+  float compensationTemp = hasExternalTempSensor ? temp : (dfrInternalTemp - toffset);
   no2 = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::NO2);
   if (pres > 0.0) no2 = dfrGasPressCompensation(no2, pres);
   unitRegister(UNIT::NO2);
   dataReady = true;
-  if (temp == 0.0) {
+  if (!hasExternalTempSensor) {
     temp = dfrInternalTemp - toffset;
     tempRegister(false);
   }
@@ -1335,12 +1338,13 @@ void Sensors::DFRobotO3Read() {
   if (!isSensorRegistered(SENSORS::SDFRO3)) return;
   float rawPpm = dfrO3.readGasConcentrationPPM();
   float dfrInternalTemp = dfrO3.readTempC();
-  float compensationTemp = (temp != 0.0) ? temp : (dfrInternalTemp - toffset);
+  bool hasExternalTempSensor = dfrHasExternalTempSensor();
+  float compensationTemp = hasExternalTempSensor ? temp : (dfrInternalTemp - toffset);
   o3 = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::O3);
   if (pres > 0.0) o3 = dfrGasPressCompensation(o3, pres);
   unitRegister(UNIT::O3);
   dataReady = true;
-  if (temp == 0.0) {
+  if (!hasExternalTempSensor) {
     temp = dfrInternalTemp - toffset;
     tempRegister(false);
   }
@@ -2138,9 +2142,9 @@ float Sensors::getSCD4xTempOffset() const {
     uint16_t error = nonConstThis->scd4x.stopPeriodicMeasurement();
     if (error) {
       DEBUG("[SLIB] SCD4x stopPeriodicMeasurement()\t: error:", String(error).c_str());
-      return 0.0;
+    } else {
+      nonConstThis->scd4x.getTemperatureOffset(offset);
     }
-    nonConstThis->scd4x.getTemperatureOffset(offset);
     nonConstThis->scd4x.startPeriodicMeasurement();
   }
   return offset;
@@ -2204,6 +2208,26 @@ void Sensors::GCJA5Init() {
 }
 
 /**
+ * @brief Check if any non-DFRobot sensor that provides ambient temperature
+ *        is registered and read before the DFRobot sensors in readAllSensors().
+ *
+ * Unlike checking isUnitRegistered(UNIT::TEMP), this avoids a subtle bug:
+ * the first DFRobot read in a cycle would register UNIT::TEMP itself, causing
+ * all subsequent DFRobot reads (and all future cycles) to believe an external
+ * sensor is present and stop refreshing the temperature from readTempC().
+ */
+bool Sensors::dfrHasExternalTempSensor() const {
+  return isSensorRegistered(SENSORS::SBME280) ||
+         isSensorRegistered(SENSORS::SBMP280) ||
+         isSensorRegistered(SENSORS::SBME680) ||
+         isSensorRegistered(SENSORS::SSHT31) ||
+         isSensorRegistered(SENSORS::SAHTXX) ||
+         isSensorRegistered(SENSORS::SAM232X) ||
+         isSensorRegistered(SENSORS::SSEN5X) ||
+         isSensorRegistered(SENSORS::P5003T);
+}
+
+/**
  * @brief Temperature compensation for DFRobot gas sensors using external temperature.
  *
  * Reimplements the DFRobot library formulas (from DFRobot_MultiGasSensor.cpp)
@@ -2217,6 +2241,12 @@ void Sensors::GCJA5Init() {
  * @return Compensated gas concentration in PPM
  */
 float Sensors::dfrGasTempCompensation(float rawPpm, float temperature, uint8_t gasType) {
+  static const float DFR_TEMP_MIN = -20.0f;
+  static const float DFR_TEMP_MAX = 40.0f;
+
+  if (temperature <= DFR_TEMP_MIN) temperature = DFR_TEMP_MIN + 0.01f;
+  if (temperature > DFR_TEMP_MAX) temperature = DFR_TEMP_MAX;
+
   float compensated = rawPpm;
 
   switch (gasType) {
