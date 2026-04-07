@@ -9,11 +9,8 @@
 #endif
 
 static void dfrGasBeginFailed(const char *gasName, uint8_t i2cAddr) {
-  Serial.printf(
-      "[W][SLIB] DFRobot %s begin failed — I2C 0x%02X (wiring/DIP; try -D "
-      "DFROBOT_MEMS_LEGACY_GROUP7=0 or "
-      "=1)\r\n",
-      gasName, i2cAddr);
+  Serial.printf("[W][SLIB] DFRobot %s begin failed — I2C 0x%02X\r\n",
+                gasName, i2cAddr);
 }
 
 // Units and sensors registers
@@ -2315,17 +2312,6 @@ float Sensors::dfrGasPressCompensation(float ppm, float pressure) {
 /// DFRobot GAS (CO) sensors init
 void Sensors::DFRobotCOInit() {
   sensorAnnounce(SENSORS::SDFRCO);
-#if DFROBOT_MEMS_LEGACY_GROUP7
-  // MEMS MiCS only: move I2C group 6 (0x74-0x77) -> group 7 (0x78-0x7B). Not for SEN0466/SEN0472.
-  for (uint8_t addr = 0x74; addr <= 0x77; addr++) {
-    DFRobot_GAS_I2C temp(&Wire, addr);
-    if (temp.begin()) {
-      temp.changeI2cAddrGroup(7);
-      delay(200);
-    }
-  }
-  delay(300);
-#endif
   dfrCO = DFRobot_GAS_I2C(&Wire, DFROBOT_CO_I2C_ADDR);
   if (!dfrCO.begin()) {
     dfrGasBeginFailed("CO", DFROBOT_CO_I2C_ADDR);
