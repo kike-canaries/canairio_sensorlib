@@ -63,19 +63,19 @@
 #define DFROBOT_MEMS_LEGACY_GROUP7 0
 #endif
 #ifndef DFROBOT_CO_I2C_ADDR
-#if DFROBOT_MEMS_LEGACY_GROUP7
+// #if DFROBOT_MEMS_LEGACY_GROUP7
 #define DFROBOT_CO_I2C_ADDR 0x78
-#else
-#define DFROBOT_CO_I2C_ADDR 0x74
+// #else
+// #define DFROBOT_CO_I2C_ADDR 0x74
 #endif
-#endif
+// #endif
 #ifndef DFROBOT_O3_I2C_ADDR
-#if DFROBOT_MEMS_LEGACY_GROUP7
+// #if DFROBOT_MEMS_LEGACY_GROUP7
 #define DFROBOT_O3_I2C_ADDR 0x79
-#else
-#define DFROBOT_O3_I2C_ADDR 0x75
+// #else
+// #define DFROBOT_O3_I2C_ADDR 0x75
 #endif
-#endif
+// #endif
 #ifndef DFROBOT_NH3_I2C_ADDR
 #define DFROBOT_NH3_I2C_ADDR 0x7A
 #endif
