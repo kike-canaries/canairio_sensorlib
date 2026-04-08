@@ -2232,6 +2232,11 @@ bool Sensors::dfrHasExternalTempSensor() const {
  * (BME280, SHT31, etc.) instead of the stale onboard thermistor value that
  * the library captures only once at init.
  *
+ * Each formula is split into a gain divisor (corrects sensitivity drift) and
+ * a baseline offset (corrects zero-point drift).  When the offset would make
+ * the result negative — common for low ambient NO2/O3/CO concentrations — we
+ * fall back to the gain-only correction so the reading stays meaningful.
+ *
  * @param rawPpm  Uncompensated gas concentration from readGasConcentrationPPM()
  * @param temperature  Ambient temperature in °C (from external sensor)
  * @param gasType  DFRobot gas type constant (DFRobot_GAS::CO, ::NH3, ::NO2, ::O3)
@@ -2244,44 +2249,49 @@ float Sensors::dfrGasTempCompensation(float rawPpm, float temperature, uint8_t g
   if (temperature <= DFR_TEMP_MIN) temperature = DFR_TEMP_MIN + 0.01f;
   if (temperature > DFR_TEMP_MAX) temperature = DFR_TEMP_MAX;
 
-  float compensated = rawPpm;
+  float gainDivisor = 1.0f;
+  float baselineOffset = 0.0f;
 
   switch (gasType) {
     case DFRobot_GAS::CO:
-      if (temperature > -20 && temperature <= 20) {
-        compensated = rawPpm / (0.005 * temperature + 0.9);
-      } else if (temperature > 20 && temperature <= 40) {
-        compensated = rawPpm / (0.005 * temperature + 0.9) - (0.3 * temperature - 6);
-      }
+      gainDivisor = 0.005f * temperature + 0.9f;
+      if (temperature > 20) baselineOffset = 0.3f * temperature - 6.0f;
       break;
 
     case DFRobot_GAS::NH3:
-      if (temperature > -20 && temperature <= 0) {
-        compensated = rawPpm / (0.006 * temperature + 0.95) - (-0.006 * temperature + 0.25);
-      } else if (temperature > 0 && temperature <= 20) {
-        compensated = rawPpm / (0.006 * temperature + 0.95) - (-0.012 * temperature + 0.25);
-      } else if (temperature > 20 && temperature <= 40) {
-        compensated = rawPpm / (0.005 * temperature + 1.08) - (-0.1 * temperature + 2);
+      if (temperature <= 0) {
+        gainDivisor = 0.006f * temperature + 0.95f;
+        baselineOffset = -0.006f * temperature + 0.25f;
+      } else if (temperature <= 20) {
+        gainDivisor = 0.006f * temperature + 0.95f;
+        baselineOffset = -0.012f * temperature + 0.25f;
+      } else {
+        gainDivisor = 0.005f * temperature + 1.08f;
+        baselineOffset = -0.1f * temperature + 2.0f;
       }
       break;
 
     case DFRobot_GAS::NO2:
-      if (temperature > -20 && temperature <= 0) {
-        compensated = rawPpm / (0.005 * temperature + 0.9) - (-0.0025 * temperature + 0.005);
-      } else if (temperature > 0 && temperature <= 20) {
-        compensated = rawPpm / (0.005 * temperature + 0.9) - (0.005 * temperature + 0.005);
-      } else if (temperature > 20 && temperature <= 40) {
-        compensated = rawPpm / (0.005 * temperature + 0.9) - (0.0025 * temperature + 0.1);
+      gainDivisor = 0.005f * temperature + 0.9f;
+      if (temperature <= 0) {
+        baselineOffset = -0.0025f * temperature + 0.005f;
+      } else if (temperature <= 20) {
+        baselineOffset = 0.005f * temperature + 0.005f;
+      } else {
+        baselineOffset = 0.0025f * temperature + 0.1f;
       }
       break;
 
     case DFRobot_GAS::O3:
-      if (temperature > -20 && temperature <= 0) {
-        compensated = rawPpm / (0.015 * temperature + 1.1) - 0.05;
-      } else if (temperature > 0 && temperature <= 20) {
-        compensated = rawPpm / 1.1 - (0.01 * temperature);
-      } else if (temperature > 20 && temperature <= 40) {
-        compensated = rawPpm / 1.1 - (-0.005 * temperature + 0.3);
+      if (temperature <= 0) {
+        gainDivisor = 0.015f * temperature + 1.1f;
+        baselineOffset = 0.05f;
+      } else if (temperature <= 20) {
+        gainDivisor = 1.1f;
+        baselineOffset = 0.01f * temperature;
+      } else {
+        gainDivisor = 1.1f;
+        baselineOffset = -0.005f * temperature + 0.3f;
       }
       break;
 
@@ -2289,7 +2299,11 @@ float Sensors::dfrGasTempCompensation(float rawPpm, float temperature, uint8_t g
       break;
   }
 
-  return (compensated >= 0) ? compensated : 0.0f;
+  float scaled = rawPpm / gainDivisor;
+  float compensated = scaled - baselineOffset;
+
+  if (compensated < 0) return (scaled > 0) ? scaled : 0.0f;
+  return compensated;
 }
 
 /**
