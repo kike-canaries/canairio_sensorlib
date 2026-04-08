@@ -796,7 +796,7 @@ void Sensors::printValues() {
       Serial.print(getUnitName(unit));
       Serial.print(":");
       bool isGasPpm = (unit == NH3 || unit == CO || unit == NO2 || unit == O3);
-      Serial.printf(isGasPpm ? "%02.2f " : "%02.1f ", getUnitValue(unit));
+      Serial.printf(isGasPpm ? "%02.2f " : "%02.2f ", getUnitValue(unit));
     }
   }
   Serial.println();
