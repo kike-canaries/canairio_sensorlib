@@ -792,9 +792,11 @@ void Sensors::printValues() {
   Serial.print("-->[SLIB] sensors values  \t: ");
   for (u_int i = 0; i < UCOUNT; i++) {
     if (units_registered[i] != 0) {
-      Serial.print(getUnitName((UNIT)units_registered[i]));
+      UNIT unit = (UNIT)units_registered[i];
+      Serial.print(getUnitName(unit));
       Serial.print(":");
-      Serial.printf("%02.1f ", getUnitValue((UNIT)units_registered[i]));
+      bool isGasPpm = (unit == NH3 || unit == CO || unit == NO2 || unit == O3);
+      Serial.printf(isGasPpm ? "%02.2f " : "%02.1f ", getUnitValue(unit));
     }
   }
   Serial.println();
