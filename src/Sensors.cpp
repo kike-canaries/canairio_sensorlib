@@ -9,8 +9,7 @@
 #endif
 
 static void dfrGasBeginFailed(const char *gasName, uint8_t i2cAddr) {
-  Serial.printf("[W][SLIB] DFRobot %s begin failed — I2C 0x%02X\r\n",
-                gasName, i2cAddr);
+  Serial.printf("[W][SLIB] DFRobot %s begin failed — I2C 0x%02X\r\n", gasName, i2cAddr);
 }
 
 // Units and sensors registers
@@ -2216,14 +2215,10 @@ void Sensors::GCJA5Init() {
  * sensor is present and stop refreshing the temperature from readTempC().
  */
 bool Sensors::dfrHasExternalTempSensor() const {
-  return isSensorRegistered(SENSORS::SBME280) ||
-         isSensorRegistered(SENSORS::SBMP280) ||
-         isSensorRegistered(SENSORS::SBME680) ||
-         isSensorRegistered(SENSORS::SSHT31) ||
-         isSensorRegistered(SENSORS::SAHTXX) ||
-         isSensorRegistered(SENSORS::SAM232X) ||
-         isSensorRegistered(SENSORS::SSEN5X) ||
-         isSensorRegistered(SENSORS::P5003T);
+  return isSensorRegistered(SENSORS::SBME280) || isSensorRegistered(SENSORS::SBMP280) ||
+         isSensorRegistered(SENSORS::SBME680) || isSensorRegistered(SENSORS::SSHT31) ||
+         isSensorRegistered(SENSORS::SAHTXX) || isSensorRegistered(SENSORS::SAM232X) ||
+         isSensorRegistered(SENSORS::SSEN5X) || isSensorRegistered(SENSORS::P5003T);
 }
 
 /**
