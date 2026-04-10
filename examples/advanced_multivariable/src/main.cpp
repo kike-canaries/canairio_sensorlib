@@ -77,10 +77,10 @@ void setup() {
   Serial.println("\n== Sensor test setup ==\n");
   Serial.println("-->[SETUP] Detecting sensors..");
 
-  sensors.setSampleTime(10);                     // config sensors sample time interval
-  sensors.setOnDataCallBack(&onSensorDataOk);    // all data read callback
-  sensors.setDebugMode(true);                    // [optional] debug mode
-  sensors.detectI2COnly(false);                  // not force to only i2c sensors
+  sensors.setSampleTime(10);                   // config sensors sample time interval
+  sensors.setOnDataCallBack(&onSensorDataOk);  // all data read callback
+  sensors.setDebugMode(true);                  // [optional] debug mode
+  sensors.detectI2COnly(false);                // not force to only i2c sensors
   // sensors.setTemperatureUnit(TEMPUNIT::KELVIN);  // comment for Celsius or set Fahrenheit
   // sensors.init(SENSORS::Auto, 13, 12);          // Auto detection (Custom UART sensor pins
   // example)
