@@ -34,6 +34,11 @@ int sensors_device_types[] = {SENSORS_TYPES};
 
 uint8_t sensors_registered[SCOUNT];
 
+void Sensors::registerSensor(ISensor *sensor) {
+  if (sensor == nullptr || _active_sensors_count >= SCOUNT) return;
+  _active_sensors[_active_sensors_count++] = sensor;
+}
+
 /***********************************************************************************
  *  P U B L I C   M E T H O D S
  * *********************************************************************************/
@@ -49,7 +54,6 @@ Sensors::Sensors()
       cm1106(nullptr),
       s8(nullptr),
       pm1006(nullptr),
-      rad(nullptr),
       pm5003t(nullptr),
       _serial(nullptr),
       dataReady(false),
@@ -65,7 +69,22 @@ Sensors::~Sensors() {
   if (s8) delete s8;
   if (pm1006) delete pm1006;
   if (pm5003t) delete pm5003t;
-  if (rad) delete rad;
+  if (_sensorAM2320) delete _sensorAM2320;
+  if (_sensorBME280) delete _sensorBME280;
+  if (_sensorBMP280) delete _sensorBMP280;
+  if (_sensorBME680) delete _sensorBME680;
+  if (_sensorAHT10) delete _sensorAHT10;
+  if (_sensorSHT31) delete _sensorSHT31;
+  if (_sensorSCD30) delete _sensorSCD30;
+  if (_sensorSCD4x) delete _sensorSCD4x;
+  if (_sensorSGP41) delete _sensorSGP41;
+  if (_sensorGCJA5) delete _sensorGCJA5;
+  if (_sensorSEN5x) delete _sensorSEN5x;
+  if (_sensorDFRCO) delete _sensorDFRCO;
+  if (_sensorDFRNH3) delete _sensorDFRNH3;
+  if (_sensorDFRNO2) delete _sensorDFRNO2;
+  if (_sensorDFRO3) delete _sensorDFRO3;
+  if (_sensorGeiger) delete _sensorGeiger;
 }
 
 /**
@@ -172,9 +191,9 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
     delete pm5003t;
     pm5003t = nullptr;
   }
-  if (rad) {
-    delete rad;
-    rad = nullptr;
+  if (_sensorGeiger) {
+    delete _sensorGeiger;
+    _sensorGeiger = nullptr;
   }
 
 // override with debug INFO level (>=3)
@@ -229,8 +248,8 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
 void Sensors::setSampleTime(int seconds) {
   sample_time = seconds;
   if (devmode) Serial.println("-->[SLIB] new sample time\t: " + String(seconds));
-  if (isSensorRegistered(SENSORS::SSCD30)) {
-    scd30.setMeasurementInterval(seconds);
+  if (_sensorSCD30 && isSensorRegistered(SENSORS::SSCD30)) {
+    _sensorSCD30->setMeasurementInterval(seconds);
     if (devmode) Serial.println("-->[SLIB] SCD30 interval time\t: " + String(seconds));
   }
 }
@@ -243,9 +262,9 @@ void Sensors::setSampleTime(int seconds) {
  * Please see the documentation of each sensor for more information.
  */
 void Sensors::setCO2RecalibrationFactor(int ppmValue) {
-  if (isSensorRegistered(SENSORS::SSCD30)) {
+  if (_sensorSCD30 && isSensorRegistered(SENSORS::SSCD30)) {
     Serial.println("-->[SLIB] SCD30 calibration to\t: " + String(ppmValue));
-    scd30.forceRecalibrationWithReference(ppmValue);
+    _sensorSCD30->forceRecalibration(ppmValue);
   }
   if (isSensorRegistered(SENSORS::SCM1106)) {
     Serial.println("-->[SLIB] CM1106 calibration to\t: " + String(ppmValue));
@@ -259,16 +278,10 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue) {
     Serial.println("-->[SLIB] SAIRS8 calibration to\t: " + String(ppmValue));
     if (s8->manual_calibration()) Serial.println("-->[SLIB] S8 calibration ready.");
   }
-  if (isSensorRegistered(SENSORS::SSCD4X)) {
+  if (_sensorSCD4x && isSensorRegistered(SENSORS::SSCD4X)) {
     Serial.println("-->[SLIB] SCD4x calibration to\t: " + String(ppmValue));
-    uint16_t frcCorrection = 0;
-    uint16_t error = 0;
-    scd4x.stopPeriodicMeasurement();
-    delay(510);
-    error = scd4x.performForcedRecalibration(ppmValue, frcCorrection);
-    if (error) Serial.printf("-->[SLIB] SCD4X recalibration\t: error frc:%d\r\n", frcCorrection);
-    delay(50);
-    scd4x.startPeriodicMeasurement();
+    if (!_sensorSCD4x->calibrate(ppmValue))
+      Serial.println("-->[SLIB] SCD4X recalibration\t: error");
   }
 }
 
@@ -286,12 +299,8 @@ void Sensors::setCO2AltitudeOffset(float altitude) {
   if (isSensorRegistered(SENSORS::SSCD30)) {
     setSCD30AltitudeOffset(altoffset);
   }
-  if (isSensorRegistered(SENSORS::SSCD4X)) {
-    scd4x.stopPeriodicMeasurement();
-    delay(510);
-    scd4x.setSensorAltitude(altoffset);
-    delay(100);
-    scd4x.startPeriodicMeasurement();
+  if (_sensorSCD4x && isSensorRegistered(SENSORS::SSCD4X)) {
+    _sensorSCD4x->setAltitude(altoffset);
   }
 }
 
@@ -557,7 +566,7 @@ bool Sensors::isSensorRegistered(SENSORS sensor) const {
  * @return String with the sensor name.
  */
 String Sensors::getSensorName(SENSORS sensor) const {
-  if (sensor < 0 || sensor > SENSORS::SCOUNT) return "";
+  if (sensor < 0 || sensor > SCOUNT) return "";
   return String(sensors_device_names[sensor]);
 }
 
@@ -1074,31 +1083,24 @@ bool Sensors::pmSensorRead() {
  ******************************************************************************/
 
 void Sensors::am2320Read() {
-  if (!isSensorRegistered(SENSORS::SAM232X)) return;
-  if (!am2320.isConnected()) return;
-  int status = am2320.read();
-  if (status != AM232X_OK) return;
-  float humi1 = am2320.getHumidity();
-  float temp1 = am2320.getTemperature();
-  if (!isnan(humi1)) humi = humi1;
-  if (!isnan(temp1)) {
-    temp = temp1 - toffset;
-    dataReady = true;
-    DEBUG("-->[SLIB] AM2320 read\t\t: done!");
-    tempRegister(false);
-    unitRegister(UNIT::HUM);
-  }
+  if (!_sensorAM2320 || !isSensorRegistered(SENSORS::SAM232X)) return;
+  if (!_sensorAM2320->read()) return;
+  humi = _sensorAM2320->getHumidity();
+  temp = _sensorAM2320->getTemperature() - toffset;
+  dataReady = true;
+  DEBUG("-->[SLIB] AM2320 read\t\t: done!");
+  tempRegister(false);
+  unitRegister(UNIT::HUM);
 }
 
 void Sensors::bme280Read() {
-  if (!isSensorRegistered(SENSORS::SBME280)) return;
-  float humi1 = bme280.readHumidity();
-  float temp1 = bme280.readTemperature();
-  if (isnan(humi1) || humi1 == 0 || isnan(temp1)) return;
-  humi = humi1;
-  temp = temp1 - toffset;
-  pres = bme280.readPressure();
-  alt = bme280.readAltitude(sealevel);
+  if (!_sensorBME280 || !isSensorRegistered(SENSORS::SBME280)) return;
+  _sensorBME280->setSeaLevelPressure(sealevel);
+  if (!_sensorBME280->read()) return;
+  humi = _sensorBME280->getHumidity();
+  temp = _sensorBME280->getTemperature() - toffset;
+  pres = _sensorBME280->getPressure();
+  alt = _sensorBME280->getAltitude();
   dataReady = true;
   DEBUG("-->[SLIB] BME280 read\t\t: done!");
   tempRegister(false);
@@ -1107,14 +1109,12 @@ void Sensors::bme280Read() {
 }
 
 void Sensors::bmp280Read() {
-  if (!isSensorRegistered(SENSORS::SBMP280)) return;
-  float temp1 = bmp280.readTemperature();
-  float press1 = bmp280.readPressure();
-  float alt1 = bmp280.readAltitude(sealevel);
-  if (press1 == 0 || isnan(temp1) || isnan(alt1)) return;
-  temp = temp1 - toffset;
-  pres = press1 / 100;  // convert to hPa
-  alt = alt1;
+  if (!_sensorBMP280 || !isSensorRegistered(SENSORS::SBMP280)) return;
+  _sensorBMP280->setSeaLevelPressure(sealevel);
+  if (!_sensorBMP280->read()) return;
+  temp = _sensorBMP280->getTemperature() - toffset;
+  pres = _sensorBMP280->getPressure();
+  alt = _sensorBMP280->getAltitude();
   dataReady = true;
   DEBUG("-->[SLIB] BMP280 read\t\t: done!");
   tempRegister(false);
@@ -1123,14 +1123,14 @@ void Sensors::bmp280Read() {
 }
 
 void Sensors::bme680Read() {
-  if (!isSensorRegistered(SENSORS::SBME680)) return;
-  if (!bme680.performReading()) return;
-  float temp1 = bme680.temperature;
-  temp = temp1 - toffset;
-  humi = bme680.humidity;
-  pres = bme680.pressure / 100.0;
-  gas = bme680.gas_resistance / 1000.0;
-  alt = bme680.readAltitude(sealevel);
+  if (!_sensorBME680 || !isSensorRegistered(SENSORS::SBME680)) return;
+  _sensorBME680->setSeaLevelPressure(sealevel);
+  if (!_sensorBME680->read()) return;
+  temp = _sensorBME680->getTemperature() - toffset;
+  humi = _sensorBME680->getHumidity();
+  pres = _sensorBME680->getPressure();
+  gas = _sensorBME680->getGasResistance();
+  alt = _sensorBME680->getAltitude();
   dataReady = true;
   DEBUG("-->[SLIB] BME680 read\t\t: done!");
   tempRegister(false);
@@ -1141,84 +1141,58 @@ void Sensors::bme680Read() {
 }
 
 void Sensors::aht10Read() {
-  if (!isSensorRegistered(SENSORS::SAHTXX)) return;
-  float temp1 = aht10.readTemperature();
-  if (temp1 != AHTXX_ERROR) {
-    float humi1 = aht10.readHumidity();
-    if (humi1 != AHTXX_ERROR) humi = humi1;
-    temp = temp1 - toffset;
-    dataReady = true;
-    DEBUG("-->[SLIB] AHT10 read\t\t: done!");
-    tempRegister(false);
-    unitRegister(UNIT::HUM);
-  }
+  if (!_sensorAHT10 || !isSensorRegistered(SENSORS::SAHTXX)) return;
+  if (!_sensorAHT10->read()) return;
+  humi = _sensorAHT10->getHumidity();
+  temp = _sensorAHT10->getTemperature() - toffset;
+  dataReady = true;
+  DEBUG("-->[SLIB] AHT10 read\t\t: done!");
+  tempRegister(false);
+  unitRegister(UNIT::HUM);
 }
 
 void Sensors::sht31Read() {
-  if (!isSensorRegistered(SENSORS::SSHT31)) return;
-  float humi1 = sht31.readHumidity();
-  float temp1 = sht31.readTemperature();
-  if (!isnan(humi1)) humi = humi1;
-  if (!isnan(temp1)) {
-    temp = temp1 - toffset;
-    dataReady = true;
-    DEBUG("-->[SLIB] SHT31 read\t\t: done!");
-    tempRegister(false);
-    unitRegister(UNIT::HUM);
-  }
+  if (!_sensorSHT31 || !isSensorRegistered(SENSORS::SSHT31)) return;
+  if (!_sensorSHT31->read()) return;
+  humi = _sensorSHT31->getHumidity();
+  temp = _sensorSHT31->getTemperature() - toffset;
+  dataReady = true;
+  DEBUG("-->[SLIB] SHT31 read\t\t: done!");
+  tempRegister(false);
+  unitRegister(UNIT::HUM);
 }
 
 void Sensors::CO2scd30Read() {
-  if (!isSensorRegistered(SENSORS::SSCD30)) return;
-  if (!scd30.dataReady() || !scd30.read()) return;
-  uint16_t tCO2 = scd30.CO2;  // we need temp var, without it override CO2
-  if (tCO2 > 0) {
-    CO2Val = tCO2;
-    CO2humi = scd30.relative_humidity;
-    CO2temp = scd30.temperature;
-    dataReady = true;
-    DEBUG("-->[SLIB] SCD30 read\t\t: done!");
-    tempRegister(true);
-    unitRegister(UNIT::CO2);
-    unitRegister(UNIT::CO2HUM);
-  }
+  if (!_sensorSCD30 || !isSensorRegistered(SENSORS::SSCD30)) return;
+  if (!_sensorSCD30->read()) return;
+  CO2Val = static_cast<uint16_t>(_sensorSCD30->getCO2());
+  CO2humi = _sensorSCD30->getHumidity();
+  CO2temp = _sensorSCD30->getTemperature();
+  dataReady = true;
+  DEBUG("-->[SLIB] SCD30 read\t\t: done!");
+  tempRegister(true);
+  unitRegister(UNIT::CO2);
+  unitRegister(UNIT::CO2HUM);
 }
 
 void Sensors::sgp41Read() {
-  if (!isSensorRegistered(SENSORS::SSGP41)) return;
-
-  uint16_t error;
-  uint16_t defaultRh = 0x8000;
-  uint16_t defaultT = 0x6666;
-
-  if (conditioning_s > 0) {
-    // During NOx conditioning (10s) SRAW NOx will remain 0
-    error = sgp41.executeConditioning(defaultRh, defaultT, voc);
-    conditioning_s--;
-  } else {
-    // Read Measurement
-    error = sgp41.measureRawSignals(defaultRh, defaultT, voc, nox);
-  }
-
-  if (error) {
-    Serial.print("Error trying to execute (): ");
-    DEBUG("-->[SLIB] sgp41 measureRaw error\t:", String(error).c_str());
+  if (!_sensorSGP41 || !isSensorRegistered(SENSORS::SSGP41)) return;
+  if (!_sensorSGP41->read()) {
+    DEBUG("-->[SLIB] sgp41 measureRaw error");
     return;
-  } else {
-    unitRegister(UNIT::VOC);
-    unitRegister(UNIT::NOX);
   }
+  voc = _sensorSGP41->getVocRaw();
+  nox = _sensorSGP41->getNoxRaw();
+  unitRegister(UNIT::VOC);
+  unitRegister(UNIT::NOX);
 }
 
 void Sensors::CO2scd4xRead() {
-  if (!isSensorRegistered(SENSORS::SSCD4X)) return;
-  uint16_t tCO2 = 0;
-  float tCO2temp, tCO2humi = 0;
-  uint16_t error = scd4x.readMeasurement(tCO2, tCO2temp, tCO2humi);
-  if (error) return;
-  CO2Val = tCO2;
-  CO2humi = tCO2humi;
-  CO2temp = tCO2temp;
+  if (!_sensorSCD4x || !isSensorRegistered(SENSORS::SSCD4X)) return;
+  if (!_sensorSCD4x->read()) return;
+  CO2Val = static_cast<uint16_t>(_sensorSCD4x->getCO2());
+  CO2humi = _sensorSCD4x->getHumidity();
+  CO2temp = _sensorSCD4x->getTemperature();
   dataReady = true;
   DEBUG("-->[SLIB] SCD4x read\t\t: done!");
   tempRegister(true);
@@ -1227,33 +1201,19 @@ void Sensors::CO2scd4xRead() {
 }
 
 void Sensors::sen5xRead() {
-  if (!isSensorRegistered(SENSORS::SSEN5X)) return;
-  float massConcentrationPm1p0;
-  float massConcentrationPm2p5;
-  float massConcentrationPm4p0;
-  float massConcentrationPm10p0;
-  float ambientHumidity;
-  float ambientTemperature;
-  float vocIndex;
-  float noxIndex;
-
-  uint16_t error = sen5x.readMeasuredValues(
-      massConcentrationPm1p0, massConcentrationPm2p5, massConcentrationPm4p0,
-      massConcentrationPm10p0, ambientHumidity, ambientTemperature, vocIndex, noxIndex);
-
-  if (error) {
+  if (!_sensorSEN5x || !isSensorRegistered(SENSORS::SSEN5X)) return;
+  if (!_sensorSEN5x->read()) {
     DEBUG("[E][SLIB] SEN5x read error!");
     return;
   }
-
-  pm1 = (u_int16_t)massConcentrationPm1p0;
-  pm25 = (u_int16_t)massConcentrationPm2p5;
-  pm4 = (u_int16_t)massConcentrationPm4p0;
-  pm10 = (u_int16_t)massConcentrationPm4p0;
-  voci = vocIndex;
-  noxi = noxIndex;
-  temp = ambientTemperature - toffset;
-  humi = ambientHumidity;
+  pm1 = _sensorSEN5x->getPM1();
+  pm25 = _sensorSEN5x->getPM25();
+  pm4 = _sensorSEN5x->getPM4();
+  pm10 = _sensorSEN5x->getPM10();
+  voci = _sensorSEN5x->getVocIndex();
+  noxi = _sensorSEN5x->getNoxIndex();
+  temp = _sensorSEN5x->getTemperature() - toffset;
+  humi = _sensorSEN5x->getHumidity();
   dataReady = true;
   DEBUG("-->[SLIB] SEN5x read\t\t: done!");
   unitRegister(UNIT::PM1);
@@ -1268,15 +1228,11 @@ void Sensors::sen5xRead() {
 
 void Sensors::GCJA5Read() {
   if (dev_uart_type == SENSORS::SGCJA5) return;
-  if (!isSensorRegistered(SENSORS::SGCJA5)) return;
-  if (!pmGCJA5.isConnected()) return;
-  uint16_t _pm1 = pmGCJA5.getPM1_0();
-  uint16_t _pm25 = pmGCJA5.getPM2_5();
-  uint16_t _pm10 = pmGCJA5.getPM10();
-  if (_pm1 > 1000 || _pm25 > 1000 || _pm10 > 1000) return;
-  pm1 = _pm1;
-  pm25 = _pm25;
-  pm10 = _pm10;
+  if (!_sensorGCJA5 || !isSensorRegistered(SENSORS::SGCJA5)) return;
+  if (!_sensorGCJA5->read()) return;
+  pm1 = _sensorGCJA5->getPM1();
+  pm25 = _sensorGCJA5->getPM25();
+  pm10 = _sensorGCJA5->getPM10();
   dataReady = true;
   DEBUG("-->[SLIB] GCJA5 read\t\t: done!");
   unitRegister(UNIT::PM1);
@@ -1285,65 +1241,53 @@ void Sensors::GCJA5Read() {
 }
 
 void Sensors::DFRobotNH3Read() {
-  if (!isSensorRegistered(SENSORS::SDFRNH3)) return;
-  float rawPpm = dfrNH3.readGasConcentrationPPM();
-  float dfrInternalTemp = dfrNH3.readTempC();
-  bool hasExternalTempSensor = dfrHasExternalTempSensor();
-  float compensationTemp = hasExternalTempSensor ? temp : (dfrInternalTemp - toffset);
-  nh3 = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::NH3);
-  if (pres > 0.0) nh3 = dfrGasPressCompensation(nh3, pres);
+  if (!_sensorDFRNH3 || !isSensorRegistered(SENSORS::SDFRNH3)) return;
+  if (dfrHasExternalTempSensor()) _sensorDFRNH3->setAmbientData(temp, humi, pres);
+  if (!_sensorDFRNH3->read()) return;
+  nh3 = _sensorDFRNH3->getConcentration();
   unitRegister(UNIT::NH3);
   dataReady = true;
-  if (!hasExternalTempSensor) {
-    temp = dfrInternalTemp - toffset;
+  if (!_sensorDFRNH3->hasExternalAmbient()) {
+    temp = _sensorDFRNH3->getInternalTemperature() - toffset;
     tempRegister(false);
   }
 }
 
 void Sensors::DFRobotCORead() {
-  if (!isSensorRegistered(SENSORS::SDFRCO)) return;
-  float rawPpm = dfrCO.readGasConcentrationPPM();
-  float dfrInternalTemp = dfrCO.readTempC();
-  bool hasExternalTempSensor = dfrHasExternalTempSensor();
-  float compensationTemp = hasExternalTempSensor ? temp : (dfrInternalTemp - toffset);
-  co = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::CO);
-  if (pres > 0.0) co = dfrGasPressCompensation(co, pres);
+  if (!_sensorDFRCO || !isSensorRegistered(SENSORS::SDFRCO)) return;
+  if (dfrHasExternalTempSensor()) _sensorDFRCO->setAmbientData(temp, humi, pres);
+  if (!_sensorDFRCO->read()) return;
+  co = _sensorDFRCO->getConcentration();
   unitRegister(UNIT::CO);
   dataReady = true;
-  if (!hasExternalTempSensor) {
-    temp = dfrInternalTemp - toffset;
+  if (!_sensorDFRCO->hasExternalAmbient()) {
+    temp = _sensorDFRCO->getInternalTemperature() - toffset;
     tempRegister(false);
   }
 }
 
 void Sensors::DFRobotNO2Read() {
-  if (!isSensorRegistered(SENSORS::SDFRNO2)) return;
-  float rawPpm = dfrNO2.readGasConcentrationPPM();
-  float dfrInternalTemp = dfrNO2.readTempC();
-  bool hasExternalTempSensor = dfrHasExternalTempSensor();
-  float compensationTemp = hasExternalTempSensor ? temp : (dfrInternalTemp - toffset);
-  no2 = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::NO2);
-  if (pres > 0.0) no2 = dfrGasPressCompensation(no2, pres);
+  if (!_sensorDFRNO2 || !isSensorRegistered(SENSORS::SDFRNO2)) return;
+  if (dfrHasExternalTempSensor()) _sensorDFRNO2->setAmbientData(temp, humi, pres);
+  if (!_sensorDFRNO2->read()) return;
+  no2 = _sensorDFRNO2->getConcentration();
   unitRegister(UNIT::NO2);
   dataReady = true;
-  if (!hasExternalTempSensor) {
-    temp = dfrInternalTemp - toffset;
+  if (!_sensorDFRNO2->hasExternalAmbient()) {
+    temp = _sensorDFRNO2->getInternalTemperature() - toffset;
     tempRegister(false);
   }
 }
 
 void Sensors::DFRobotO3Read() {
-  if (!isSensorRegistered(SENSORS::SDFRO3)) return;
-  float rawPpm = dfrO3.readGasConcentrationPPM();
-  float dfrInternalTemp = dfrO3.readTempC();
-  bool hasExternalTempSensor = dfrHasExternalTempSensor();
-  float compensationTemp = hasExternalTempSensor ? temp : (dfrInternalTemp - toffset);
-  o3 = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::O3);
-  if (pres > 0.0) o3 = dfrGasPressCompensation(o3, pres);
+  if (!_sensorDFRO3 || !isSensorRegistered(SENSORS::SDFRO3)) return;
+  if (dfrHasExternalTempSensor()) _sensorDFRO3->setAmbientData(temp, humi, pres);
+  if (!_sensorDFRO3->read()) return;
+  o3 = _sensorDFRO3->getConcentration();
   unitRegister(UNIT::O3);
   dataReady = true;
-  if (!hasExternalTempSensor) {
-    temp = dfrInternalTemp - toffset;
+  if (!_sensorDFRO3->hasExternalAmbient()) {
+    temp = _sensorDFRO3->getInternalTemperature() - toffset;
     tempRegister(false);
   }
 }
@@ -1918,290 +1862,227 @@ void Sensors::sps30DeviceInfo() {
 
 void Sensors::am2320Init() {
   sensorAnnounce(SENSORS::SAM232X);
-#ifndef Wire1
-  if (!am2320.begin()) return;
-#else
-  am2320 = AM232X(&Wire);
-  if (!am2320.begin()) {
-    am2320 = AM232X(&Wire1);
-    if (!am2320.begin()) return;
+  if (_sensorAM2320) delete _sensorAM2320;
+  _sensorAM2320 = new SensorAM2320();
+  if (!_sensorAM2320->init()) {
+    delete _sensorAM2320;
+    _sensorAM2320 = nullptr;
+    return;
   }
-#endif
-  am2320.wakeUp();
+  registerSensor(_sensorAM2320);
   sensorRegister(SENSORS::SAM232X);
 }
 
 void Sensors::sht31Init() {
   sensorAnnounce(SENSORS::SSHT31);
-  sht31 = Adafruit_SHT31();
-#ifndef Wire1
-  if (!sht31.begin()) return;
-#else
-  if (!sht31.begin()) {
-    sht31 = Adafruit_SHT31(&Wire1);
-    if (!sht31.begin()) return;
+  if (_sensorSHT31) delete _sensorSHT31;
+  _sensorSHT31 = new SensorSHT31();
+  if (!_sensorSHT31->init()) {
+    delete _sensorSHT31;
+    _sensorSHT31 = nullptr;
+    return;
   }
-#endif
+  registerSensor(_sensorSHT31);
   sensorRegister(SENSORS::SSHT31);
 }
 
 void Sensors::bme280Init() {
   sensorAnnounce(SENSORS::SBME280);
-#ifndef Wire1
-  if (!bme280.begin() && !bme280.begin(BME280_ADDRESS_ALTERNATE)) return;
-#else
-  if (!bme280.begin() && !bme280.begin(BME280_ADDRESS_ALTERNATE) &&
-      !bme280.begin(BME280_ADDRESS, &Wire1) && !bme280.begin(BME280_ADDRESS_ALTERNATE, &Wire1))
+  if (_sensorBME280) delete _sensorBME280;
+  _sensorBME280 = new SensorBME280();
+  if (!_sensorBME280->init()) {
+    delete _sensorBME280;
+    _sensorBME280 = nullptr;
     return;
-#endif
+  }
+  registerSensor(_sensorBME280);
   sensorRegister(SENSORS::SBME280);
 }
 
-/// Environment BMP280 sensor init
 void Sensors::bmp280Init() {
   sensorAnnounce(SENSORS::SBMP280);
-#ifndef Wire1
-  if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return;
-#else
-  if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) {
-    bmp280 = Adafruit_BMP280(&Wire1);
-    if (!bmp280.begin() && !bmp280.begin(BMP280_ADDRESS_ALT)) return;
+  if (_sensorBMP280) delete _sensorBMP280;
+  _sensorBMP280 = new SensorBMP280();
+  if (!_sensorBMP280->init()) {
+    delete _sensorBMP280;
+    _sensorBMP280 = nullptr;
+    return;
   }
-#endif
-  bmp280.setSampling(Adafruit_BMP280::MODE_NORMAL,      // Operating Mode.
-                     Adafruit_BMP280::SAMPLING_X2,      // Temp. oversampling
-                     Adafruit_BMP280::SAMPLING_X16,     // Pressure oversampling
-                     Adafruit_BMP280::FILTER_X16,       // Filtering.
-                     Adafruit_BMP280::STANDBY_MS_500);  // Standby time.
-#if CORE_DEBUG_LEVEL >= 3
-  Adafruit_Sensor *bmp_temp = bmp280.getTemperatureSensor();
-  Adafruit_Sensor *bmp_pressure = bmp280.getPressureSensor();
-  if (devmode) bmp_temp->printSensorDetails();
-  if (devmode) bmp_pressure->printSensorDetails();
-#endif
+  registerSensor(_sensorBMP280);
   sensorRegister(SENSORS::SBMP280);
 }
 
-/// Bosch BME680 sensor init
 void Sensors::bme680Init() {
   sensorAnnounce(SENSORS::SBME680);
-#ifndef Wire1
-  if (!bme680.begin()) return;
-#else
-  if (bme680.begin() == false) {
-    bme680 = Adafruit_BME680(&Wire1);
-    if (!bme680.begin()) return;
+  if (_sensorBME680) delete _sensorBME680;
+  _sensorBME680 = new SensorBME680();
+  if (!_sensorBME680->init()) {
+    delete _sensorBME680;
+    _sensorBME680 = nullptr;
+    return;
   }
-#endif
-  bme680.setTemperatureOversampling(BME680_OS_8X);
-  bme680.setHumidityOversampling(BME680_OS_2X);
-  bme680.setPressureOversampling(BME680_OS_4X);
-  bme680.setIIRFilterSize(BME680_FILTER_SIZE_3);
-  bme680.setGasHeater(320, 150);  // 320*C for 150 ms
+  registerSensor(_sensorBME680);
   sensorRegister(SENSORS::SBME680);
 }
 
-/// AHTXX sensors init
 void Sensors::aht10Init() {
   sensorAnnounce(SENSORS::SAHTXX);
-  // TODO: this sensor only works in Wire0
-  aht10 = AHTxx(AHTXX_ADDRESS_X38, AHT1x_SENSOR);
-#ifdef M5STICKCPLUS  // issue: https://github.com/enjoyneering/AHTxx/issues/11
-  if (!aht10.begin(EXT_I2C_SDA, EXT_I2C_SCL, 100000, 50000)) return;
-#else
-  if (!aht10.begin()) return;
-#endif
+  if (_sensorAHT10) delete _sensorAHT10;
+  _sensorAHT10 = new SensorAHT10();
+  if (!_sensorAHT10->init()) {
+    delete _sensorAHT10;
+    _sensorAHT10 = nullptr;
+    return;
+  }
+  registerSensor(_sensorAHT10);
   sensorRegister(SENSORS::SAHTXX);
 }
 
 /// Sensirion SCD30 CO2/T/H sensor init
 void Sensors::CO2scd30Init() {
   sensorAnnounce(SENSORS::SSCD30);
-#ifndef Wire1
-  if (!scd30.begin()) return;
-#else
-  if (!scd30.begin() && !scd30.begin(SCD30_I2CADDR_DEFAULT, &Wire1, SCD30_CHIP_ID)) return;
-#endif
-  delay(10);
-
+  if (_sensorSCD30) delete _sensorSCD30;
+  _sensorSCD30 = new SensorSCD30();
+  if (!_sensorSCD30->init()) {
+    delete _sensorSCD30;
+    _sensorSCD30 = nullptr;
+    return;
+  }
+  registerSensor(_sensorSCD30);
   sensorRegister(SENSORS::SSCD30);
 
-  DEBUG("-->[SLIB] SCD30 Temp offset\t:", String(scd30.getTemperatureOffset()).c_str());
-  DEBUG("-->[SLIB] SCD30 Altitude offset\t:", String(scd30.getAltitudeOffset()).c_str());
+  DEBUG("-->[SLIB] SCD30 Temp offset\t:", String(_sensorSCD30->getTemperatureOffset()).c_str());
+  DEBUG("-->[SLIB] SCD30 Altitude offset\t:", String(_sensorSCD30->getAltitudeOffset()).c_str());
 
-  if (scd30.getAltitudeOffset() != uint16_t(altoffset)) {
+  if (_sensorSCD30->getAltitudeOffset() != uint16_t(altoffset)) {
     DEBUG("-->[SLIB] SCD30 altitude offset to\t:", String(altoffset).c_str());
     setSCD30AltitudeOffset(altoffset);
     delay(10);
   }
 
-  if (uint16_t((scd30.getTemperatureOffset())) != (uint16_t(toffset * 100))) {
+  if (uint16_t(_sensorSCD30->getTemperatureOffset() * 100) != uint16_t(toffset * 100)) {
     DEBUG("-->[SLIB] SCD30 Temp offset to\t:", String(toffset).c_str());
     setSCD30TempOffset(toffset);
     delay(10);
   }
 }
 
-/// set SCD30 temperature compensation
 void Sensors::setSCD30TempOffset(float offset) {
-  if (isSensorRegistered(SENSORS::SSCD30)) {
+  if (_sensorSCD30 && isSensorRegistered(SENSORS::SSCD30)) {
     Serial.println("-->[SLIB] SCD30 new temp offset\t: " + String(offset));
-    scd30.setTemperatureOffset(offset);
+    _sensorSCD30->setTemperatureOffset(offset);
   }
 }
 
-/// get SCD30 temperature compensation
 float Sensors::getSCD30TempOffset() const {
-  float offset = 0.0;
-  if (isSensorRegistered(SENSORS::SSCD30)) {
-    // Cast away const because Adafruit_SCD30::getTemperatureOffset() is not const
-    offset = const_cast<Adafruit_SCD30 &>(scd30).getTemperatureOffset() / 100.0;
+  if (_sensorSCD30 && isSensorRegistered(SENSORS::SSCD30)) {
+    float offset = const_cast<SensorSCD30 *>(_sensorSCD30)->getTemperatureOffset();
     Serial.println("-->[SLIB] SCD30 get temp offset\t: " + String(offset));
+    return offset;
   }
-  return offset;
+  return 0.0f;
 }
 
-/// set SCD30 altitude compensation
 void Sensors::setSCD30AltitudeOffset(float offset) {
-  if (isSensorRegistered(SENSORS::SSCD30)) {
+  if (_sensorSCD30 && isSensorRegistered(SENSORS::SSCD30)) {
     Serial.println("-->[SLIB] SCD30 new altitude offset\t: " + String(offset));
-    scd30.setAltitudeOffset(uint16_t(offset));
+    _sensorSCD30->setAltitude(offset);
   }
 }
 
 void Sensors::sgp41Init() {
   sensorAnnounce(SENSORS::SSGP41);
-  uint16_t error;
-  uint16_t testResult;
-  sgp41.begin(Wire);
-  error = sgp41.executeSelfTest(testResult);
-  if (error) {
-    DEBUG("-->[SLIB] sgp41 selftest error\t:", String(error).c_str());
-    return;
-  } else if (testResult != 0xD400) {
-    DEBUG("-->[SLIB] sgp41 selfTest error\t:", String(testResult).c_str());
+  if (_sensorSGP41) delete _sensorSGP41;
+  _sensorSGP41 = new SensorSGP41();
+  if (!_sensorSGP41->init()) {
+    DEBUG("-->[SLIB] sgp41 selftest error");
+    delete _sensorSGP41;
+    _sensorSGP41 = nullptr;
     return;
   }
+  registerSensor(_sensorSGP41);
   sensorRegister(SENSORS::SSGP41);
 }
 
 /// Sensirion SCD4X CO2 sensor init
 void Sensors::CO2scd4xInit() {
   sensorAnnounce(SENSORS::SSCD4X);
-  float tTemperatureOffset, offsetDifference;
-  uint16_t tSensorAltitude;
-  uint16_t error;
-  scd4x.begin(Wire);
-  error = scd4x.stopPeriodicMeasurement();
-  if (error) return;
+  if (_sensorSCD4x) delete _sensorSCD4x;
+  _sensorSCD4x = new SensorSCD4x();
+  if (!_sensorSCD4x->init()) {
+    delete _sensorSCD4x;
+    _sensorSCD4x = nullptr;
+    return;
+  }
+  registerSensor(_sensorSCD4x);
   sensorRegister(SENSORS::SSCD4X);
-  scd4x.getTemperatureOffset(tTemperatureOffset);
-  scd4x.getSensorAltitude(tSensorAltitude);
-  DEBUG("-->[SLIB] SCD4x Temp offset\t:", String(tTemperatureOffset).c_str());
-  DEBUG("-->[SLIB] SCD4x Alt offset \t:", String(tSensorAltitude).c_str());
 
-  if (tSensorAltitude != uint16_t(altoffset)) setSCD4xAltitudeOffset(altoffset);
+  float currentTempOffset = _sensorSCD4x->getTemperatureOffset();
+  uint16_t currentAlt = _sensorSCD4x->getSensorAltitude();
+  DEBUG("-->[SLIB] SCD4x Temp offset\t:", String(currentTempOffset).c_str());
+  DEBUG("-->[SLIB] SCD4x Alt offset \t:", String(currentAlt).c_str());
 
-  offsetDifference = abs((toffset * 100) - (tTemperatureOffset * 100));
-  if (offsetDifference >
-      0.5) {  // Accounts for SCD4x conversion rounding errors in temperature offset
+  if (currentAlt != uint16_t(altoffset)) setSCD4xAltitudeOffset(altoffset);
+
+  float offsetDifference = abs((toffset * 100) - (currentTempOffset * 100));
+  if (offsetDifference > 0.5) {
     Serial.println("-->[SLIB] SCD4x new offset\t: Temp offset to " + String(toffset));
     setSCD4xTempOffset(toffset);
   }
-  error = scd4x.startPeriodicMeasurement();
-  if (error) DEBUG("[W][SLIB] SCD4x periodic measure\t: starting error:", String(error).c_str());
 }
 
-/// set SCD4x temperature compensation
 void Sensors::setSCD4xTempOffset(float offset) {
-  if (isSensorRegistered(SENSORS::SSCD4X)) {
+  if (_sensorSCD4x && isSensorRegistered(SENSORS::SSCD4X)) {
     Serial.println("-->[SLIB] SCD4x new temperature offset\t: " + String(offset));
-    scd4x.stopPeriodicMeasurement();
-    delay(510);
-    scd4x.setTemperatureOffset(offset);
-    scd4x.startPeriodicMeasurement();
+    _sensorSCD4x->setTemperatureOffset(offset);
   }
 }
 
-/// get SCD4x temperature compensation
 float Sensors::getSCD4xTempOffset() const {
-  float offset = 0.0;
-  if (isSensorRegistered(SENSORS::SSCD4X)) {
-    // We cannot call stop/start measurements here if we want this method to be const
-    // because they are not const methods in the library.
-    // However, if we really need to read it, we might have to use a cached value
-    // or cast away const if we are sure it is safe.
-    // For now, let's try to just read it without stopping if the lib allows,
-    // but the library says it must be stopped.
-    // Since this is a refactoring, maybe we should just not make it const if it has side effects.
-    // BUT the calling method getTempOffset() IS const.
-    // Let's use a workaround for now: cast away const for the sub-calls.
-    auto *nonConstThis = const_cast<Sensors *>(this);
-    uint16_t error = nonConstThis->scd4x.stopPeriodicMeasurement();
-    if (error) {
-      DEBUG("[SLIB] SCD4x stopPeriodicMeasurement()\t: error:", String(error).c_str());
-    } else {
-      nonConstThis->scd4x.getTemperatureOffset(offset);
-    }
-    nonConstThis->scd4x.startPeriodicMeasurement();
+  if (_sensorSCD4x && isSensorRegistered(SENSORS::SSCD4X)) {
+    return const_cast<SensorSCD4x *>(_sensorSCD4x)->getTemperatureOffset();
   }
-  return offset;
+  return 0.0f;
 }
 
-/// set SCD4x altitude compensation
 void Sensors::setSCD4xAltitudeOffset(float offset) {
-  if (isSensorRegistered(SENSORS::SSCD4X)) {
+  if (_sensorSCD4x && isSensorRegistered(SENSORS::SSCD4X)) {
     Serial.println("-->[SLIB] SCD4x new altitude offset\t: " + String(offset));
-    scd4x.stopPeriodicMeasurement();
-    delay(510);
-    scd4x.setSensorAltitude(uint16_t(offset));
-    scd4x.startPeriodicMeasurement();
+    _sensorSCD4x->setAltitude(offset);
   }
 }
 
-/// Panasonic SEN5X sensor init
 void Sensors::sen5xInit() {
   sensorAnnounce(SENSORS::SSEN5X);
-  sen5x.begin(Wire);
-  uint16_t error;
-  error = sen5x.deviceReset();
-  if (error) return;
-  float tempOffset = 0.0;
-  sen5x.getTemperatureOffsetSimple(tempOffset);
-  DEBUG("-->[SLIB] SEN5X Temp offset\t:", String(tempOffset).c_str());
-  if (uint16_t((tempOffset * 100)) != (uint16_t(toffset * 100))) {
-    sen5x.setTemperatureOffsetSimple(toffset);
-    delay(10);
-  }
-  error = sen5x.startMeasurement();
-  if (error) {
-    DEBUG("[E][SLIB] Error trying to execute startMeasurement():");
+  if (_sensorSEN5x) delete _sensorSEN5x;
+  _sensorSEN5x = new SensorSEN5x();
+  if (!_sensorSEN5x->init()) {
+    delete _sensorSEN5x;
+    _sensorSEN5x = nullptr;
     return;
   }
+  if (toffset != 0.0f) _sensorSEN5x->setTemperatureOffset(toffset);
+  registerSensor(_sensorSEN5x);
   sensorRegister(SENSORS::SSEN5X);
 }
 
-/// set SEN5X temperature compensation
 void Sensors::setsen5xTempOffset(float offset) {
-  if (isSensorRegistered(SENSORS::SSEN5X)) {
+  if (_sensorSEN5x && isSensorRegistered(SENSORS::SSEN5X)) {
     Serial.println("-->[SLIB] SEN5x new temperature offset\t: " + String(offset));
-    sen5x.stopMeasurement();
-    sen5x.setTemperatureOffsetSimple(offset);
-    delay(510);
-    sen5x.startMeasurement();
+    _sensorSEN5x->setTemperatureOffset(offset);
   }
 }
 
-/// Panasonic GCJA5 sensor init
 void Sensors::GCJA5Init() {
   sensorAnnounce(SENSORS::SGCJA5);
-#ifndef Wire1
-  if (!pmGCJA5.begin()) return;
-#else
-  if (pmGCJA5.begin() == false) {
-    if (!pmGCJA5.begin(Wire1)) return;
+  if (_sensorGCJA5) delete _sensorGCJA5;
+  _sensorGCJA5 = new SensorGCJA5();
+  if (!_sensorGCJA5->init()) {
+    delete _sensorGCJA5;
+    _sensorGCJA5 = nullptr;
+    return;
   }
-#endif
+  registerSensor(_sensorGCJA5);
   sensorRegister(SENSORS::SGCJA5);
 }
 
@@ -2221,166 +2102,64 @@ bool Sensors::dfrHasExternalTempSensor() const {
          isSensorRegistered(SENSORS::SSEN5X) || isSensorRegistered(SENSORS::P5003T);
 }
 
-/**
- * @brief Temperature compensation for DFRobot gas sensors using external temperature.
- *
- * Reimplements the DFRobot library formulas (from DFRobot_MultiGasSensor.cpp)
- * so we can feed the current ambient temperature from an external sensor
- * (BME280, SHT31, etc.) instead of the stale onboard thermistor value that
- * the library captures only once at init.
- *
- * Each formula is split into a gain divisor (corrects sensitivity drift) and
- * a baseline offset (corrects zero-point drift).  When the offset would make
- * the result negative — common for low ambient NO2/O3/CO concentrations — we
- * fall back to the gain-only correction so the reading stays meaningful.
- *
- * @param rawPpm  Uncompensated gas concentration from readGasConcentrationPPM()
- * @param temperature  Ambient temperature in °C (from external sensor)
- * @param gasType  DFRobot gas type constant (DFRobot_GAS::CO, ::NH3, ::NO2, ::O3)
- * @return Compensated gas concentration in PPM
- */
-float Sensors::dfrGasTempCompensation(float rawPpm, float temperature, uint8_t gasType) {
-  static const float DFR_TEMP_MIN = -20.0f;
-  static const float DFR_TEMP_MAX = 40.0f;
-
-  if (temperature <= DFR_TEMP_MIN) temperature = DFR_TEMP_MIN + 0.01f;
-  if (temperature > DFR_TEMP_MAX) temperature = DFR_TEMP_MAX;
-
-  float gainDivisor = 1.0f;
-  float baselineOffset = 0.0f;
-
-  switch (gasType) {
-    case DFRobot_GAS::CO:
-      gainDivisor = 0.005f * temperature + 0.9f;
-      if (temperature > 20) baselineOffset = 0.3f * temperature - 6.0f;
-      break;
-
-    case DFRobot_GAS::NH3:
-      if (temperature <= 0) {
-        gainDivisor = 0.006f * temperature + 0.95f;
-        baselineOffset = -0.006f * temperature + 0.25f;
-      } else if (temperature <= 20) {
-        gainDivisor = 0.006f * temperature + 0.95f;
-        baselineOffset = -0.012f * temperature + 0.25f;
-      } else {
-        gainDivisor = 0.005f * temperature + 1.08f;
-        baselineOffset = -0.1f * temperature + 2.0f;
-      }
-      break;
-
-    case DFRobot_GAS::NO2:
-      gainDivisor = 0.005f * temperature + 0.9f;
-      if (temperature <= 0) {
-        baselineOffset = -0.0025f * temperature + 0.005f;
-      } else if (temperature <= 20) {
-        baselineOffset = 0.005f * temperature + 0.005f;
-      } else {
-        baselineOffset = 0.0025f * temperature + 0.1f;
-      }
-      break;
-
-    case DFRobot_GAS::O3:
-      if (temperature <= 0) {
-        gainDivisor = 0.015f * temperature + 1.1f;
-        baselineOffset = 0.05f;
-      } else if (temperature <= 20) {
-        gainDivisor = 1.1f;
-        baselineOffset = 0.01f * temperature;
-      } else {
-        gainDivisor = 1.1f;
-        baselineOffset = -0.005f * temperature + 0.3f;
-      }
-      break;
-
-    default:
-      break;
-  }
-
-  float scaled = rawPpm / gainDivisor;
-  float compensated = scaled - baselineOffset;
-
-  if (compensated < 0) return (scaled > 0) ? scaled : 0.0f;
-  return compensated;
-}
-
-/**
- * @brief Pressure compensation for electrochemical gas sensors.
- *
- * Corrects for the effect of barometric pressure on the partial pressure of
- * the target gas.  At higher pressure more molecules reach the electrode,
- * inflating the apparent concentration.
- *
- * @param ppm  Gas concentration after temperature compensation
- * @param pressure  Current barometric pressure in hPa (from BME280/BMP280/BME680)
- * @return Pressure-compensated gas concentration in PPM
- */
-float Sensors::dfrGasPressCompensation(float ppm, float pressure) {
-  static const float STANDARD_PRESSURE_HPA = 1013.25f;
-  if (pressure <= 0.0f) return ppm;
-  return ppm * (STANDARD_PRESSURE_HPA / pressure);
-}
-
 /// DFRobot GAS (CO) sensors init
 void Sensors::DFRobotCOInit() {
   sensorAnnounce(SENSORS::SDFRCO);
-  dfrCO = DFRobot_GAS_I2C(&Wire, DFROBOT_CO_I2C_ADDR);
-  if (!dfrCO.begin()) {
+  if (_sensorDFRCO) delete _sensorDFRCO;
+  _sensorDFRCO =
+      new SensorDFRobotGas(DFROBOT_CO_I2C_ADDR, SENSORS::SDFRCO, "DFRobot CO", DFRobot_GAS::CO);
+  if (!_sensorDFRCO->init()) {
     dfrGasBeginFailed("CO", DFROBOT_CO_I2C_ADDR);
+    delete _sensorDFRCO;
+    _sensorDFRCO = nullptr;
     return;
   }
-  // Mode of obtaining data: the main controller needs to request the sensor for data
-  dfrCO.changeAcquireMode(dfrCO.PASSIVITY);
-  delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
-  // Disable internal compensation: we apply our own using external T/P sensors
-  dfrCO.setTempCompensation(dfrCO.OFF);
+  registerSensor(_sensorDFRCO);
   sensorRegister(SENSORS::SDFRCO);
 }
 
-/// DFRobot GAS (NH3) sensors init
 void Sensors::DFRobotNH3Init() {
   sensorAnnounce(SENSORS::SDFRNH3);
-  dfrNH3 = DFRobot_GAS_I2C(&Wire, DFROBOT_NH3_I2C_ADDR);
-  if (!dfrNH3.begin()) {
+  if (_sensorDFRNH3) delete _sensorDFRNH3;
+  _sensorDFRNH3 =
+      new SensorDFRobotGas(DFROBOT_NH3_I2C_ADDR, SENSORS::SDFRNH3, "DFRobot NH3", DFRobot_GAS::NH3);
+  if (!_sensorDFRNH3->init()) {
     dfrGasBeginFailed("NH3", DFROBOT_NH3_I2C_ADDR);
+    delete _sensorDFRNH3;
+    _sensorDFRNH3 = nullptr;
     return;
   }
-  // Mode of obtaining data: the main controller needs to request the sensor for data
-  dfrNH3.changeAcquireMode(dfrNH3.PASSIVITY);
-  delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
-  // Disable internal compensation: we apply our own using external T/P sensors
-  dfrNH3.setTempCompensation(dfrNH3.OFF);
+  registerSensor(_sensorDFRNH3);
   sensorRegister(SENSORS::SDFRNH3);
 }
 
-/// DFRobot GAS (NO2) sensors init
 void Sensors::DFRobotNO2Init() {
   sensorAnnounce(SENSORS::SDFRNO2);
-  dfrNO2 = DFRobot_GAS_I2C(&Wire, DFROBOT_NO2_I2C_ADDR);
-  if (!dfrNO2.begin()) {
+  if (_sensorDFRNO2) delete _sensorDFRNO2;
+  _sensorDFRNO2 =
+      new SensorDFRobotGas(DFROBOT_NO2_I2C_ADDR, SENSORS::SDFRNO2, "DFRobot NO2", DFRobot_GAS::NO2);
+  if (!_sensorDFRNO2->init()) {
     dfrGasBeginFailed("NO2", DFROBOT_NO2_I2C_ADDR);
+    delete _sensorDFRNO2;
+    _sensorDFRNO2 = nullptr;
     return;
   }
-  // Mode of obtaining data: the main controller needs to request the sensor for data
-  dfrNO2.changeAcquireMode(dfrNO2.PASSIVITY);
-  delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
-  // Disable internal compensation: we apply our own using external T/P sensors
-  dfrNO2.setTempCompensation(dfrNO2.OFF);
+  registerSensor(_sensorDFRNO2);
   sensorRegister(SENSORS::SDFRNO2);
 }
 
-/// DFRobot GAS (O3) sensors init
 void Sensors::DFRobotO3Init() {
   sensorAnnounce(SENSORS::SDFRO3);
-  dfrO3 = DFRobot_GAS_I2C(&Wire, DFROBOT_O3_I2C_ADDR);
-  if (!dfrO3.begin()) {
+  if (_sensorDFRO3) delete _sensorDFRO3;
+  _sensorDFRO3 =
+      new SensorDFRobotGas(DFROBOT_O3_I2C_ADDR, SENSORS::SDFRO3, "DFRobot O3", DFRobot_GAS::O3);
+  if (!_sensorDFRO3->init()) {
     dfrGasBeginFailed("O3", DFROBOT_O3_I2C_ADDR);
+    delete _sensorDFRO3;
+    _sensorDFRO3 = nullptr;
     return;
   }
-  // Mode of obtaining data: the main controller needs to request the sensor for data
-  dfrO3.changeAcquireMode(dfrO3.PASSIVITY);
-  delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
-  // Disable internal compensation: we apply our own using external T/P sensors
-  dfrO3.setTempCompensation(dfrO3.OFF);
+  registerSensor(_sensorDFRO3);
   sensorRegister(SENSORS::SDFRO3);
 }
 
@@ -2466,51 +2245,38 @@ void Sensors::resetAllVariables() {
   noiseLnValue = 0.0;
   noiseLdenValue = 0.0;
 #endif
-  if (rad != nullptr) rad->clear();
+  if (_sensorGeiger) _sensorGeiger->clear();
 }
 
 // #########################################################################
 
 void Sensors::geigerRead() {
-  if (rad != nullptr && rad->read()) {
+  if (_sensorGeiger && _sensorGeiger->read()) {
     unitRegister(UNIT::CPM);
     unitRegister(UNIT::RAD);
   }
 }
-/**
- * @brief Enable Geiger sensor on specific pin
- * @param gpio number or pin.
- */
+
 void Sensors::enableGeigerSensor(int gpio) {
   sensorAnnounce(SENSORS::SCAJOE);
   if (gpio < 0) {
     if (devmode) Serial.printf("[W][SLIB] undefined Geiger pin\t: %i\r\n", gpio);
     return;
   }
-  rad = new GEIGER(gpio, devmode);
+  if (_sensorGeiger) delete _sensorGeiger;
+  _sensorGeiger = new SensorGeiger(gpio, devmode);
+  registerSensor(_sensorGeiger);
   sensorRegister(SENSORS::SCAJOE);
 }
 
-/**
- * @brief get Geiger count. Tics in the last 60secs
- * @return CPM
- */
 uint32_t Sensors::getGeigerCPM(void) const {
-  if (rad == nullptr)
-    return 0;
-  else
-    return rad->getTics();
+  if (!_sensorGeiger) return 0;
+  return _sensorGeiger->getCPM();
 }
 
-/**
- * @brief get Geiger count in uSv/h units
- * @return CPM * J305 conversion factor
- */
 float Sensors::getGeigerMicroSievertHour(void) const {
-  if (rad == nullptr)
-    return 0;
-  else
-    return rad->getUSvh();
+  if (!_sensorGeiger) return 0.0f;
+  return _sensorGeiger->getMicroSievertHour();
 }
 
 // #########################################################################
