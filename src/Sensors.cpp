@@ -1348,7 +1348,7 @@ void Sensors::DFRobotO3Read() {
   }
 }
 
-#ifdef CSL_NOISE_SENSOR_SUPPORTED
+#if (CSL_NOISE_SENSOR_SUPPORTED==1)
 bool Sensors::noiseSensorAutoDetect() {
   if (noiseSensorEnabled) return true;
   if (noiseScanDone && (millis() - noiseLastScanMs < noiseScanRetryMs)) return false;
@@ -1490,13 +1490,7 @@ bool Sensors::noiseSensorDevicePresent(TwoWire &wire, uint8_t address) {
 
 void Sensors::noiseSensorInitWire() {
   if (noiseWireReady) return;
-
   noiseWire = &Wire;
-  noiseWire->setClock(100000);
-#if defined(ARDUINO_ARCH_ESP32)
-  noiseWire->setBufferSize(64);
-  noiseWire->setTimeOut(150);
-#endif
   noiseWireReady = true;
 }
 
