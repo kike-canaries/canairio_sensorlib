@@ -1,4 +1,4 @@
-name: PlatformIO
+name: CanAirIO Integration
 
 on:
   pull_request:
