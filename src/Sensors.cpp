@@ -1348,7 +1348,7 @@ void Sensors::DFRobotO3Read() {
   }
 }
 
-#if (CSL_NOISE_SENSOR_SUPPORTED==1)
+#if (CSL_NOISE_SENSOR_SUPPORTED == 1)
 bool Sensors::noiseSensorAutoDetect() {
   if (noiseSensorEnabled) return true;
   if (noiseScanDone && (millis() - noiseLastScanMs < noiseScanRetryMs)) return false;
