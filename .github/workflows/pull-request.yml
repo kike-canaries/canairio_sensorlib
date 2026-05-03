@@ -1,4 +1,4 @@
-name: PlatformIO
+name: All Architectures
 
 on:
   pull_request:
