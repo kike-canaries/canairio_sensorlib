@@ -62,20 +62,20 @@ Panasonic via UART in ESP8266 maybe needs select in detection.
 NOTE:  
 DHT22 is supported but is not recommended. Please see the documentation.  
 
-#### DFRobot Gravity gas (SEN0465–SEN0476 electrochemical vs MEMS MiCS)
+#### DFRobot Gravity gas sensors
 
 - **Librería (fabricante):** [DFRobot_MultiGasSensor](https://github.com/DFRobot/DFRobot_MultiGasSensor) — la dependencia PlatformIO está en `unified-lib-deps.ini` apuntando a ese repositorio.
-- **SEN0466 (CO)** y **SEN0472 (O₃)** usan I²C **0x74–0x77** según interruptores A0/A1 (ver [wiki DFRobot](https://wiki.dfrobot.com/SKU_SEN0465toSEN0476_Gravity_Gas_Sensor_Calibrated_I2C_UART)). Por defecto el firmware usa **CO @ 0x74** y **O₃ @ 0x75**: pon el módulo de ozono en **ADDRESS_1** para que no comparta **0x74** con el CO.
-- No uses `changeI2cAddrGroup` con estos sensores salvo el flujo MEMS antiguo; el firmware **no** aplica ese paso salvo que actives el modo legacy.
-- **Modo legacy MEMS** (direcciones 0x78–0x7B): en `platformio.ini` del proyecto,  
-  `build_flags = -D DFROBOT_MEMS_LEGACY_GROUP7=1`
-- Direcciones personalizadas:  
-  `build_flags = -D DFROBOT_CO_I2C_ADDR=0x76 -D DFROBOT_O3_I2C_ADDR=0x77` (ajusta según DIP y evita conflicto con BME680 en **0x77**).
-- Precalentamiento: la wiki recomienda **>5 min** al encender (y hasta 24 h si el sensor estuvo mucho tiempo parado).
-
-**Alineación [documentación CanAirIO (DFRobot)](https://canair.io/docs/dfrobot_sensors.html):** esa guía asume **grupo I²C 7** (p. ej. CO `0x78`, NH3 `0x7A`, NO2 `0x7B`) y el uso de `changeI2cAddrGroup(7)` (o el sketch previo). Para replicar ese comportamiento en sensorlib usa  
-`build_flags = -D DFROBOT_MEMS_LEGACY_GROUP7=1`  
-y revisa `docs/CanAirIO_DFRobot_alignment.md`. El valor por defecto (`LEGACY_GROUP7=0`, direcciones `0x74`/`0x75`) sigue la wiki DFRobot para sensores en grupo 6 sin el paso de CanAirIO.
+- **Direcciones I²C fijas (grupo 7):**  
+  | Sensor | Dirección | Referencia |
+  |--------|-----------|------------|
+  | CO     | 0x78      | SEN0466    |
+  | O₃     | 0x79      | SEN0472    |
+  | NH₃    | 0x7A      | SEN0469    |
+  | NO₂    | 0x7B      | SEN0471    |
+- **Direcciones personalizadas:** se puede sobreescribir cualquier dirección vía `build_flags`, p. ej.:  
+  `build_flags = -D DFROBOT_CO_I2C_ADDR=0x74`
+- **Precalentamiento:** la wiki recomienda **>5 min** al encender (y hasta 24 h si el sensor estuvo mucho tiempo parado).
+- **Compensación:** la librería aplica compensación propia de temperatura y presión utilizando sensores externos (BME280, etc.) o la temperatura interna del propio DFRobot si no hay sensor externo disponible.
 
 NoiseSensor auto-detection usa el mismo bus I2C que el resto de sensores (Wire) y está disponible solo en ESP32-C3, ESP32-S2 y ESP32-S3.
 
