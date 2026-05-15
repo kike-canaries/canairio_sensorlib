@@ -1373,6 +1373,10 @@ bool Sensors::noiseSensorAutoDetect() {
       if (devmode) Serial.printf("-->[SLIB] Wrong sensor type at: 0x%02X (0x%02X)\r\n", addr, identity.sensorType);
       continue;
     }
+    if (identity.i2cAddress != addr) {
+      if (devmode) Serial.printf("-->[SLIB] Addr mismatch at: 0x%02X (reported 0x%02X)\r\n", addr, identity.i2cAddress);
+      continue;
+    }
 
     noiseSensorEnabled = true;
     noiseSensorAddress = addr;
