@@ -1,0 +1,47 @@
+name: CanAirIO Integration
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - '**/README.md'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      max-parallel: 1
+      matrix:
+        os: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          repository: kike-canaries/canairio_firmware
+          ref: devel
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -U platformio
+          pio pkg update
+      - name: Build ESP32WOKWI firmware
+        run: |
+          ./build wokwi
+      - name: CanAirIO execution with Wokwi
+        uses: wokwi/wokwi-ci-action@v1
+        with:
+          token: ${{ secrets.WOKWI_CLI_TOKEN }}
+          path: tests/wokwi/test_boot
+          timeout: 60000
+          scenario: 'boot_check.yml'
+          serial_log_file: 'log-boot-canairio.txt'
