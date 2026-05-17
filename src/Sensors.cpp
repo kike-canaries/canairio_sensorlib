@@ -1351,9 +1351,8 @@ void Sensors::DFRobotO3Read() {
 #ifdef CSL_NOISE_SENSOR_SUPPORTED
 bool Sensors::noiseSensorAutoDetect() {
   if (noiseSensorEnabled) return true;
-  if (noiseScanDone && (millis() - noiseLastScanMs < noiseScanRetryMs)) return false;
+  if (noiseScanDone) return false;
   noiseScanDone = true;
-  noiseLastScanMs = millis();
 
   noiseSensorInitWire();
   if (noiseWire == nullptr) {
@@ -1361,22 +1360,25 @@ bool Sensors::noiseSensorAutoDetect() {
     return false;
   }
 
-  for (uint8_t addr = MIN_I2C_ADDRESS; addr <= MAX_I2C_ADDRESS; addr++) {
-    if (devmode && (addr == MIN_I2C_ADDRESS || (addr % 16 == 0)))
-      Serial.printf("-->[SLIB] Scanning I2C addr: 0x%02X\r\n", addr);
-    bool present = noiseSensorDevicePresent(*noiseWire, addr);
-    if (devmode && addr == MIN_I2C_ADDRESS)
-      Serial.printf("-->[SLIB] Probe 0x%02X: %s\r\n", addr, present ? "ACK" : "NACK");
-    if (!present) continue;
+  for (uint8_t addr = NOISE_MIN_SCAN_ADDR; addr <= NOISE_MAX_SCAN_ADDR; addr++) {
+    if (!noiseSensorDevicePresent(*noiseWire, addr)) continue;
     if (devmode) Serial.printf("-->[SLIB] Found device at: 0x%02X, reading identity...\r\n", addr);
 
-    uint8_t status = 0xFF;
-    if (!noiseSensorReadStatus(*noiseWire, addr, status)) {
-      if (devmode) Serial.printf("-->[SLIB] Failed to read status at: 0x%02X\r\n", addr);
+    SensorIdentity identity;
+    if (!noiseSensorReadIdentity(*noiseWire, addr, identity)) {
+      if (devmode) Serial.printf("-->[SLIB] No identity response at: 0x%02X\r\n", addr);
       continue;
     }
-    if (status > 0x07) {
-      if (devmode) Serial.printf("-->[SLIB] Wrong status at: 0x%02X (0x%02X)\r\n", addr, status);
+    if (identity.sensorType != NOISE_SENSOR_TYPE_ID) {
+      if (devmode)
+        Serial.printf("-->[SLIB] Wrong sensor type at: 0x%02X (0x%02X)\r\n", addr,
+                      identity.sensorType);
+      continue;
+    }
+    if (identity.i2cAddress != addr) {
+      if (devmode)
+        Serial.printf("-->[SLIB] Addr mismatch at: 0x%02X (reported 0x%02X)\r\n", addr,
+                      identity.i2cAddress);
       continue;
     }
 
@@ -1393,6 +1395,7 @@ bool Sensors::noiseSensorAutoDetect() {
 }
 
 void Sensors::noiseSensorService() {
+  // Detection is done once at boot; noiseScanDone prevents any retry.
   if (noiseSensorEnabled || noiseScanDone) return;
   noiseSensorAutoDetect();
 }
@@ -1445,22 +1448,17 @@ void Sensors::noiseSensorCollect() {
   unitRegister(UNIT::NOISELDEN);
 }
 
-bool Sensors::noiseSensorReadStatus(TwoWire &wire, uint8_t address, uint8_t &status) {
-  int retries = 3;
-  while (retries-- > 0) {
-    wire.beginTransmission(address);
-    wire.write(CMD_GET_STATUS);
-    if (wire.endTransmission(true) == 0) {
-      delay(10);
-      uint8_t got = wire.requestFrom(address, (uint8_t)1);
-      if (got == 1) {
-        status = wire.read();
-        return true;
-      }
-    }
-    delay(100);
-  }
-  return false;
+bool Sensors::noiseSensorReadIdentity(TwoWire &wire, uint8_t address, SensorIdentity &identity) {
+  wire.beginTransmission(address);
+  wire.write(CMD_IDENTIFY);
+  if (wire.endTransmission(true) != 0) return false;
+  delay(5);
+  uint8_t got = wire.requestFrom(address, (uint8_t)sizeof(SensorIdentity));
+  if (got != sizeof(SensorIdentity)) return false;
+  uint8_t buffer[sizeof(SensorIdentity)];
+  wire.readBytes(buffer, sizeof(SensorIdentity));
+  memcpy(&identity, buffer, sizeof(SensorIdentity));
+  return true;
 }
 
 bool Sensors::noiseSensorReadData(TwoWire &wire, uint8_t address, SensorData &out) {

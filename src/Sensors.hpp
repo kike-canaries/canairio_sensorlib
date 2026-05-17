@@ -552,10 +552,10 @@ class Sensors {
   float noiseLnValue = 0.0;
   float noiseLdenValue = 0.0;
   bool noiseScanDone = false;
-  uint32_t noiseLastScanMs = 0;
-  uint32_t noiseScanRetryMs = 5000;
   uint32_t noiseLastTimeSyncMs = 0;
+  uint32_t noiseLastSyncAttemptMs = 0;
   uint32_t noiseTimeSyncIntervalMs = 86400000;
+  static constexpr uint32_t NOISE_SYNC_RETRY_MS = 30000;
   bool noiseTimeSyncEnabled = true;
 
   void am2320Init();
@@ -680,7 +680,7 @@ class Sensors {
   bool noiseSensorAutoDetect();
   void noiseSensorService();
   void noiseSensorCollect();
-  bool noiseSensorReadStatus(TwoWire &wire, uint8_t address, uint8_t &status);
+  bool noiseSensorReadIdentity(TwoWire &wire, uint8_t address, SensorIdentity &identity);
   bool noiseSensorReadData(TwoWire &wire, uint8_t address, SensorData &out);
   bool noiseSensorDevicePresent(TwoWire &wire, uint8_t address);
   void noiseSensorInitWire();

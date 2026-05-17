@@ -51,8 +51,8 @@ struct SensorIdentity {
 
 // I2C Addresses
 static constexpr uint8_t DEFAULT_NOISE_ADDR = 0x08;
-static constexpr uint8_t MIN_I2C_ADDRESS = 0x08;
-static constexpr uint8_t MAX_I2C_ADDRESS = 0x77;
+static constexpr uint8_t NOISE_MIN_SCAN_ADDR = 0x08;
+static constexpr uint8_t NOISE_MAX_SCAN_ADDR = 0x0F;
 
 static constexpr uint8_t SENSOR_TYPE_NOISE = 0x01;
 static constexpr uint8_t NOISE_SENSOR_TYPE_ID = SENSOR_TYPE_NOISE;
