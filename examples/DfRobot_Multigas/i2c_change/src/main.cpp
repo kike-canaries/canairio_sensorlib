@@ -1,176 +1,165 @@
 /*!
- * @file  readGasConcentration.ino
- * @brief Obtain gas concentration corresponding to the current environment, output as concentration
- * value
- * @n Experimental mode: connect sensor communication pin to the main controller and burn
- * @n Communication mode select, DIP switch SEL: 0: I2C, 1: UART
- * @n Group serial number         Address in the group
- * @n A0 A1 DIP level 00    01    10    11
- * @n 1            0x60  0x61  0x62  0x63
- * @n 2            0x64  0x65  0x66  0x67
- * @n 3            0x68  0x69  0x6A  0x6B
- * @n 4            0x6C  0x6D  0x6E  0x6F
- * @n 5            0x70  0x71  0x72  0x73
- * @n 6 (Default address group) 0x74  0x75  0x76  0x77 (Default address)
- * @n 7            0x78  0x79  0x7A  0x7B
- * @n 8            0x7C  0x7D  0x7E  0x7F
- * @n i2c address select, default to 0x77, A1 and A0 are grouped into 4 I2C addresses.
- * @n             | A0 | A1 |
- * @n             | 0  | 0  |    0x74
- * @n             | 0  | 1  |    0x75
- * @n             | 1  | 0  |    0x76
- * @n             | 1  | 1  |    0x77   default i2c address
- * @n Experimental phenomenon: view the gas concentration corresponding to the current environment
- * through serial port printing
+ * @file  i2c_change_auto_detect.ino
+ * @brief Auto-detect DFRobot multigas sensors and configure them:
+ *        - Detect sensor type (NH3, CO, NO2, O3)
+ *        - Change I2C address to group 7
+ *        - Enable temperature compensation
+ *        - Set to passive mode
+ * @n I2C Address groups (group 7):
+ * @n A0 A1 => 0x78, 0x79, 0x7A, 0x7B
  * @copyright   Copyright (c) 2010 DFRobot Co.Ltd (http://www.dfrobot.com)
  * @license     The MIT License (MIT)
- * @author      PengKaixing(kaixing.peng@dfrobot.com)
- * @version     V1.0
- * @date        2021-03-28
- * @url         https://github.com/DFRobot/DFRobot_MultiGasSensor
+ * @version     V2.0
  */
 #include <Arduino.h>
 
 #include "DFRobot_MultiGasSensor.h"
 
-// Turn on by default, using I2C communication at the time, switch to serial port communication
-// after turning off #define I2C_COMMUNICATION
+#define MAX_SENSORS 4
+#define GROUP_7_BASE_ADDR 0x78
 
-// #ifdef  I2C_COMMUNICATION
-// #define I2C_ADDRESS    0x77
-DFRobot_GAS_I2C nh3(&Wire, 0x7A);
-DFRobot_GAS_I2C co(&Wire, 0x78);
-DFRobot_GAS_I2C no2(&Wire, 0x7B);
-DFRobot_GAS_I2C o3(&Wire, 0x79);
+typedef struct {
+  uint8_t addr;
+  DFRobot_GAS_I2C* sensor;
+  String gasType;
+  bool initialized;
+} SensorInfo;
+
+SensorInfo sensors[MAX_SENSORS];
+int sensorCount = 0;
+
+bool initSensorAtAddress(uint8_t address) {
+  DFRobot_GAS_I2C temp(&Wire, address);
+
+  if (!temp.begin()) {
+    return false;
+  }
+
+  String gasType = temp.queryGasType();
+
+  if (gasType == "" || gasType == "None") {
+    return false;
+  }
+
+  DFRobot_GAS_I2C* newSensor = new DFRobot_GAS_I2C(&Wire, address);
+  newSensor->begin();
+
+  sensors[sensorCount].addr = address;
+  sensors[sensorCount].sensor = newSensor;
+  sensors[sensorCount].gasType = gasType;
+  sensors[sensorCount].initialized = false;
+
+  Serial.print("Detected sensor at 0x");
+  Serial.print(address, HEX);
+  Serial.print(": ");
+  Serial.println(gasType);
+
+  sensorCount++;
+  return true;
+}
+
+void configureSensor(SensorInfo& info) {
+  if (!info.sensor || info.initialized) return;
+
+  int attempts = 0;
+  const int MAX_ATTEMPTS = 5;
+
+  Serial.print("\nConfiguring ");
+  Serial.print(info.gasType);
+  Serial.print(" sensor at 0x");
+  Serial.println(info.addr, HEX);
+
+  while (!info.sensor->changeI2cAddrGroup(7) && attempts < MAX_ATTEMPTS) {
+    Serial.println("  - I2C address change attempt failed, retrying...");
+    delay(500);
+    attempts++;
+  }
+
+  if (attempts >= MAX_ATTEMPTS) {
+    Serial.println("  - ERROR: Failed to change I2C address!");
+    return;
+  }
+
+  Serial.println("  - I2C address group changed to 7");
+  delay(1000);
+
+  // Enable temperature compensation
+  info.sensor->setTempCompensation(info.sensor->ON);
+  Serial.println("  - Temperature compensation enabled");
+  delay(500);
+
+  // Set to passive mode (request data on demand)
+  info.sensor->changeAcquireMode(info.sensor->PASSIVITY);
+  Serial.println("  - Passive mode enabled");
+  delay(500);
+
+  info.initialized = true;
+  Serial.print("  - Configuration complete for ");
+  Serial.print(info.gasType);
+  Serial.println(" sensor");
+}
 
 void setup() {
-  // Serial port init for viewing printing output
   Serial.begin(115200);
-
-  // Change i2c address group
-  while (no2.changeI2cAddrGroup(7) == 0) {
-    Serial.println("IIC addr change fail!");
-    delay(1000);
-  }
-  Serial.println("IIC addr change success!");
-
-  // Sensor init, used to init serial port or I2C, depending on the communication mode currently
-  // used
-  while (!nh3.begin()) {
-    Serial.println("No Devices NH3 !");
-    delay(1000);
-  }
-  // Mode of obtaining data: the main controller needs to request the sensor for data
-  nh3.changeAcquireMode(nh3.PASSIVITY);
   delay(1000);
 
-  nh3.setTempCompensation(nh3.ON);
+  Serial.println("\n========================================");
+  Serial.println("DFRobot MultiGas Sensor Auto-Configure");
+  Serial.println("========================================");
+  Serial.println("\nScanning for sensors...\n");
 
-  Serial.println("The device nh3  0x7A is connected successfully!");
+  // Scan default group 6 addresses (0x74-0x77) for sensors
+  uint8_t defaultAddresses[] = {0x74, 0x75, 0x76, 0x77};
 
-  while (!co.begin()) {
-    Serial.println("No Devices CO !");
-    delay(1000);
+  for (uint8_t addr : defaultAddresses) {
+    if (initSensorAtAddress(addr)) {
+      if (sensorCount >= MAX_SENSORS) break;
+    }
   }
 
-  co.changeAcquireMode(co.PASSIVITY);
-  delay(1000);
-
-  co.setTempCompensation(co.ON);
-
-  Serial.println("The device CO  0x78 is connected successfully!");
-
-  while (!no2.begin()) {
-    Serial.println("No Devices NO2 !");
-    delay(1000);
+  if (sensorCount == 0) {
+    Serial.println("ERROR: No sensors detected!");
+    Serial.println("Please check I2C connections and sensor power.");
+    while (1) {
+      delay(1000);
+    }
   }
 
-  no2.changeAcquireMode(no2.PASSIVITY);
-  delay(1000);
+  Serial.print("\nFound ");
+  Serial.print(sensorCount);
+  Serial.println(" sensor(s)");
 
-  no2.setTempCompensation(no2.ON);
+  // Configure all detected sensors
+  Serial.println("\n========================================");
+  Serial.println("Configuring sensors...");
+  Serial.println("========================================");
 
-  Serial.println("The device NO2  0x7B is connected successfully!");
-
-  while (!o3.begin()) {
-    Serial.println("No Devices O3 !");
-    delay(1000);
+  for (int i = 0; i < sensorCount; i++) {
+    configureSensor(sensors[i]);
   }
 
-  o3.changeAcquireMode(o3.PASSIVITY);
-  delay(1000);
-
-  o3.setTempCompensation(o3.ON);
-
-  Serial.println("The device O3  0x79 is connected successfully!");
+  Serial.println("\n========================================");
+  Serial.println("Configuration complete!");
+  Serial.println("========================================\n");
 }
 
 void loop() {
-  String gastypeNH3 = nh3.queryGasType();
-  /**
-   *Fill in the parameter readGasConcentration() with the type of gas to be obtained and print
-   *The current gas concentration
-   *Print with 1s delay each time
-   */
-  Serial.print("Ambient ");
-  Serial.print(gastypeNH3);
-  Serial.print(" concentration is: ");
-  Serial.print(nh3.readGasConcentrationPPM());
-  if (gastypeNH3 == "O2")
-    Serial.println(" %vol");
-  else
-    Serial.println(" PPM");
-  Serial.println();
-  delay(1000);
+  for (int i = 0; i < sensorCount; i++) {
+    if (sensors[i].initialized) {
+      Serial.print(sensors[i].gasType);
+      Serial.print(" (0x");
+      Serial.print(sensors[i].addr, HEX);
+      Serial.print("): ");
+      Serial.print(sensors[i].sensor->readGasConcentrationPPM());
 
-  String gastypeCO = co.queryGasType();
-  /**
-   *Fill in the parameter readGasConcentration() with the type of gas to be obtained and print
-   *The current gas concentration
-   *Print with 1s delay each time
-   */
-  Serial.print("Ambient ");
-  Serial.print(gastypeCO);
-  Serial.print(" concentration is: ");
-  Serial.print(co.readGasConcentrationPPM());
-  if (gastypeCO == "O2")
-    Serial.println(" %vol");
-  else
-    Serial.println(" PPM");
-  Serial.println();
-  delay(1000);
+      if (sensors[i].gasType == "O2") {
+        Serial.println(" %vol");
+      } else {
+        Serial.println(" PPM");
+      }
+    }
+  }
 
-  String gastypeNO2 = no2.queryGasType();
-  /**
-   *Fill in the parameter readGasConcentration() with the type of gas to be obtained and print
-   *The current gas concentration
-   *Print with 1s delay each time
-   */
-  Serial.print("Ambient ");
-  Serial.print(gastypeNO2);
-  Serial.print(" concentration is: ");
-  Serial.print(no2.readGasConcentrationPPM());
-  if (gastypeNO2 == "O2")
-    Serial.println(" %vol");
-  else
-    Serial.println(" PPM");
   Serial.println();
-  delay(1000);
-
-  String gastypeO3 = o3.queryGasType();
-  /**
-   *Fill in the parameter readGasConcentration() with the type of gas to be obtained and print
-   *The current gas concentration
-   *Print with 1s delay each time
-   */
-  Serial.print("Ambient ");
-  Serial.print(gastypeO3);
-  Serial.print(" concentration is: ");
-  Serial.print(o3.readGasConcentrationPPM());
-  if (gastypeO3 == "O2")
-    Serial.println(" %vol");
-  else
-    Serial.println(" PPM");
-  Serial.println();
-  delay(1000);
+  delay(2000);
 }
