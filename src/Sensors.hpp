@@ -617,6 +617,7 @@ class Sensors {
 
   float dfrGasTempCompensation(float rawPpm, float temperature, uint8_t gasType);
   float dfrGasPressCompensation(float ppm, float pressure);
+  float dfrGasHumiCompensation(float ppm, float humidity, uint8_t gasType);
   bool dfrHasExternalTempSensor() const;
 
   // UART sensors methods:
