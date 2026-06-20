@@ -51,10 +51,10 @@ GEIGER::GEIGER(int gpio, bool debug) {
   attachInterrupt(digitalPinToInterrupt(gpio), GeigerTicISR, FALLING);
 
   // attach interrupt routine to internal timer, to fire every 1000 ms
-  geiger_timer = timerBegin(GEIGER_TIMER, 80, true);
-  timerAttachInterrupt(geiger_timer, &onGeigerTimer, true);
-  timerAlarmWrite(geiger_timer, 1000000, true);  // 1000 ms
-  timerAlarmEnable(geiger_timer);
+  // New ESP32 timer API uses frequency in Hz rather than timer number/prescaler.
+  geiger_timer = timerBegin(1000000);
+  timerAttachInterrupt(geiger_timer, onGeigerTimer);
+  timerAlarm(geiger_timer, 1000000, true, 1000000);  // 1000 ms periodic
 #endif
 }
 
@@ -104,10 +104,10 @@ bool GEIGER::read() {
 
 #ifdef CORE_DEBUG_LEVEL
   if (CORE_DEBUG_LEVEL >= 3) {
-    Serial.printf("-->[SLIB] tTOT:\t %i\r\n", tics_tot);
-    Serial.printf("-->[SLIB] tLEN:\t %i ", tics_len);
+    Serial.printf("-->[SLIB] tTOT:\t %lu\r\n", (unsigned long)tics_tot);
+    Serial.printf("-->[SLIB] tLEN:\t %lu ", (unsigned long)tics_len);
     Serial.println(ready ? "(ready)" : "(not ready)");
-    Serial.printf("-->[SLIB] tCPM:\t %i\r\n", tics_cpm);
+    Serial.printf("-->[SLIB] tCPM:\t %lu\r\n", (unsigned long)tics_cpm);
     Serial.printf("-->[SLIB] uSvh:\t %04.2f\r\n", uSvh);
   }
 #endif
