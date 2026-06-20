@@ -1291,6 +1291,8 @@ void Sensors::DFRobotNH3Read() {
   bool hasExternalTempSensor = dfrHasExternalTempSensor();
   float compensationTemp = hasExternalTempSensor ? temp : (dfrInternalTemp - toffset);
   nh3 = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::NH3);
+  if (hasExternalTempSensor && humi > 0.0f)
+    nh3 = dfrGasHumiCompensation(nh3, humi, DFRobot_GAS::NH3);
   if (pres > 0.0) nh3 = dfrGasPressCompensation(nh3, pres);
   unitRegister(UNIT::NH3);
   dataReady = true;
@@ -1307,6 +1309,7 @@ void Sensors::DFRobotCORead() {
   bool hasExternalTempSensor = dfrHasExternalTempSensor();
   float compensationTemp = hasExternalTempSensor ? temp : (dfrInternalTemp - toffset);
   co = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::CO);
+  if (hasExternalTempSensor && humi > 0.0f) co = dfrGasHumiCompensation(co, humi, DFRobot_GAS::CO);
   if (pres > 0.0) co = dfrGasPressCompensation(co, pres);
   unitRegister(UNIT::CO);
   dataReady = true;
@@ -1323,6 +1326,8 @@ void Sensors::DFRobotNO2Read() {
   bool hasExternalTempSensor = dfrHasExternalTempSensor();
   float compensationTemp = hasExternalTempSensor ? temp : (dfrInternalTemp - toffset);
   no2 = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::NO2);
+  if (hasExternalTempSensor && humi > 0.0f)
+    no2 = dfrGasHumiCompensation(no2, humi, DFRobot_GAS::NO2);
   if (pres > 0.0) no2 = dfrGasPressCompensation(no2, pres);
   unitRegister(UNIT::NO2);
   dataReady = true;
@@ -1339,6 +1344,7 @@ void Sensors::DFRobotO3Read() {
   bool hasExternalTempSensor = dfrHasExternalTempSensor();
   float compensationTemp = hasExternalTempSensor ? temp : (dfrInternalTemp - toffset);
   o3 = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::O3);
+  if (hasExternalTempSensor && humi > 0.0f) o3 = dfrGasHumiCompensation(o3, humi, DFRobot_GAS::O3);
   if (pres > 0.0) o3 = dfrGasPressCompensation(o3, pres);
   unitRegister(UNIT::O3);
   dataReady = true;
@@ -2316,6 +2322,62 @@ float Sensors::dfrGasPressCompensation(float ppm, float pressure) {
   static const float STANDARD_PRESSURE_HPA = 1013.25f;
   if (pressure <= 0.0f) return ppm;
   return ppm * (STANDARD_PRESSURE_HPA / pressure);
+}
+
+/**
+ * @brief Humidity compensation for DFRobot electrochemical gas sensors.
+ *
+ * Electrochemical cells drift with relative humidity (cross-sensitivity),
+ * most noticeably for NO2 and NH3. DFRobot does NOT publish official RH
+ * coefficients, so by default this function is a NO-OP (coefficients = 0)
+ * and returns the input unchanged — it will not introduce noise.
+ *
+ * Once you have the SHT31 logging in parallel with the official reference
+ * station, derive real per-gas coefficients by regression and either fill
+ * them in below or define SLIB_DFR_HUMI_COMP with your fitted values.
+ *
+ * Model: ppm_out = (ppm / (1 + k_gain*(RH-REF))) - k_off*(RH-REF)
+ *
+ * @param ppm   Gas concentration after temperature compensation
+ * @param humidity  Relative humidity in % (from SHT31/BME280/etc.)
+ * @param gasType   DFRobot gas type constant (::CO, ::NH3, ::NO2, ::O3)
+ * @return Humidity-compensated gas concentration in PPM
+ */
+float Sensors::dfrGasHumiCompensation(float ppm, float humidity, uint8_t gasType) {
+  static const float REF_HUMI = 50.0f;  // factory reference RH (%)
+  if (humidity <= 0.0f || humidity > 100.0f) return ppm;
+
+  const float delta = humidity - REF_HUMI;
+
+  // Default coefficients = 0 (NO-OP). Replace with your regression results.
+  float kGain = 0.0f;  // sensitivity drift per %RH
+  float kOff = 0.0f;   // baseline drift per %RH
+
+  switch (gasType) {
+    case DFRobot_GAS::NH3:
+      // kGain = 0.0015f; kOff = 0.002f;   // example placeholders
+      break;
+    case DFRobot_GAS::NO2:
+      // kGain = 0.0010f; kOff = 0.001f;
+      break;
+    case DFRobot_GAS::O3:
+      // kGain = 0.0020f; kOff = 0.0015f;
+      break;
+    case DFRobot_GAS::CO:
+      // kGain = 0.0005f; kOff = 0.0f;
+      break;
+    default:
+      break;
+  }
+
+  if (kGain == 0.0f && kOff == 0.0f) return ppm;  // nothing to do
+
+  const float gainDivisor = 1.0f + kGain * delta;
+  const float scaled = (gainDivisor != 0.0f) ? (ppm / gainDivisor) : ppm;
+  const float compensated = scaled - kOff * delta;
+
+  if (compensated < 0.0f) return (scaled > 0.0f) ? scaled : 0.0f;
+  return compensated;
 }
 
 /// DFRobot GAS (CO) sensors init
