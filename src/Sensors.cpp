@@ -1489,7 +1489,6 @@ void Sensors::noiseSensorInitWire() {
   noiseWireReady = true;
 }
 
-
 #ifdef DHT11_ENABLED
 DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
 /**
