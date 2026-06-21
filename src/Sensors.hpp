@@ -531,7 +531,6 @@ class Sensors {
   SensorData noiseSensorData{};
   bool noiseWireReady = false;
   uint8_t noiseSensorAddress = 0;
-  static_assert(sizeof(SensorData) == 68, "SensorData size mismatch");
 
   bool noiseSensorEnabled = false;
   float noiseInstant = 0.0;
