@@ -73,9 +73,7 @@ Sensors::~Sensors() {
  * All sensors are read here, please call it on main loop.
  */
 void Sensors::loop() {
-#ifdef CSL_NOISE_SENSOR_SUPPORTED
   noiseSensorService();
-#endif
   static uint32_t pmLoopTimeStamp = 0;  // timestamp for sensor loop check data
   if ((millis() - pmLoopTimeStamp >
        sample_time * (uint32_t)1000)) {  // sample time for each capture
@@ -130,9 +128,7 @@ bool Sensors::readAllSensors() {
   geigerRead();
   sgp41Read();
 
-#ifdef CSL_NOISE_SENSOR_SUPPORTED
   noiseSensorCollect();
-#endif
 
 #ifdef DHT11_ENABLED
   dhtRead();
@@ -214,9 +210,7 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
   DFRobotO3Init();
   sgp41Init();
 
-#ifdef CSL_NOISE_SENSOR_SUPPORTED
   noiseSensorAutoDetect();
-#endif
 
 #ifdef DHT11_ENABLED
   dhtInit();
@@ -494,7 +488,6 @@ float Sensors::getNO2() const { return no2; }
 /// get O3 value in ppm
 float Sensors::getO3() const { return o3; }
 
-#ifdef CSL_NOISE_SENSOR_SUPPORTED
 float Sensors::getNoise() const { return noiseInstant; }
 
 float Sensors::getNoiseAverage() const { return noiseAvgValue; }
@@ -510,7 +503,6 @@ float Sensors::getNoiseLd() const { return noiseLdValue; }
 float Sensors::getNoiseLe() const { return noiseLeValue; }
 float Sensors::getNoiseLn() const { return noiseLnValue; }
 float Sensors::getNoiseLden() const { return noiseLdenValue; }
-#endif
 
 /**
  * @brief UART only: check if the UART sensor is registered
@@ -1354,7 +1346,6 @@ void Sensors::DFRobotO3Read() {
   }
 }
 
-#if (CSL_NOISE_SENSOR_SUPPORTED == 1)
 bool Sensors::noiseSensorAutoDetect() {
   if (noiseSensorEnabled) return true;
   if (noiseScanDone) return false;
@@ -1498,7 +1489,6 @@ void Sensors::noiseSensorInitWire() {
   noiseWireReady = true;
 }
 
-#endif
 
 #ifdef DHT11_ENABLED
 DHT_nonblocking dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
@@ -1771,8 +1761,8 @@ bool Sensors::senseAirS8Init() {
   Serial.println("-->[SLIB] UART sensor detected \t: SenseAir S8");
   if (devmode) {
     Serial.printf("-->[SLIB] S8 Software version\t: %s\r\n", s8sensor.firm_version);
-    Serial.printf("-->[SLIB] S8 Sensor type\t: 0x%08x\r\n", s8->get_sensor_type_ID());
-    Serial.printf("-->[SLIB] S8 Sensor ID\t: %08x\r\n", s8->get_sensor_ID());
+    Serial.printf("-->[SLIB] S8 Sensor type\t: 0x%08ld\r\n", s8->get_sensor_type_ID());
+    Serial.printf("-->[SLIB] S8 Sensor ID\t: %08ld\r\n", s8->get_sensor_ID());
     Serial.printf("-->[SLIB] S8 Memory ver\t: 0x%04x\r\n", s8->get_memory_map_version());
     Serial.printf("-->[SLIB] S8 ABC period\t: %d hours\r\n", s8->get_ABC_period());
   }
@@ -2508,7 +2498,6 @@ void Sensors::resetAllVariables() {
   co = 0;
   no2 = 0.0;
   o3 = 0.0;
-#ifdef CSL_NOISE_SENSOR_SUPPORTED
   noiseInstant = 0.0;
   noiseAvgValue = 0.0;
   noisePeakValue = 0.0;
@@ -2519,7 +2508,6 @@ void Sensors::resetAllVariables() {
   noiseLeValue = 0.0;
   noiseLnValue = 0.0;
   noiseLdenValue = 0.0;
-#endif
   if (rad != nullptr) rad->clear();
 }
 
