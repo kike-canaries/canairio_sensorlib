@@ -1293,7 +1293,7 @@ void Sensors::DFRobotNH3Read() {
   nh3 = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::NH3);
   if (hasExternalTempSensor && humi > 0.0f)
     nh3 = dfrGasHumiCompensation(nh3, humi, DFRobot_GAS::NH3);
-  if (pres > 0.0) nh3 = dfrGasPressCompensation(nh3, pres); 
+  if (pres > 0.0) nh3 = dfrGasPressCompensation(nh3, pres);
   unitRegister(UNIT::NH3);
   dataReady = true;
   if (!hasExternalTempSensor) {
@@ -1309,8 +1309,7 @@ void Sensors::DFRobotCORead() {
   bool hasExternalTempSensor = dfrHasExternalTempSensor();
   float compensationTemp = hasExternalTempSensor ? temp : (dfrInternalTemp - toffset);
   co = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::CO);
-  if (hasExternalTempSensor && humi > 0.0f)
-    co = dfrGasHumiCompensation(co, humi, DFRobot_GAS::CO);
+  if (hasExternalTempSensor && humi > 0.0f) co = dfrGasHumiCompensation(co, humi, DFRobot_GAS::CO);
   if (pres > 0.0) co = dfrGasPressCompensation(co, pres);
   unitRegister(UNIT::CO);
   dataReady = true;
@@ -1345,8 +1344,7 @@ void Sensors::DFRobotO3Read() {
   bool hasExternalTempSensor = dfrHasExternalTempSensor();
   float compensationTemp = hasExternalTempSensor ? temp : (dfrInternalTemp - toffset);
   o3 = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::O3);
-  if (hasExternalTempSensor && humi > 0.0f)
-    o3 = dfrGasHumiCompensation(o3, humi, DFRobot_GAS::O3);
+  if (hasExternalTempSensor && humi > 0.0f) o3 = dfrGasHumiCompensation(o3, humi, DFRobot_GAS::O3);
   if (pres > 0.0) o3 = dfrGasPressCompensation(o3, pres);
   unitRegister(UNIT::O3);
   dataReady = true;
