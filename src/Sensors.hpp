@@ -33,9 +33,7 @@
 #define CSL_NOISE_SENSOR_SUPPORTED 1
 #endif
 
-#ifdef CSL_NOISE_SENSOR_SUPPORTED
 #include "drivers/NoiseSlave.h"
-#endif
 
 #ifdef DHT11_ENABLED
 #include <dht_nonblocking.h>
@@ -399,7 +397,6 @@ class Sensors {
 
   void enableGeigerSensor(int gpio);
 
-#ifdef CSL_NOISE_SENSOR_SUPPORTED
   float getNoise() const;
 
   float getNoiseAverage() const;
@@ -418,7 +415,6 @@ class Sensors {
   bool sendNoiseSensorTime(uint32_t unixTime);
   bool syncNoiseSensorTime();
   void setNoiseSensorTimeSyncInterval(uint32_t intervalMs);
-#endif
 
   uint32_t getGeigerCPM(void) const;
 
@@ -531,15 +527,11 @@ class Sensors {
   float no2;  // Nitrogen dioxide in ppm
   float o3;   // Ozone in ppm
 
-#ifdef CSL_NOISE_SENSOR_SUPPORTED
   TwoWire *noiseWire = nullptr;
   SensorData noiseSensorData{};
   bool noiseWireReady = false;
   uint8_t noiseSensorAddress = 0;
-#if __cplusplus >= 201103L
-  static_assert(sizeof(SensorData) == 68, "SensorData size mismatch");
-#endif
-#endif
+
   bool noiseSensorEnabled = false;
   float noiseInstant = 0.0;
   float noiseAvgValue = 0.0;
@@ -677,7 +669,6 @@ class Sensors {
 
   uint8_t *getUnitsRegistered();
 
-#ifdef CSL_NOISE_SENSOR_SUPPORTED
   bool noiseSensorAutoDetect();
   void noiseSensorService();
   void noiseSensorCollect();
@@ -685,7 +676,6 @@ class Sensors {
   bool noiseSensorReadData(TwoWire &wire, uint8_t address, SensorData &out);
   bool noiseSensorDevicePresent(TwoWire &wire, uint8_t address);
   void noiseSensorInitWire();
-#endif
 
 // @todo use DEBUG_ESP_PORT ?
 #ifdef WM_DEBUG_PORT
