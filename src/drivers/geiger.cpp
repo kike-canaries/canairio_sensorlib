@@ -52,9 +52,21 @@ GEIGER::GEIGER(int gpio, bool debug) {
 
   // attach interrupt routine to internal timer, to fire every 1000 ms
   // New ESP32 timer API uses frequency in Hz rather than timer number/prescaler.
+  // Support both old and new ESP32 Arduino timer APIs:
+  // - Older cores: timerBegin(uint32_t frequency), timerAttachInterrupt(hw_timer_t*, void(*)()), timerAlarm(...)
+  // - Newer cores: timerBegin(uint8_t, uint16_t, bool), timerAttachInterrupt(..., bool), timerAlarmWrite(), timerAlarmEnable()
+#if defined(MAIN_ESP32_HAL_TIMER_H_)
+  // New API
+  geiger_timer = timerBegin(0, 80, true);
+  timerAttachInterrupt(geiger_timer, &onGeigerTimer, true);
+  timerAlarmWrite(geiger_timer, 1000000, true); // 1000 ms periodic
+  timerAlarmEnable(geiger_timer);
+#else
+  // Old API
   geiger_timer = timerBegin(1000000);
   timerAttachInterrupt(geiger_timer, onGeigerTimer);
   timerAlarm(geiger_timer, 1000000, true, 1000000);  // 1000 ms periodic
+#endif
 #endif
 }
 
