@@ -1291,6 +1291,8 @@ void Sensors::DFRobotNH3Read() {
   bool hasExternalTempSensor = dfrHasExternalTempSensor();
   float compensationTemp = hasExternalTempSensor ? temp : (dfrInternalTemp - toffset);
   nh3 = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::NH3);
+  if (hasExternalTempSensor && humi > 0.0f)
+    nh3 = dfrGasHumiCompensation(nh3, humi, DFRobot_GAS::NH3);
   if (pres > 0.0) nh3 = dfrGasPressCompensation(nh3, pres);
   unitRegister(UNIT::NH3);
   dataReady = true;
@@ -1307,6 +1309,7 @@ void Sensors::DFRobotCORead() {
   bool hasExternalTempSensor = dfrHasExternalTempSensor();
   float compensationTemp = hasExternalTempSensor ? temp : (dfrInternalTemp - toffset);
   co = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::CO);
+  if (hasExternalTempSensor && humi > 0.0f) co = dfrGasHumiCompensation(co, humi, DFRobot_GAS::CO);
   if (pres > 0.0) co = dfrGasPressCompensation(co, pres);
   unitRegister(UNIT::CO);
   dataReady = true;
@@ -1323,6 +1326,8 @@ void Sensors::DFRobotNO2Read() {
   bool hasExternalTempSensor = dfrHasExternalTempSensor();
   float compensationTemp = hasExternalTempSensor ? temp : (dfrInternalTemp - toffset);
   no2 = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::NO2);
+  if (hasExternalTempSensor && humi > 0.0f)
+    no2 = dfrGasHumiCompensation(no2, humi, DFRobot_GAS::NO2);
   if (pres > 0.0) no2 = dfrGasPressCompensation(no2, pres);
   unitRegister(UNIT::NO2);
   dataReady = true;
@@ -1339,6 +1344,7 @@ void Sensors::DFRobotO3Read() {
   bool hasExternalTempSensor = dfrHasExternalTempSensor();
   float compensationTemp = hasExternalTempSensor ? temp : (dfrInternalTemp - toffset);
   o3 = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::O3);
+  if (hasExternalTempSensor && humi > 0.0f) o3 = dfrGasHumiCompensation(o3, humi, DFRobot_GAS::O3);
   if (pres > 0.0) o3 = dfrGasPressCompensation(o3, pres);
   unitRegister(UNIT::O3);
   dataReady = true;
@@ -1351,9 +1357,8 @@ void Sensors::DFRobotO3Read() {
 #if (CSL_NOISE_SENSOR_SUPPORTED == 1)
 bool Sensors::noiseSensorAutoDetect() {
   if (noiseSensorEnabled) return true;
-  if (noiseScanDone && (millis() - noiseLastScanMs < noiseScanRetryMs)) return false;
+  if (noiseScanDone) return false;
   noiseScanDone = true;
-  noiseLastScanMs = millis();
 
   noiseSensorInitWire();
   if (noiseWire == nullptr) {
@@ -1361,22 +1366,25 @@ bool Sensors::noiseSensorAutoDetect() {
     return false;
   }
 
-  for (uint8_t addr = MIN_I2C_ADDRESS; addr <= MAX_I2C_ADDRESS; addr++) {
-    if (devmode && (addr == MIN_I2C_ADDRESS || (addr % 16 == 0)))
-      Serial.printf("-->[SLIB] Scanning I2C addr: 0x%02X\r\n", addr);
-    bool present = noiseSensorDevicePresent(*noiseWire, addr);
-    if (devmode && addr == MIN_I2C_ADDRESS)
-      Serial.printf("-->[SLIB] Probe 0x%02X: %s\r\n", addr, present ? "ACK" : "NACK");
-    if (!present) continue;
+  for (uint8_t addr = NOISE_MIN_SCAN_ADDR; addr <= NOISE_MAX_SCAN_ADDR; addr++) {
+    if (!noiseSensorDevicePresent(*noiseWire, addr)) continue;
     if (devmode) Serial.printf("-->[SLIB] Found device at: 0x%02X, reading identity...\r\n", addr);
 
-    uint8_t status = 0xFF;
-    if (!noiseSensorReadStatus(*noiseWire, addr, status)) {
-      if (devmode) Serial.printf("-->[SLIB] Failed to read status at: 0x%02X\r\n", addr);
+    SensorIdentity identity;
+    if (!noiseSensorReadIdentity(*noiseWire, addr, identity)) {
+      if (devmode) Serial.printf("-->[SLIB] No identity response at: 0x%02X\r\n", addr);
       continue;
     }
-    if (status > 0x07) {
-      if (devmode) Serial.printf("-->[SLIB] Wrong status at: 0x%02X (0x%02X)\r\n", addr, status);
+    if (identity.sensorType != NOISE_SENSOR_TYPE_ID) {
+      if (devmode)
+        Serial.printf("-->[SLIB] Wrong sensor type at: 0x%02X (0x%02X)\r\n", addr,
+                      identity.sensorType);
+      continue;
+    }
+    if (identity.i2cAddress != addr) {
+      if (devmode)
+        Serial.printf("-->[SLIB] Addr mismatch at: 0x%02X (reported 0x%02X)\r\n", addr,
+                      identity.i2cAddress);
       continue;
     }
 
@@ -1393,6 +1401,7 @@ bool Sensors::noiseSensorAutoDetect() {
 }
 
 void Sensors::noiseSensorService() {
+  // Detection is done once at boot; noiseScanDone prevents any retry.
   if (noiseSensorEnabled || noiseScanDone) return;
   noiseSensorAutoDetect();
 }
@@ -1445,22 +1454,17 @@ void Sensors::noiseSensorCollect() {
   unitRegister(UNIT::NOISELDEN);
 }
 
-bool Sensors::noiseSensorReadStatus(TwoWire &wire, uint8_t address, uint8_t &status) {
-  int retries = 3;
-  while (retries-- > 0) {
-    wire.beginTransmission(address);
-    wire.write(CMD_GET_STATUS);
-    if (wire.endTransmission(true) == 0) {
-      delay(10);
-      uint8_t got = wire.requestFrom(address, (uint8_t)1);
-      if (got == 1) {
-        status = wire.read();
-        return true;
-      }
-    }
-    delay(100);
-  }
-  return false;
+bool Sensors::noiseSensorReadIdentity(TwoWire &wire, uint8_t address, SensorIdentity &identity) {
+  wire.beginTransmission(address);
+  wire.write(CMD_IDENTIFY);
+  if (wire.endTransmission(true) != 0) return false;
+  delay(5);
+  uint8_t got = wire.requestFrom(address, (uint8_t)sizeof(SensorIdentity));
+  if (got != sizeof(SensorIdentity)) return false;
+  uint8_t buffer[sizeof(SensorIdentity)];
+  wire.readBytes(buffer, sizeof(SensorIdentity));
+  memcpy(&identity, buffer, sizeof(SensorIdentity));
+  return true;
 }
 
 bool Sensors::noiseSensorReadData(TwoWire &wire, uint8_t address, SensorData &out) {
@@ -2312,6 +2316,62 @@ float Sensors::dfrGasPressCompensation(float ppm, float pressure) {
   static const float STANDARD_PRESSURE_HPA = 1013.25f;
   if (pressure <= 0.0f) return ppm;
   return ppm * (STANDARD_PRESSURE_HPA / pressure);
+}
+
+/**
+ * @brief Humidity compensation for DFRobot electrochemical gas sensors.
+ *
+ * Electrochemical cells drift with relative humidity (cross-sensitivity),
+ * most noticeably for NO2 and NH3. DFRobot does NOT publish official RH
+ * coefficients, so by default this function is a NO-OP (coefficients = 0)
+ * and returns the input unchanged — it will not introduce noise.
+ *
+ * Once you have the SHT31 logging in parallel with the official reference
+ * station, derive real per-gas coefficients by regression and either fill
+ * them in below or define SLIB_DFR_HUMI_COMP with your fitted values.
+ *
+ * Model: ppm_out = (ppm / (1 + k_gain*(RH-REF))) - k_off*(RH-REF)
+ *
+ * @param ppm   Gas concentration after temperature compensation
+ * @param humidity  Relative humidity in % (from SHT31/BME280/etc.)
+ * @param gasType   DFRobot gas type constant (::CO, ::NH3, ::NO2, ::O3)
+ * @return Humidity-compensated gas concentration in PPM
+ */
+float Sensors::dfrGasHumiCompensation(float ppm, float humidity, uint8_t gasType) {
+  static const float REF_HUMI = 50.0f;  // factory reference RH (%)
+  if (humidity <= 0.0f || humidity > 100.0f) return ppm;
+
+  const float delta = humidity - REF_HUMI;
+
+  // Default coefficients = 0 (NO-OP). Replace with your regression results.
+  float kGain = 0.0f;  // sensitivity drift per %RH
+  float kOff = 0.0f;   // baseline drift per %RH
+
+  switch (gasType) {
+    case DFRobot_GAS::NH3:
+      // kGain = 0.0015f; kOff = 0.002f;   // example placeholders
+      break;
+    case DFRobot_GAS::NO2:
+      // kGain = 0.0010f; kOff = 0.001f;
+      break;
+    case DFRobot_GAS::O3:
+      // kGain = 0.0020f; kOff = 0.0015f;
+      break;
+    case DFRobot_GAS::CO:
+      // kGain = 0.0005f; kOff = 0.0f;
+      break;
+    default:
+      break;
+  }
+
+  if (kGain == 0.0f && kOff == 0.0f) return ppm;  // nothing to do
+
+  const float gainDivisor = 1.0f + kGain * delta;
+  const float scaled = (gainDivisor != 0.0f) ? (ppm / gainDivisor) : ppm;
+  const float compensated = scaled - kOff * delta;
+
+  if (compensated < 0.0f) return (scaled > 0.0f) ? scaled : 0.0f;
+  return compensated;
 }
 
 /// DFRobot GAS (CO) sensors init
