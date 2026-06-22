@@ -8,8 +8,6 @@
 #define SLIB_I2C_CLOCK_HZ 100000
 #endif
 
-
-
 // Units and sensors registers
 
 #define X(unit, symbol, name) symbol,
