@@ -8,15 +8,7 @@
 #define SLIB_I2C_CLOCK_HZ 100000
 #endif
 
-static void dfrGasBeginFailed(const char *gasName, uint8_t i2cAddr) {
-#ifdef CORE_DEBUG_LEVEL
-  if (CORE_DEBUG_LEVEL > 0) {
-    Serial.printf("[W][SLIB] DFRobot %s begin failed — I2C 0x%02X\r\n", gasName, i2cAddr);
-  }
-#else
-  Serial.printf("[W][SLIB] DFRobot %s begin failed — I2C 0x%02X\r\n", gasName, i2cAddr);
-#endif
-}
+
 
 // Units and sensors registers
 
@@ -2378,7 +2370,10 @@ void Sensors::DFRobotCOInit() {
   dfrCO.changeAcquireMode(dfrCO.PASSIVITY);
   delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
   // Disable internal compensation: we apply our own using external T/P sensors
-  dfrCO.setTempCompensation(dfrCO.OFF);
+  if (dfrHasExternalTempSensor())
+    dfrCO.setTempCompensation(dfrCO.ON);
+  else
+    dfrCO.setTempCompensation(dfrCO.OFF);
   sensorRegister(SENSORS::SDFRCO);
 }
 
@@ -2391,7 +2386,10 @@ void Sensors::DFRobotNH3Init() {
   dfrNH3.changeAcquireMode(dfrNH3.PASSIVITY);
   delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
   // Disable internal compensation: we apply our own using external T/P sensors
-  dfrNH3.setTempCompensation(dfrNH3.OFF);
+  if (dfrHasExternalTempSensor())
+    dfrNH3.setTempCompensation(dfrNH3.ON);
+  else
+    dfrNH3.setTempCompensation(dfrNH3.OFF);
   sensorRegister(SENSORS::SDFRNH3);
 }
 
@@ -2404,7 +2402,10 @@ void Sensors::DFRobotNO2Init() {
   dfrNO2.changeAcquireMode(dfrNO2.PASSIVITY);
   delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
   // Disable internal compensation: we apply our own using external T/P sensors
-  dfrNO2.setTempCompensation(dfrNO2.OFF);
+  if (dfrHasExternalTempSensor())
+    dfrNO2.setTempCompensation(dfrNO2.ON);
+  else
+    dfrNO2.setTempCompensation(dfrNO2.OFF);
   sensorRegister(SENSORS::SDFRNO2);
 }
 
@@ -2417,7 +2418,10 @@ void Sensors::DFRobotO3Init() {
   dfrO3.changeAcquireMode(dfrO3.PASSIVITY);
   delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
   // Disable internal compensation: we apply our own using external T/P sensors
-  dfrO3.setTempCompensation(dfrO3.OFF);
+  if (dfrHasExternalTempSensor())
+    dfrO3.setTempCompensation(dfrO3.ON);
+  else
+    dfrO3.setTempCompensation(dfrO3.OFF);
   sensorRegister(SENSORS::SDFRO3);
 }
 
