@@ -8,10 +8,6 @@
 #define SLIB_I2C_CLOCK_HZ 100000
 #endif
 
-static void dfrGasBeginFailed(const char *gasName, uint8_t i2cAddr) {
-  Serial.printf("[W][SLIB] DFRobot %s begin failed — I2C 0x%02X\r\n", gasName, i2cAddr);
-}
-
 // Units and sensors registers
 
 #define X(unit, symbol, name) symbol,
@@ -2367,15 +2363,15 @@ float Sensors::dfrGasHumiCompensation(float ppm, float humidity, uint8_t gasType
 void Sensors::DFRobotCOInit() {
   sensorAnnounce(SENSORS::SDFRCO);
   dfrCO = DFRobot_GAS_I2C(&Wire, DFROBOT_CO_I2C_ADDR);
-  if (!dfrCO.begin()) {
-    dfrGasBeginFailed("CO", DFROBOT_CO_I2C_ADDR);
-    return;
-  }
+  if (!dfrCO.begin()) return;
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrCO.changeAcquireMode(dfrCO.PASSIVITY);
   delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
   // Disable internal compensation: we apply our own using external T/P sensors
-  dfrCO.setTempCompensation(dfrCO.OFF);
+  if (dfrHasExternalTempSensor())
+    dfrCO.setTempCompensation(dfrCO.ON);
+  else
+    dfrCO.setTempCompensation(dfrCO.OFF);
   sensorRegister(SENSORS::SDFRCO);
 }
 
@@ -2383,15 +2379,15 @@ void Sensors::DFRobotCOInit() {
 void Sensors::DFRobotNH3Init() {
   sensorAnnounce(SENSORS::SDFRNH3);
   dfrNH3 = DFRobot_GAS_I2C(&Wire, DFROBOT_NH3_I2C_ADDR);
-  if (!dfrNH3.begin()) {
-    dfrGasBeginFailed("NH3", DFROBOT_NH3_I2C_ADDR);
-    return;
-  }
+  if (!dfrNH3.begin()) return;
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrNH3.changeAcquireMode(dfrNH3.PASSIVITY);
   delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
   // Disable internal compensation: we apply our own using external T/P sensors
-  dfrNH3.setTempCompensation(dfrNH3.OFF);
+  if (dfrHasExternalTempSensor())
+    dfrNH3.setTempCompensation(dfrNH3.ON);
+  else
+    dfrNH3.setTempCompensation(dfrNH3.OFF);
   sensorRegister(SENSORS::SDFRNH3);
 }
 
@@ -2399,15 +2395,15 @@ void Sensors::DFRobotNH3Init() {
 void Sensors::DFRobotNO2Init() {
   sensorAnnounce(SENSORS::SDFRNO2);
   dfrNO2 = DFRobot_GAS_I2C(&Wire, DFROBOT_NO2_I2C_ADDR);
-  if (!dfrNO2.begin()) {
-    dfrGasBeginFailed("NO2", DFROBOT_NO2_I2C_ADDR);
-    return;
-  }
+  if (!dfrNO2.begin()) return;
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrNO2.changeAcquireMode(dfrNO2.PASSIVITY);
   delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
   // Disable internal compensation: we apply our own using external T/P sensors
-  dfrNO2.setTempCompensation(dfrNO2.OFF);
+  if (dfrHasExternalTempSensor())
+    dfrNO2.setTempCompensation(dfrNO2.ON);
+  else
+    dfrNO2.setTempCompensation(dfrNO2.OFF);
   sensorRegister(SENSORS::SDFRNO2);
 }
 
@@ -2415,15 +2411,15 @@ void Sensors::DFRobotNO2Init() {
 void Sensors::DFRobotO3Init() {
   sensorAnnounce(SENSORS::SDFRO3);
   dfrO3 = DFRobot_GAS_I2C(&Wire, DFROBOT_O3_I2C_ADDR);
-  if (!dfrO3.begin()) {
-    dfrGasBeginFailed("O3", DFROBOT_O3_I2C_ADDR);
-    return;
-  }
+  if (!dfrO3.begin()) return;
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrO3.changeAcquireMode(dfrO3.PASSIVITY);
   delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
   // Disable internal compensation: we apply our own using external T/P sensors
-  dfrO3.setTempCompensation(dfrO3.OFF);
+  if (dfrHasExternalTempSensor())
+    dfrO3.setTempCompensation(dfrO3.ON);
+  else
+    dfrO3.setTempCompensation(dfrO3.OFF);
   sensorRegister(SENSORS::SDFRO3);
 }
 
