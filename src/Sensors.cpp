@@ -9,7 +9,13 @@
 #endif
 
 static void dfrGasBeginFailed(const char *gasName, uint8_t i2cAddr) {
+#ifdef CORE_DEBUG_LEVEL
+  if (CORE_DEBUG_LEVEL > 0) {
+    Serial.printf("[W][SLIB] DFRobot %s begin failed — I2C 0x%02X\r\n", gasName, i2cAddr);
+  }
+#else
   Serial.printf("[W][SLIB] DFRobot %s begin failed — I2C 0x%02X\r\n", gasName, i2cAddr);
+#endif
 }
 
 // Units and sensors registers
@@ -2367,10 +2373,7 @@ float Sensors::dfrGasHumiCompensation(float ppm, float humidity, uint8_t gasType
 void Sensors::DFRobotCOInit() {
   sensorAnnounce(SENSORS::SDFRCO);
   dfrCO = DFRobot_GAS_I2C(&Wire, DFROBOT_CO_I2C_ADDR);
-  if (!dfrCO.begin()) {
-    dfrGasBeginFailed("CO", DFROBOT_CO_I2C_ADDR);
-    return;
-  }
+  if (!dfrCO.begin()) return;
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrCO.changeAcquireMode(dfrCO.PASSIVITY);
   delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
@@ -2383,10 +2386,7 @@ void Sensors::DFRobotCOInit() {
 void Sensors::DFRobotNH3Init() {
   sensorAnnounce(SENSORS::SDFRNH3);
   dfrNH3 = DFRobot_GAS_I2C(&Wire, DFROBOT_NH3_I2C_ADDR);
-  if (!dfrNH3.begin()) {
-    dfrGasBeginFailed("NH3", DFROBOT_NH3_I2C_ADDR);
-    return;
-  }
+  if (!dfrNH3.begin()) return;
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrNH3.changeAcquireMode(dfrNH3.PASSIVITY);
   delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
@@ -2399,10 +2399,7 @@ void Sensors::DFRobotNH3Init() {
 void Sensors::DFRobotNO2Init() {
   sensorAnnounce(SENSORS::SDFRNO2);
   dfrNO2 = DFRobot_GAS_I2C(&Wire, DFROBOT_NO2_I2C_ADDR);
-  if (!dfrNO2.begin()) {
-    dfrGasBeginFailed("NO2", DFROBOT_NO2_I2C_ADDR);
-    return;
-  }
+  if (!dfrNO2.begin()) return;
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrNO2.changeAcquireMode(dfrNO2.PASSIVITY);
   delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
@@ -2415,10 +2412,7 @@ void Sensors::DFRobotNO2Init() {
 void Sensors::DFRobotO3Init() {
   sensorAnnounce(SENSORS::SDFRO3);
   dfrO3 = DFRobot_GAS_I2C(&Wire, DFROBOT_O3_I2C_ADDR);
-  if (!dfrO3.begin()) {
-    dfrGasBeginFailed("O3", DFROBOT_O3_I2C_ADDR);
-    return;
-  }
+  if (!dfrO3.begin()) return;
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrO3.changeAcquireMode(dfrO3.PASSIVITY);
   delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
