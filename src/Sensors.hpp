@@ -23,6 +23,7 @@
 #include <drivers/pm1006.h>
 #include <s8_uart.h>
 #include <sps30.h>
+#include <time.h>
 
 #if defined(ARDUINO_ARCH_ESP32) &&                                               \
     (defined(CONFIG_IDF_TARGET_ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32S2) || \

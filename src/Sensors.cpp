@@ -500,6 +500,57 @@ float Sensors::getNoiseLe() const { return noiseLeValue; }
 float Sensors::getNoiseLn() const { return noiseLnValue; }
 float Sensors::getNoiseLden() const { return noiseLdenValue; }
 
+bool Sensors::sendNoiseSensorTime(uint32_t unixTime) {
+  if (!noiseTimeSyncEnabled) return false;
+
+  if (!noiseSensorEnabled) return false;
+
+  if (!noiseWireReady) {
+    noiseSensorInitWire();
+  }
+  if (noiseWire == nullptr || noiseSensorAddress == 0) return false;
+
+  if (!noiseSensorDevicePresent(*noiseWire, noiseSensorAddress)) {
+    noiseSensorEnabled = false;
+    noiseSensorAddress = 0;
+    return false;
+  }
+
+  uint8_t payload[1 + sizeof(uint32_t)];
+  payload[0] = CMD_SET_TIME;
+  memcpy(&payload[1], &unixTime, sizeof(uint32_t));
+
+  noiseWire->beginTransmission(noiseSensorAddress);
+  size_t wrote = noiseWire->write(payload, sizeof(payload));
+  uint8_t err = noiseWire->endTransmission();
+  if (err == 0 && wrote == sizeof(payload)) {
+    noiseLastTimeSyncMs = millis();
+    return true;
+  }
+  return false;
+}
+
+bool Sensors::syncNoiseSensorTime() {
+  if (!noiseTimeSyncEnabled || !noiseSensorEnabled) return false;
+
+  uint32_t now_ms = millis();
+  if (noiseLastTimeSyncMs != 0) {
+    if ((now_ms - noiseLastTimeSyncMs) < noiseTimeSyncIntervalMs) return false;
+  } else {
+    if ((now_ms - noiseLastSyncAttemptMs) < NOISE_SYNC_RETRY_MS) return false;
+  }
+  noiseLastSyncAttemptMs = now_ms;
+
+  time_t now = time(nullptr);
+  if (!(now > 1609459200)) return false;  // isTimeValid()
+
+  return sendNoiseSensorTime(static_cast<uint32_t>(now));
+}
+
+void Sensors::setNoiseSensorTimeSyncInterval(uint32_t intervalMs) {
+  noiseTimeSyncIntervalMs = intervalMs;
+}
+
 /**
  * @brief UART only: check if the UART sensor is registered
  * @return bool true if the UART sensor is registered, false otherwise.
