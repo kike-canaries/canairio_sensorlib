@@ -542,7 +542,7 @@ bool Sensors::syncNoiseSensorTime() {
   noiseLastSyncAttemptMs = now_ms;
 
   time_t now = time(nullptr);
-  if (!(now > 1609459200)) return false; // isTimeValid()
+  if (!(now > 1609459200)) return false;  // isTimeValid()
 
   return sendNoiseSensorTime(static_cast<uint32_t>(now));
 }
