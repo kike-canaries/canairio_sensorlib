@@ -1807,8 +1807,8 @@ bool Sensors::senseAirS8Init() {
   Serial.println("-->[SLIB] UART sensor detected \t: SenseAir S8");
   if (devmode) {
     Serial.printf("-->[SLIB] S8 Software version\t: %s\r\n", s8sensor.firm_version);
-    Serial.printf("-->[SLIB] S8 Sensor type\t: 0x%08ld\r\n", s8->get_sensor_type_ID());
-    Serial.printf("-->[SLIB] S8 Sensor ID\t: %08ld\r\n", s8->get_sensor_ID());
+    Serial.printf("-->[SLIB] S8 Sensor type\t: 0x%08X\r\n", s8->get_sensor_type_ID());
+    Serial.printf("-->[SLIB] S8 Sensor ID\t: %08X\r\n", s8->get_sensor_ID());
     Serial.printf("-->[SLIB] S8 Memory ver\t: 0x%04x\r\n", s8->get_memory_map_version());
     Serial.printf("-->[SLIB] S8 ABC period\t: %d hours\r\n", s8->get_ABC_period());
   }
