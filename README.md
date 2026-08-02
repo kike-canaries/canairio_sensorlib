@@ -397,8 +397,8 @@ Also you can make a donation, become a patron, or buy a device:
 - [x] Two I2C channel supported for M5Stack Devices (M5StickC tested)
 - [x] Added CO, NO2 and NH3 sensors
 - [x] Added Geiger sensor support
-- [ ] New IKEA VINDSTYRKA device support
-- [ ] Sea level setting for Pressure sensors and others
+- [x] New IKEA VINDSTYRKA device support
+- [x] Sea level setting for Pressure sensors and others
 - [ ] Support for second UART port
 
 # Projects using this Library
