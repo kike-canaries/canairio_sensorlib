@@ -21,20 +21,10 @@
 #include <drivers/PMS5003T.h>
 #include <drivers/geiger.h>
 #include <drivers/pm1006.h>
+#include "drivers/NoiseSlave.h"
 #include <s8_uart.h>
 #include <sps30.h>
 #include <time.h>
-
-#if defined(ARDUINO_ARCH_ESP32) &&                                               \
-    (defined(CONFIG_IDF_TARGET_ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32S2) || \
-     defined(CONFIG_IDF_TARGET_ESP32S3) || defined(ARDUINO_ESP32C3_DEV) ||       \
-     defined(ARDUINO_ESP32S2_DEV) || defined(ARDUINO_ESP32S3_DEV) ||             \
-     defined(ARDUINO_LOLIN_C3_MINI) || defined(ARDUINO_LOLIN_S2_MINI) ||         \
-     defined(ARDUINO_LOLIN_S3_MINI) || defined(ESP32C3) || defined(ESP32S2) || defined(ESP32S3))
-#define CSL_NOISE_SENSOR_SUPPORTED 1
-#endif
-
-#include "drivers/NoiseSlave.h"
 
 #ifdef DHT11_ENABLED
 #include <dht_nonblocking.h>
