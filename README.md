@@ -3,9 +3,9 @@
 
 # Air Quality Sensors Library
 
-Generic sensor manager, abstractions and bindings of multiple sensors [libraries](https://github.com/kike-canaries/canairio_sensorlib/blob/master/unified-lib-deps.ini): Honeywell, Plantower, Panasonic, Sensirion, etc. and CO2 sensors. Also it's handling others environment sensors. This library is for general purpose, but also is the sensors library base of [CanAirIO project](https://canair.io/docs).
+Generic sensor manager, abstractions and bindings of multiple sensors [libraries](https://github.com/kike-canaries/canairio_sensorlib/blob/master/unified-lib-deps.ini): Honeywell, Plantower, Panasonic, Sensirion, etc. and CO2 sensors. Also it's handling other environment sensors. This library is for general purpose, but also is the sensors library base of [CanAirIO project](https://canair.io/docs).
 
-For developers also you can check the complete library documentation [here](http://hpsaturn.com/canairio_sensorlib_doc/html/classSensors.html)
+For developers you can also check the complete library documentation [here](http://hpsaturn.com/canairio_sensorlib_doc/html/classSensors.html)
 
 <table>
 	<tr>
@@ -29,7 +29,7 @@ For developers also you can check the complete library documentation [here](http
 | Sensirion SPS30     | Yes | Yes | Select / Auto | STABLE |
 
 NOTE:  
-Panasonic via UART in ESP8266 maybe needs select in detection.  
+Panasonic via UART on ESP8266 may need to be selected in detection.  
 
 ### CO2 sensors
 
@@ -64,20 +64,20 @@ DHT22 is supported but is not recommended. Please see the documentation.
 
 #### DFRobot Gravity gas sensors
 
-- **Librería (fabricante):** [DFRobot_MultiGasSensor](https://github.com/DFRobot/DFRobot_MultiGasSensor) — la dependencia PlatformIO está en `unified-lib-deps.ini` apuntando a ese repositorio.
-- **Direcciones I²C fijas (grupo 7):**  
-  | Sensor | Dirección | Referencia |
+- **Library (manufacturer):** [DFRobot_MultiGasSensor](https://github.com/DFRobot/DFRobot_MultiGasSensor) — the PlatformIO dependency is in `unified-lib-deps.ini` pointing to that repository.
+- **Fixed I²C addresses (group 7):**  
+  | Sensor | Address | Reference |
   |--------|-----------|------------|
   | CO     | 0x78      | SEN0466    |
   | O₃     | 0x79      | SEN0472    |
   | NH₃    | 0x7A      | SEN0469    |
   | NO₂    | 0x7B      | SEN0471    |
-- **Direcciones personalizadas:** se puede sobreescribir cualquier dirección vía `build_flags`, p. ej.:  
+- **Custom addresses:** any address can be overridden via `build_flags`, e.g.:  
   `build_flags = -D DFROBOT_CO_I2C_ADDR=0x74`
-- **Precalentamiento:** la wiki recomienda **>5 min** al encender (y hasta 24 h si el sensor estuvo mucho tiempo parado).
-- **Compensación:** la librería aplica compensación propia de temperatura y presión utilizando sensores externos (BME280, etc.) o la temperatura interna del propio DFRobot si no hay sensor externo disponible.
+- **Preheating:** the wiki recommends **>5 min** at power-on (and up to 24 h if the sensor has been idle for a long time).
+- **Compensation:** the library applies its own temperature and pressure compensation using external sensors (BME280, etc.) or the DFRobot's own internal temperature if no external sensor is available.
 
-NoiseSensor auto-detection usa el mismo bus I2C que el resto de sensores (Wire) y está disponible solo en ESP32-C3, ESP32-S2 y ESP32-S3.
+NoiseSensor auto-detection uses the same I2C bus as the rest of the sensors (Wire) and is only available on ESP32-C3, ESP32-S2 and ESP32-S3.
 
 ### Platforms supported
 
@@ -105,7 +105,7 @@ NoiseSensor auto-detection usa el mismo bus I2C que el resto de sensores (Wire) 
 - Unified calibration trigger for all CO2 sensors
 - Unified CO2 Altitude compensation
 - Unified temperature offset for CO2 and environment sensors
-- Automatic I2C NoiseSensor integration with LAeq, PMI and peak/min tracking on ESP32-C3/S2/S3 (salidas en mV con validación del sensor)
+- Automatic I2C NoiseSensor integration with LAeq, PMI and peak/min tracking on ESP32-C3/S2/S3 (outputs in mV with sensor validation)
 - Add support for Kelvin and Fahrenheit on environment and CO2 sensors
 - Public access to main objects of each library (full methods access)
 - Get unit symbol and name and each sub-sensor
@@ -116,9 +116,9 @@ NoiseSensor auto-detection usa el mismo bus I2C que el resto de sensores (Wire) 
 
 When the NoiseSensor module is detected via I2C on the main bus (Wire), the library exposes dedicated helpers:
 
-- `getNoise()` – lectura instantánea en mV
-- `getNoiseAverage()` / `getNoisePeak()` / `getNoiseMin()` – estadísticas LAeq por ciclo en mV
-- `getNoiseLegalAverage()` / `getNoiseLegalMaximum()` – promedios legales en mV
+- `getNoise()` – instantaneous reading in mV
+- `getNoiseAverage()` / `getNoisePeak()` / `getNoiseMin()` – LAeq statistics per cycle in mV
+- `getNoiseLegalAverage()` / `getNoiseLegalMaximum()` – legal averages in mV
 
 Units are registered automatically so they are available for multivariable dashboards alongside the rest of the sensors.
 
@@ -190,7 +190,7 @@ void setup() {
 }
 
 void loop() {
-    sensors.loop();  // read sensor data and showed it
+    sensors.loop();  // read sensor data and show it
 }
 ```
 
@@ -200,7 +200,7 @@ In this [demo](https://www.youtube.com/watch?v=-5Va47Bap48) on two different dev
 
 [![CanAirIO multivariable demo](https://img.youtube.com/vi/-5Va47Bap48/0.jpg)](https://www.youtube.com/watch?v=-5Va47Bap48)
 
-In this [demo](https://www.youtube.com/watch?v=uxlmP905-FE) on a simple sketch you could have a dinamyc list of variables of multiple sensors brands:
+In this [demo](https://www.youtube.com/watch?v=uxlmP905-FE) on a simple sketch you could have a dynamic list of variables of multiple sensor brands:
 
 [![CanAirIO Sensors Lib DEMO with M5CoreInk](https://img.youtube.com/vi/i15iEF47CbY/0.jpg)](https://youtu.be/i15iEF47CbY)
 
@@ -262,7 +262,7 @@ void setup() {
 }
 
 void loop() {
-    sensors.loop();  // read sensor data and showed it
+    sensors.loop();  // read sensor data and show it
 }
 ```
 
@@ -274,13 +274,13 @@ CanAirIO sensorlib auto configuration demo on [Youtube](https://www.youtube.com/
 
 # Wiring
 
-The current version of library supports 3 kinds of wiring connection, UART, i2c and TwoWire, in the main boards the library using the defaults pins of each board, but in some special cases the pins are:
+The current version of library supports 3 kinds of wiring connection, UART, i2c and TwoWire, in the main boards the library uses the default pins of each board, but in some special cases the pins are:
 
 ## UART
 
 ### Predefined UART
 
-The library has [pre-defined some UART pin configs](https://github.com/kike-canaries/canairio_sensorlib/blob/master/src/Sensors.hpp#L19-L52), these are selected on compiling time. Maybe you don't need change anything with your board, and maybe the nexts alternatives works for you:
+The library has [pre-defined some UART pin configs](https://github.com/kike-canaries/canairio_sensorlib/blob/master/src/Sensors.hpp#L19-L52), these are selected at compile time. Maybe you don't need to change anything with your board, and maybe the following alternatives work for you:
 
 | Board model    |  TX   | RX  |      Notes |
 |:---------------|:---:|:---:|:------------------:|
@@ -293,45 +293,45 @@ The library has [pre-defined some UART pin configs](https://github.com/kike-cana
 | WEMOSOLED      | 15 | 13 | |
 | ESP32PICOD4    | 3  | 1  | |
   
-** This pines are when you compile your project without specific any build variable or you board isn't in the list.  
+** These pins are used when you compile your project without specifying any build variable or when your board isn't in the list.  
 
 ### Custom UART
 
 Also you could define a custom UART pins in the init() method and select specific sensors model, like this:
 
 ```cpp
-sensors.init(SENSORS::SDS011,yourRX,yourTX); // custom RX, custom TX pines.
+sensors.init(SENSORS::SDS011,yourRX,yourTX); // custom RX, custom TX pins.
 ```
 
 ## I2C (recommended)
 
-We are using the default pins for each board, some times it's pins are 21,22, please check your board schematic.
+We are using the default pins for each board, sometimes the pins are 21,22, please check your board schematic.
 
 ## TwoWire (deprecated soon)
 
-For now we are using it only for DHT sensors in PIN 23. For more info please review the next lines [here](https://github.com/kike-canaries/canairio_sensorlib/blob/master/src/Sensors.hpp#L19-L52).
+For now we are using it only for DHT sensors on PIN 23. For more info please review the following lines [here](https://github.com/kike-canaries/canairio_sensorlib/blob/master/src/Sensors.hpp#L19-L52).
 
 # Examples
 
 ### PlatformIO (recommended)
 
-We recommended PlatformIO because is more easy than Arduino IDE. For that, please install first [PlatformIO](http://platformio.org/) and its command line tools (Windows, MacOs and Linux), **pio** command, then connect your compatible board to the USB and run the next command:
+We recommend PlatformIO because it is easier than Arduino IDE. For that, please first install [PlatformIO](http://platformio.org/) and its command line tools (Windows, macOS and Linux), the **pio** command, then connect your compatible board to the USB and run the following command:
 
 ```python
 pio run -e esp32 --target upload
 ```
 
-Also you can see some examples than have `platformio.ini` files for your project.
+Also you can see some examples that have `platformio.ini` files for your project.
 
 ### Arduino IDE
 
-Only import the `ino` file of the sample and install the libraries listed on `library.json` and this library. Complete list of libraries used [here](https://github.com/kike-canaries/canairio_sensorlib/blob/master/unified-lib-deps.ini)
+Only import the `ino` file of the sample and install the libraries listed in `library.json` and this library. Complete list of libraries used [here](https://github.com/kike-canaries/canairio_sensorlib/blob/master/unified-lib-deps.ini)
 
 ### Arduino CLI
 
-For run the examples, you first need to  install **arduino-cli** or the **Arduino IDE** with the libraries referenced in **lib_deps** on the file [platformio.ini](https://github.com/kike-canaries/canairio_sensorlib/blob/master/platformio.ini), becuase **Arduino don't install it automatically** like PlatformIO. Then put CanAirIO sensor library in your library directory, you can download it from [releases](https://github.com/kike-canaries/canairio_sensorlib/releases) section.
+To run the examples, you first need to install **arduino-cli** or the **Arduino IDE** with the libraries referenced in **lib_deps** in the file [platformio.ini](https://github.com/kike-canaries/canairio_sensorlib/blob/master/platformio.ini), because **Arduino doesn't install them automatically** like PlatformIO. Then put the CanAirIO sensor library in your library directory, you can download it from the [releases](https://github.com/kike-canaries/canairio_sensorlib/releases) section.
 
-Also you need to add the **alternative links** for supporting the ESP32 boards:
+Also you need to add the **alternative links** to support the ESP32 boards:
 
 ```bash
 arduino-cli config init
@@ -346,7 +346,7 @@ board_manager:
     - https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 ```
 
-From `arduino-cli` you can run the basic example in a ESP32 board following these steps:
+From `arduino-cli` you can run the basic example on an ESP32 board following these steps:
 
 ```javascript
 arduino-cli core update-index
@@ -355,21 +355,21 @@ arduino-cli compile --fqbn esp32:esp32:lolin32 basic
 arduino-cli upload --fqbn esp32:esp32:lolin32:UploadSpeed=115200 -p /dev/ttyUSB0 basic
 ```
 
-where `basic` is the basic example on examples directory.
+where `basic` is the basic example in the examples directory.
 
 # Supporting the project
 
-If you want to contribute to the code or documentation, consider posting a bug report, feature request or a pull request.
+If you want to contribute to the code or documentation, consider posting a bug report, feature request, or a pull request.
 
 When creating a pull request, we recommend that you do the following:
 
 - Clone the repository
 - Create a new branch for your fix or feature. For example, git checkout -b fix/my-fix or git checkout -b feat/my-feature.
-- Run to any clang formatter if it is a code, for example using the `vscode` formatter. We are using Google style. More info [here](https://clang.llvm.org/docs/ClangFormatStyleOptions.html)
-- Document the PR description or code will be great
-- Target your pull request to be merged with `devel` branch
+- Run any clang formatter if it is code, for example using the `vscode` formatter. We are using Google style. More info [here](https://clang.llvm.org/docs/ClangFormatStyleOptions.html)
+- Documenting the PR description or code will be great
+- Target your pull request to be merged with the `devel` branch
 
-Also you can make a donation, be a patreon or buy a device:  
+Also you can make a donation, become a patron, or buy a device:  
 
 <a href="https://raw.githubusercontent.com/kike-canaries/canairio_firmware/master/images/ethereum_donation_address.png" target="_blank"><img src="https://raw.githubusercontent.com/kike-canaries/canairio_firmware/master/images/ethereum_donation_address.png" align="right" width="220" margin-left="10px" ></a>
 
@@ -387,28 +387,28 @@ Also you can make a donation, be a patreon or buy a device:
 - [x] Exposed public sub-libraries objects, sps30, aht10, etc.
 - [x] Added old DHT sensors
 - [x] Added CO2 sensors: MHZ19, SCD30, CM1106 via UART
-- [x] Added SDS011 particle metter
+- [x] Added SDS011 particle meter
 - [x] BME680 support
 - [x] Added Sensirion SPS30 and Panasonic SN-GCJA5 via i2c
 - [x] Enable/Disable UART detection for force only i2c
 - [x] Temperature and Altitude compensation
 - [x] SenseAir S8 via UART support
-- [x] Multivariable selection (getNextUnit(),getUnitName(),etc)
+- [x] Multivariable selection (getNextUnit(), getUnitName(), etc)
 - [x] Two I2C channel supported for M5Stack Devices (M5StickC tested)
 - [x] Added CO, NO2 and NH3 sensors
 - [x] Added Geiger sensor support
 - [ ] New IKEA VINDSTYRKA device support
 - [ ] Sea level setting for Pressure sensors and others
-- [ ] Support to second UART port
+- [ ] Support for second UART port
 
 # Projects using this Library
 
 - [CanAirIO Device](https://github.com/kike-canaries/canairio_firmware): ESP32 Air quality device for mobile and fixed stations. (PM2.5 and CO2)
-- [CO2 Gadget](https://emariete.com/medidor-co2-display-tft-color-ttgo-t-display-sensirion-scd30): Un medidor de CO2 de alta calidad con pantalla en color. (CO2)  
-- [M5CoreInk Multi Sensor](https://github.com/hpsaturn/co2_m5coreink#readme): Wall CO2, T, H, P, Alt, sensor with low consumption (30 days)
+- [CO2 Gadget](https://emariete.com/medidor-co2-display-tft-color-ttgo-t-display-sensirion-scd30): A high-quality CO2 meter with color display. (CO2)  
+- [M5CoreInk Multi Sensor](https://github.com/hpsaturn/co2_m5coreink#readme): Wall CO2, T, H, P, Alt sensor with low consumption (30 days)
 
 # Credits
 
-Thanks to all collaborators and [CanAirIO](https://canair.io) community for testing and reports. Visit us on [Telegram](https://t.me/canairio)
+Thanks to all collaborators and the [CanAirIO](https://canair.io) community for testing and reports. Visit us on [Telegram](https://t.me/canairio)
 
 ---
