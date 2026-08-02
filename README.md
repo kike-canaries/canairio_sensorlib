@@ -77,7 +77,7 @@ DHT22 is supported but is not recommended. Please see the documentation.
 - **Preheating:** the wiki recommends **>5 min** at power-on (and up to 24 h if the sensor has been idle for a long time).
 - **Compensation:** the library applies its own temperature and pressure compensation using external sensors (BME280, etc.) or the DFRobot's own internal temperature if no external sensor is available.
 
-NoiseSensor auto-detection uses the same I2C bus as the rest of the sensors (Wire) and is only available on ESP32-C3, ESP32-S2 and ESP32-S3.
+NoiseSensor auto-detection uses the same I2C bus as the rest of the sensors (Wire) and is available on all boards supported by the sensorlib.
 
 ### Platforms supported
 
