@@ -98,8 +98,9 @@
 #define PMS_RX 3
 #define PMS_TX 1
 #elif AG_OPENAIR
-#define PMS_RX 0
-#define PMS_TX 1
+#define PMS_TYPE 8
+#define PMS_RX 20
+#define PMS_TX 21
 #define AIRG_SDA 7
 #define AIRG_SCL 6
 #elif TTGO_T7
@@ -474,12 +475,16 @@ class Sensors {
 #endif
   /// For UART sensors (autodetected available serial)
   Stream *_serial;
+  /// Second UART stream (e.g. SenseAir S8 on a dedicated UART)
+  Stream *_serial2;
   /// Callback on some sensors error.
   errorCbFn _onErrorCb = nullptr;
   /// Callback when sensor data is ready.
   voidCbFn _onDataCb = nullptr;
 
   int dev_uart_type = -1;
+  /// True when the SenseAir S8 is attached to the second UART
+  bool s8_uart2 = false;
 
   bool dataReady;
 
@@ -619,6 +624,7 @@ class Sensors {
   bool CO2CM1106Init();
   bool senseAirS8Init();
   bool senseAirS8Read();
+  bool sensorSerial2Init(int rx, int tx);
   bool PM1006Init();
   bool PM5003TInit();
 
@@ -649,6 +655,8 @@ class Sensors {
   void printValues();
 
   void printHumTemp();
+
+  void printUART(const char * name, unsigned long speed, int pin_rx, int pin_tx);
 
   void tempRegister(bool isCO2temp);
 
