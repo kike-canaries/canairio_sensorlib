@@ -104,10 +104,10 @@ bool Sensors::readAllSensors() {
     dataReady = pmSensorRead();
     DEBUG("-->[SLIB] UART data ready \t:", dataReady ? "true" : "false");
   }
-  
-  #ifdef AG_OPENAIR
+
+#ifdef AG_OPENAIR
   senseAirS8Read();
-  #endif
+#endif
 
   enableWire1();
 
@@ -161,7 +161,7 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
   if (s8) {
     delete s8;
     s8 = nullptr;
-  } 
+  }
   if (pm1006) {
     delete pm1006;
     pm1006 = nullptr;
@@ -192,18 +192,18 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
   Serial.println("-->[SLIB] sea level pressure\t: " + String(sealevel) + " hPa");
   Serial.printf("-->[SLIB] only i2c sensors  \t: %s\r\n", i2conly ? "true" : "false");
 
-  #ifdef AG_OPENAIR
+#ifdef AG_OPENAIR
   pms_type = PMS_TYPE;
-  #endif
+#endif
 
   if (!i2conly && !sensorSerialInit(pms_type, pms_rx, pms_tx)) {
     DEBUG("-->[SLIB] UART sensors detected\t:", "0");
   }
 
-  #ifdef AG_OPENAIR
+#ifdef AG_OPENAIR
   sensorAnnounce(SENSORS::SAIRS8);
   if (senseAirS8Init()) sensorRegister(SENSORS::SAIRS8);
-  #endif
+#endif
 
   startI2C();
   CO2scd30Init();
@@ -1812,15 +1812,15 @@ bool Sensors::CO2CM1106Init() {
 }
 
 bool Sensors::senseAirS8Init() {
-  // Second UART for a dedicated sensor (e.g. SenseAir S8 on AG_OPENAIR).
-  // The PM sensor keeps the first UART, the S8 CO2 sensor uses the second one.
-  #if defined (AG_OPENAIR) && defined(SLIB_UART2_RX) && defined(SLIB_UART2_TX)
+// Second UART for a dedicated sensor (e.g. SenseAir S8 on AG_OPENAIR).
+// The PM sensor keeps the first UART, the S8 CO2 sensor uses the second one.
+#if defined(AG_OPENAIR) && defined(SLIB_UART2_RX) && defined(SLIB_UART2_TX)
   if (sensorSerial2Init(SLIB_UART2_RX, SLIB_UART2_TX)) {
     s8 = new S8_UART(*_serial2);
   }
-  #else
-    s8 = new S8_UART(*_serial);
-  #endif
+#else
+  s8 = new S8_UART(*_serial);
+#endif
   // Check if S8 is available
   s8->get_firmware_version(s8sensor.firm_version);
   int len = strlen(s8sensor.firm_version);
@@ -1859,7 +1859,7 @@ bool Sensors::senseAirS8Init() {
  * @return true if the second UART was initialized.
  */
 bool Sensors::sensorSerial2Init(int rx, int tx) {
-#if defined(AG_OPENAIR) 
+#if defined(AG_OPENAIR)
   if (rx < 0 || tx < 0) {
     DEBUG("-->[SLIB] UART2 TX/RX line not defined");
     return false;
@@ -2669,8 +2669,7 @@ void Sensors::startI2C() {
 #if defined(SLIB_I2C_SDA) && defined(SLIB_I2C_SCL)
   Wire.begin(SLIB_I2C_SDA, SLIB_I2C_SCL);
   if (devmode)
-    Serial.printf("-->[SLIB] I2C Wire custom \t: SDA:%d, SCL:%d\r\n", SLIB_I2C_SDA,
-                  SLIB_I2C_SCL);
+    Serial.printf("-->[SLIB] I2C Wire custom \t: SDA:%d, SCL:%d\r\n", SLIB_I2C_SDA, SLIB_I2C_SCL);
 #elif defined(ESP32C3)
   Wire.begin(19, 18);
 #elif defined(ESP32S2)
@@ -2739,7 +2738,7 @@ void Sensors::disableWire1() {
 }
 
 void Sensors::printUART(const char *name, unsigned long speed, int pin_rx, int pin_tx) {
-  if(devmode) {
+  if (devmode) {
     Serial.printf("-->[SLIB] %s init speed\t: %lu\r\n", name, speed);
     Serial.printf("-->[SLIB] %s init pins \t: TX:%i RX:%i\r\n", name, pin_tx, pin_rx);
   }
@@ -2747,12 +2746,12 @@ void Sensors::printUART(const char *name, unsigned long speed, int pin_rx, int p
 
 bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx) {
 #if ARDUINO_USB_CDC_ON_BOOT  // Serial used for USB CDC
-  #ifndef AG_OPENAIR
+#ifndef AG_OPENAIR
   printUART("UART1", speed_baud, pms_rx, pms_tx);
   Serial0.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx);
   _serial = &Serial0;
   return true;
-  #endif
+#endif
 #endif
   switch (SENSOR_COMMS) {
     case SERIALPORT:
@@ -2778,8 +2777,7 @@ bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, i
       if (pms_type == SENSORS::SSPS30) {
         printUART("UART1", speed_baud, -1, -1);
         Serial2.begin(speed_baud);
-      }
-      else {
+      } else {
         printUART("UART1", speed_baud, pms_rx, pms_tx);
         Serial2.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx, false);
       }
@@ -2801,8 +2799,7 @@ bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, i
       if (pms_rx == 8 && pms_tx == 8) {
         Serial1.begin(speed_baud);
         _serial = &Serial1;
-      }
-      else {
+      } else {
 #if defined(INCLUDE_SOFTWARE_SERIAL)
         DEBUG("-->[SLIB] swSerial init on pin\t:", String(pms_rx).c_str());
         static SoftwareSerial swSerial(pms_rx, pms_tx);
@@ -2828,4 +2825,3 @@ bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, i
 #if !defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_SENSORSHANDLER)
 Sensors sensors;
 #endif
-

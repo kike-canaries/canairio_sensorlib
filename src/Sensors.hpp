@@ -656,7 +656,7 @@ class Sensors {
 
   void printHumTemp();
 
-  void printUART(const char * name, unsigned long speed, int pin_rx, int pin_tx);
+  void printUART(const char *name, unsigned long speed, int pin_rx, int pin_tx);
 
   void tempRegister(bool isCO2temp);
 
