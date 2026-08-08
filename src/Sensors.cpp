@@ -2670,6 +2670,8 @@ void Sensors::startI2C() {
   Wire.begin(SLIB_I2C_SDA, SLIB_I2C_SCL);
   if (devmode)
     Serial.printf("-->[SLIB] I2C Wire custom \t: SDA:%d, SCL:%d\r\n", SLIB_I2C_SDA, SLIB_I2C_SCL);
+#elif defined(XIAO_S3)
+  Wire.begin(5, 6);
 #elif defined(ESP32C3)
   Wire.begin(19, 18);
 #elif defined(ESP32S2)
@@ -2699,7 +2701,7 @@ void Sensors::startI2C() {
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
   Wire.setClock(SLIB_I2C_CLOCK_HZ);
   if (devmode)
-    Serial.printf("-->[SLIB] I2C clock set to \t: %lu Hz\r\n", (unsigned long)SLIB_I2C_CLOCK_HZ);
+    Serial.printf("-->[SLIB] I2C clock set to \t: %iHz\r\n", SLIB_I2C_CLOCK_HZ);
 #endif
 }
 
