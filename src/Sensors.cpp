@@ -2700,8 +2700,7 @@ void Sensors::startI2C() {
 #endif
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
   Wire.setClock(SLIB_I2C_CLOCK_HZ);
-  if (devmode)
-    Serial.printf("-->[SLIB] I2C clock set to \t: %iHz\r\n", SLIB_I2C_CLOCK_HZ);
+  if (devmode) Serial.printf("-->[SLIB] I2C clock set to \t: %iHz\r\n", SLIB_I2C_CLOCK_HZ);
 #endif
 }
 
