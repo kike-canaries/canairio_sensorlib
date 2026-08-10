@@ -30,8 +30,8 @@
 #include <dht_nonblocking.h>
 #endif
 
-#define CSL_VERSION "0.7.6"
-#define CSL_REVISION 385
+#define CSL_VERSION "0.7.7"
+#define CSL_REVISION 386
 
 /***************************************************************
  * D F R o b o t   G r a v i t y   g a s   s e n s o r s
