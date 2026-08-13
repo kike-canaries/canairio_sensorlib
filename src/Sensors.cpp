@@ -2081,8 +2081,9 @@ void Sensors::aht10Init() {
   sensorAnnounce(SENSORS::SAHTXX);
   // TODO: this sensor only works in Wire0
   aht10 = AHTxx(AHTXX_ADDRESS_X38, AHT1x_SENSOR);
+  // TODO: check if the last M5 library fix that:
 #ifdef M5STICKCPLUS  // issue: https://github.com/enjoyneering/AHTxx/issues/11
-  if (!aht10.begin(EXT_I2C_SDA, EXT_I2C_SCL, 100000, 50000)) return;
+  if (!aht10.begin(SLIB_I2C2_SDA, SLIB_I2C2_SCL, 100000, 50000)) return;
 #else
   if (!aht10.begin()) return;
 #endif
@@ -2657,73 +2658,51 @@ void Sensors::DEBUG(const char *text, const char *textb) const {
 
 //***********************************************************************************//
 
+void Sensors::printI2C(const char *name, const char *i2cname, int pin_sda, int pin_scl) {
+  if (devmode) {
+    Serial.printf("-->[SLIB] (%s) %s pins \t: SDA:%i SCL:%i\r\n", name, i2cname, pin_sda, pin_scl);
+  }
+}
+
 void Sensors::startI2C() {
-#if defined(M5STICKCPLUS) || defined(M5COREINK)
-  Wire.begin(EXT_I2C_SDA, EXT_I2C_SCL);  // M5CoreInk Ext port (default for all sensors)
-  enableWire1();
-#endif
-#ifdef M5ATOM
-  Wire.begin();
-  enableWire1();
-#endif
 #if defined(SLIB_I2C_SDA) && defined(SLIB_I2C_SCL)
   Wire.begin(SLIB_I2C_SDA, SLIB_I2C_SCL);
-  if (devmode)
-    Serial.printf("-->[SLIB] I2C Wire custom \t: SDA:%d, SCL:%d\r\n", SLIB_I2C_SDA, SLIB_I2C_SCL);
-#elif defined(XIAO_S3)
-  Wire.begin(5, 6);
-#elif defined(ESP32C3)
-  Wire.begin(19, 18);
-#elif defined(ESP32S2)
-  Wire.begin(33, 35);
+  printI2C("CUSTOM", "I2C", SLIB_I2C_SDA, SLIB_I2C_SCL);
 #elif defined(ESP32S3)
   Wire.begin();
-  if (devmode) Serial.printf("-->[SLIB] I2C Wire (S3) \t: SDA:%d, SCL:%d\r\n", SDA, SCL);
+  printI2C("ESP32S3", "I2C", SDA, SCL);
 #elif defined(ARDUINO_ARCH_ESP32)
   Wire.begin();
-  if (devmode) Serial.printf("-->[SLIB] I2C Wire (ESP32) \t: SDA:%d, SCL:%d\r\n", SDA, SCL);
+  printI2C("ESP32", "I2C", SDA, SCL);
 #elif defined(ARDUINO_ARCH_ESP8266)
   Wire.begin(SDA, SCL);
-  if (devmode) Serial.printf("-->[SLIB] I2C Wire (ESP8266) \t: SDA:%d, SCL:%d\r\n", SDA, SCL);
+  printI2C("ESP8266", "I2C", SDA, SCL);
+#else
+  Wire.begin(SDA, SCL);
+  printI2C("UNDEFINED", "I2C", SDA, SCL);
 #endif
-#ifdef TTGO_T7S3
-  Wire.begin(GROVE_SDA, GROVE_SCL);
-  enableWire1();
-#endif
-#ifdef M5AIRQ
-  Wire.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);
-  enableWire1();
-#endif
-#ifdef AG_OPENAIR
-  Wire.begin(AIRG_SDA, AIRG_SCL);
-  delay(1000);
-#endif
+
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
   Wire.setClock(SLIB_I2C_CLOCK_HZ);
   if (devmode) Serial.printf("-->[SLIB] I2C clock set to \t: %iHz\r\n", SLIB_I2C_CLOCK_HZ);
 #endif
+
+  enableWire1();
 }
 
 void Sensors::enableWire1() {
-#ifdef M5STICKCPLUS
+#if defined(SLIB_I2C2_SDA) && defined(SLIB_I2C2_SCL)
   Wire1.flush();
-  Wire1.begin(HAT_I2C_SDA, HAT_I2C_SCL);  // M5CoreInk hat pines (header on top)
+  Wire1.begin(SLIB_I2C2_SDA, SLIB_I2C2_SCL);
+  printI2C("CUSTOM", "I2C2", SLIB_I2C2_SDA, SLIB_I2C2_SCL);
 #endif
 #ifdef M5COREINK
   Wire1.flush();
   Wire1.begin(25, 26);  // M5CoreInk hat pines (header on top)
 #endif
-#ifdef M5ATOM
-  Wire1.flush();
-  Wire1.begin(26, 32);  // M5CoreInk Ext port (default for all sensors)
-#endif
 #ifdef M5AIRQ
   Wire1.flush();
   Wire1.begin(GROVE_SDA, GROVE_SCL);
-#endif
-#ifdef TTGO_T7S3
-  Wire1.flush();
-  Wire1.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);  // Alternative I2C port
 #endif
 }
 

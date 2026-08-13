@@ -101,8 +101,6 @@
 #define PMS_TYPE 8
 #define PMS_RX 20
 #define PMS_TX 21
-#define AIRG_SDA 7
-#define AIRG_SCL 6
 #elif TTGO_T7
 #define PMS_RX 17
 #define PMS_TX 16
@@ -114,24 +112,11 @@
 #define PMS_TX -1
 #endif
 
-// I2C pins for M5COREINK and M5STICKCPLUS
-#define HAT_I2C_SDA 0
-#define HAT_I2C_SCL 26
-#define EXT_I2C_SDA 32
-#define EXT_I2C_SCL 33
-
 #ifdef M5AIRQ
 #define GROVE_SDA 13
 #define GROVE_SCL 15
 #define I2C1_SDA_PIN 11
 #define I2C1_SCL_PIN 12
-#endif
-
-#ifdef TTGO_T7S3
-#define GROVE_SDA 13
-#define GROVE_SCL 14
-#define I2C1_SDA_PIN 8
-#define I2C1_SCL_PIN 9
 #endif
 
 // Read UART sensor retry.
@@ -657,6 +642,8 @@ class Sensors {
   void printHumTemp();
 
   void printUART(const char *name, unsigned long speed, int pin_rx, int pin_tx);
+
+  void printI2C(const char *name, const char *i2cname, int pin_sda, int pin_scl);
 
   void tempRegister(bool isCO2temp);
 
