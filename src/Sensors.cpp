@@ -2658,14 +2658,13 @@ void Sensors::DEBUG(const char *text, const char *textb) const {
 
 //***********************************************************************************//
 
-void Sensors::printI2C(const char *name, const char* i2cname, int pin_sda, int pin_scl) {
+void Sensors::printI2C(const char *name, const char *i2cname, int pin_sda, int pin_scl) {
   if (devmode) {
     Serial.printf("-->[SLIB] (%s) %s pins \t: SDA:%i SCL:%i\r\n", name, i2cname, pin_sda, pin_scl);
   }
 }
 
 void Sensors::startI2C() {
-
 #if defined(SLIB_I2C_SDA) && defined(SLIB_I2C_SCL)
   Wire.begin(SLIB_I2C_SDA, SLIB_I2C_SCL);
   printI2C("CUSTOM", "I2C", SLIB_I2C_SDA, SLIB_I2C_SCL);
@@ -2687,7 +2686,7 @@ void Sensors::startI2C() {
   Wire.setClock(SLIB_I2C_CLOCK_HZ);
   if (devmode) Serial.printf("-->[SLIB] I2C clock set to \t: %iHz\r\n", SLIB_I2C_CLOCK_HZ);
 #endif
-  
+
   enableWire1();
 }
 
