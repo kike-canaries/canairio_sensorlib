@@ -112,13 +112,17 @@ NoiseSensor auto-detection uses the same I2C bus as the rest of the sensors (Wir
 - Get the main group type: NONE, PM, CO2 and ENV.
 - Basic debug mode support toggle in execution
 
-### NoiseSensor readings (ESP32-C3/S2/S3)
+### NoiseSensor readings (All platforms)
 
 When the NoiseSensor module is detected via I2C on the main bus (Wire), the library exposes dedicated helpers:
 
 - `getNoise()` – instantaneous reading in mV
 - `getNoiseAverage()` / `getNoisePeak()` / `getNoiseMin()` – LAeq statistics per cycle in mV
 - `getNoiseLegalAverage()` / `getNoiseLegalMaximum()` – legal averages in mV
+- `getNoiseLd()`- Day index in db
+- `getNoiseLe()`- Evening index in db
+- `getNoiseLn()` - Night index in db
+- `getNoiseLden()` - Global day-evening-night index in db
 
 Units are registered automatically so they are available for multivariable dashboards alongside the rest of the sensors.
 
