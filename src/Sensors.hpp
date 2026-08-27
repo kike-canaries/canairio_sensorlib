@@ -164,6 +164,7 @@
   X(NOISEMIN, "dB", "NoiseMin")                 \
   X(NOISEAVGLEGAL, "dB", "NoiseAvgLegal")       \
   X(NOISEAVGLEGALMAX, "dB", "NoiseAvgLegalMax") \
+  X(NOISEL90, "dB", "NoiseL90")                 \
   X(NOISELD, "dB", "Ld")                        \
   X(NOISELE, "dB", "Le")                        \
   X(NOISELN, "dB", "Ln")                        \
@@ -385,6 +386,7 @@ class Sensors {
   float getNoiseLegalAverage() const;
 
   float getNoiseLegalMaximum() const;
+  float getNoiseL90() const;
   float getNoiseLd() const;
   float getNoiseLe() const;
   float getNoiseLn() const;
@@ -520,6 +522,7 @@ class Sensors {
   float noiseMinValue = 0.0;
   float noiseAvgLegalValue = 0.0;
   float noiseAvgLegalMaxValue = 0.0;
+  float noiseL90Value = 0.0;
   float noiseLdValue = 0.0;
   float noiseLeValue = 0.0;
   float noiseLnValue = 0.0;

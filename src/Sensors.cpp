@@ -513,6 +513,7 @@ float Sensors::getNoiseMin() const { return noiseMinValue; }
 float Sensors::getNoiseLegalAverage() const { return noiseAvgLegalValue; }
 
 float Sensors::getNoiseLegalMaximum() const { return noiseAvgLegalMaxValue; }
+float Sensors::getNoiseL90() const { return noiseL90Value; }
 float Sensors::getNoiseLd() const { return noiseLdValue; }
 float Sensors::getNoiseLe() const { return noiseLeValue; }
 float Sensors::getNoiseLn() const { return noiseLnValue; }
@@ -796,6 +797,8 @@ float Sensors::getUnitValue(UNIT unit) {
       return noiseAvgLegalValue;
     case NOISEAVGLEGALMAX:
       return noiseAvgLegalMaxValue;
+    case NOISEL90:
+      return noiseL90Value;
     case NOISELD:
       return noiseLdValue;
     case NOISELE:
@@ -1482,6 +1485,7 @@ void Sensors::noiseSensorCollect() {
   noiseMinValue = noiseSensorData.noiseMinDb;
   noiseAvgLegalValue = noiseSensorData.noiseAvgLegalDb;        // Use DB version
   noiseAvgLegalMaxValue = noiseSensorData.noiseAvgLegalMaxDb;  // Use DB version
+  noiseL90Value = (float)noiseSensorData.lowNoiseLevel;        // L90 background level
 
   // Ld/Le/Ln/Lden: sensor returns 0 when period has no samples (e.g. Ld/Le=0 at night).
   // Preserve last valid value so UI shows recent data instead of 0.
@@ -1504,6 +1508,7 @@ void Sensors::noiseSensorCollect() {
   unitRegister(UNIT::NOISEMIN);
   unitRegister(UNIT::NOISEAVGLEGAL);
   unitRegister(UNIT::NOISEAVGLEGALMAX);
+  unitRegister(UNIT::NOISEL90);
   unitRegister(UNIT::NOISELD);
   unitRegister(UNIT::NOISELE);
   unitRegister(UNIT::NOISELN);
