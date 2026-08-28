@@ -123,6 +123,7 @@ When the NoiseSensor module is detected via I2C on the main bus (Wire), the libr
 - `getNoiseLe()`- Evening index in db
 - `getNoiseLn()` - Night index in db
 - `getNoiseLden()` - Global day-evening-night index in db
+- `getNoiseL90()` - Low noise level in db
 
 Units are registered automatically so they are available for multivariable dashboards alongside the rest of the sensors.
 
