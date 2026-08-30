@@ -1279,7 +1279,6 @@ void Sensors::sgp41Read() {
   }
 
   if (error) {
-    Serial.print("Error trying to execute (): ");
     DEBUG("-->[SLIB] sgp41 measureRaw error\t:", String(error).c_str());
     return;
   } else {
