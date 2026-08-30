@@ -12,12 +12,12 @@
 #include <Arduino.h>
 #include <DFRobot_MultiGasSensor.h>
 #include <MHZ19.h>
+#include <NOxGasIndexAlgorithm.h>
 #include <SensirionI2CScd4x.h>
 #include <SensirionI2CSen5x.h>
 #include <SensirionI2CSgp41.h>
-#include <VOCGasIndexAlgorithm.h>
-#include <NOxGasIndexAlgorithm.h>
 #include <SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h>
+#include <VOCGasIndexAlgorithm.h>
 #include <Wire.h>
 #include <cm1106_uart.h>
 #include <drivers/NoiseSlave.h>
