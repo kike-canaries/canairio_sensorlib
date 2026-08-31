@@ -12,10 +12,12 @@
 #include <Arduino.h>
 #include <DFRobot_MultiGasSensor.h>
 #include <MHZ19.h>
+#include <NOxGasIndexAlgorithm.h>
 #include <SensirionI2CScd4x.h>
 #include <SensirionI2CSen5x.h>
 #include <SensirionI2CSgp41.h>
 #include <SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h>
+#include <VOCGasIndexAlgorithm.h>
 #include <Wire.h>
 #include <cm1106_uart.h>
 #include <drivers/NoiseSlave.h>
@@ -256,6 +258,9 @@ class Sensors {
   /// Sensirion sgp41 library (Rh, T, Voc, Nox)
   SensirionI2CSgp41 sgp41;
   uint8_t conditioning_s = 10;
+  /// Sensirion gas index algorithms for SGP41 raw signal processing
+  VOCGasIndexAlgorithm vocAlgorithm{1.0f};
+  NOxGasIndexAlgorithm noxAlgorithm;
 
   /// only detect i2c sensors flag
   bool i2conly;
@@ -372,6 +377,14 @@ class Sensors {
   float getNO2() const;
 
   float getO3() const;
+
+  float getVOC() const;
+
+  float getNOX() const;
+
+  float getVOCI() const;
+
+  float getNOXI() const;
 
   void enableGeigerSensor(int gpio);
 

@@ -502,6 +502,14 @@ float Sensors::getNO2() const { return no2; }
 /// get O3 value in ppm
 float Sensors::getO3() const { return o3; }
 
+float Sensors::getVOC() const { return voc; }
+
+float Sensors::getNOX() const { return nox; }
+
+float Sensors::getVOCI() const { return voci; }
+
+float Sensors::getNOXI() const { return noxi; }
+
 float Sensors::getNoise() const { return noiseInstant; }
 
 float Sensors::getNoiseAverage() const { return noiseAvgValue; }
@@ -807,6 +815,14 @@ float Sensors::getUnitValue(UNIT unit) {
       return noiseLnValue;
     case NOISELDEN:
       return noiseLdenValue;
+    case VOC:
+      return voc;
+    case NOX:
+      return nox;
+    case VOCI:
+      return voci;
+    case NOXI:
+      return noxi;
     default:
       return 0.0;
   }
@@ -1251,7 +1267,9 @@ void Sensors::sgp41Read() {
   uint16_t defaultRh = 0x8000;
   uint16_t defaultT = 0x6666;
 
-  if (conditioning_s > 0) {
+  bool isConditioning = (conditioning_s > 0);
+
+  if (isConditioning) {
     // During NOx conditioning (10s) SRAW NOx will remain 0
     error = sgp41.executeConditioning(defaultRh, defaultT, voc);
     conditioning_s--;
@@ -1261,12 +1279,20 @@ void Sensors::sgp41Read() {
   }
 
   if (error) {
-    Serial.print("Error trying to execute (): ");
     DEBUG("-->[SLIB] sgp41 measureRaw error\t:", String(error).c_str());
     return;
   } else {
+    // Process raw signals through the Sensirion gas index algorithms
+    voci = vocAlgorithm.process(voc);
+    if (!isConditioning) {
+      // NOx raw signal is only valid after conditioning period
+      noxi = noxAlgorithm.process(nox);
+    }
+    dataReady = true;
     unitRegister(UNIT::VOC);
     unitRegister(UNIT::NOX);
+    unitRegister(UNIT::VOCI);
+    unitRegister(UNIT::NOXI);
   }
 }
 
@@ -2591,6 +2617,10 @@ void Sensors::resetAllVariables() {
   co = 0;
   no2 = 0.0;
   o3 = 0.0;
+  voc = 0;
+  nox = 0;
+  voci = 0.0;
+  noxi = 0.0;
   noiseInstant = 0.0;
   noiseAvgValue = 0.0;
   noisePeakValue = 0.0;
