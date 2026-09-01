@@ -26,6 +26,7 @@ For developers you can also check the complete library documentation [here](http
 | Plantower models    | Yes | --- | Auto | STABLE |
 | Nova SDS011         | Yes | --- | Auto | STABLE |
 | IKEA Vindriktning   | Yes | --- | Select | STABLE |
+| IKEA Vindstyrka     | No  | Yes | Auto | STABLE |
 | Sensirion SPS30     | Yes | Yes | Select / Auto | STABLE |
 
 NOTE:  
@@ -36,12 +37,21 @@ Panasonic via UART on ESP8266 may need to be selected in detection.
 | Sensor model  | UART  | I2C | Detection mode | Status |  
 |:----------------------- |:-----:|:-----:|:-------:|:----------:|
 | Sensirion SCD30    | --- | Yes | Auto | STABLE |
-| Sensirion SCD4x    | --- | Yes | Auto | TESTING |
+| Sensirion SCD4x    | --- | Yes | Auto | STABLE |
+| Sensirion SEN5x    | --- | Yes | Auto | STABLE |
+| Sensirion SGP41    | --- | Yes | Auto | TESTING |
 | MHZ19      | Yes | --- | Select | STABLE |
 | CM1106    | Yes | --- | Select | STABLE |
 | SenseAir S8 | Yes | --- | Select | STABLE |
 
-### Environmental sensors
+## Commercial Air Quality Stations
+
+| Device model  | Sensors Supported | Status |  
+|:-----------------------|:-----------------|:----------:|
+| Airgradient OpenAir Outdoor | CO2, PM, VOC, NOX, T, H | STABLE|
+| M5Stack Air Quality Kit  | CO2, PM, VOC, T, H | DEVEL |
+
+### Environmental sensors supported
 
 | Sensor model  | Protocol  | Detection mode | Status |  
 |:----------------------- |:-----:|:-------:|:----------:|
@@ -62,35 +72,18 @@ Panasonic via UART on ESP8266 may need to be selected in detection.
 NOTE:  
 DHT22 is supported but is not recommended. Please see the documentation.  
 
-#### DFRobot Gravity gas sensors
-
-- **Library (manufacturer):** [DFRobot_MultiGasSensor](https://github.com/DFRobot/DFRobot_MultiGasSensor) — the PlatformIO dependency is in `unified-lib-deps.ini` pointing to that repository.
-- **Fixed I²C addresses (group 7):**  
-  | Sensor | Address | Reference |
-  |--------|-----------|------------|
-  | CO     | 0x78      | SEN0466    |
-  | O₃     | 0x79      | SEN0472    |
-  | NH₃    | 0x7A      | SEN0469    |
-  | NO₂    | 0x7B      | SEN0471    |
-- **Custom addresses:** any address can be overridden via `build_flags`, e.g.:  
-  `build_flags = -D DFROBOT_CO_I2C_ADDR=0x74`
-- **Preheating:** the wiki recommends **>5 min** at power-on (and up to 24 h if the sensor has been idle for a long time).
-- **Compensation:** the library applies its own temperature and pressure compensation using external sensors (BME280, etc.) or the DFRobot's own internal temperature if no external sensor is available.
-
-NoiseSensor auto-detection uses the same I2C bus as the rest of the sensors (Wire) and is available on all boards supported by the sensorlib.
-
 ### Platforms supported
 
 | Platform  | Variants  | Notes | Status |  
 |:----------------------- |:-----:|:-------:|:----------:|
-| ESP32  | WROVER* | ESP32Devkit and similar (recommended) | STABLE  |
-| ESP32S3  | LilyGo TDisplay | In testing | STABLE |
-| ESP32C3  | Devkit v3 | In testing | STABLE |
+| ESP32  | DevKIt and Similar | (recommended) | STABLE  |
+| ESP32S2  | LilyGo, Devkit, Lolin | (recommended) | STABLE |
+| ESP32S3  | LilyGo, XIAO, Devkit | (recommended) | STABLE |
+| ESP32C3  | Devkit, AirGradient, Lolin | (recommended)| STABLE |
+| ESP32C6  | XIAO | unstable | DEVEL |
 | ESP8266  | 12 |  D1MINI tested and similar (old) | STABLE |
-| Atmelsam  | seeed_wio_terminal | Only works via i2c on left port | STABLE |
+| Atmelsam  | Seeed Wio Terminal | Only works via i2c on left port | STABLE |
 | Arduino | Atmel  | Some third party libraries fails | IN PROGRESS |
-
-
 
 # Features
 
@@ -112,22 +105,21 @@ NoiseSensor auto-detection uses the same I2C bus as the rest of the sensors (Wir
 - Get the main group type: NONE, PM, CO2 and ENV.
 - Basic debug mode support toggle in execution
 
-### NoiseSensor readings (All platforms)
+Full list of all third party libraries supported [here](https://github.com/kike-canaries/canairio_sensorlib/blob/master/unified-lib-deps.ini)
 
-When the NoiseSensor module is detected via I2C on the main bus (Wire), the library exposes dedicated helpers:
+# Installation
 
-- `getNoise()` – instantaneous reading in mV
-- `getNoiseAverage()` / `getNoisePeak()` / `getNoiseMin()` – LAeq statistics per cycle in mV
-- `getNoiseLegalAverage()` / `getNoiseLegalMaximum()` – legal averages in mV
-- `getNoiseLd()`- Day index in db
-- `getNoiseLe()`- Evening index in db
-- `getNoiseLn()` - Night index in db
-- `getNoiseLden()` - Global day-evening-night index in db
-- `getNoiseL90()` - Low noise level in db
+1. Open platformio.ini, a project configuration file located in the root of PlatformIO project.
+2. Add the following line to the lib_deps option of [env:] section:
+   ```
+   hpsaturn/CanAirIO Air Quality Sensors Library@^0.7.7
+   ```
+3. Build a project, PlatformIO will automatically install dependencies.
 
-Units are registered automatically so they are available for multivariable dashboards alongside the rest of the sensors.
-
-Full list of all sub libraries supported [here](https://github.com/kike-canaries/canairio_sensorlib/blob/master/unified-lib-deps.ini)
+Or via command line:7
+```
+pio pkg install --library "hpsaturn/CanAirIO Air Quality Sensors Library@^0.7.7"
+```
 
 # Quick implementation
 
@@ -198,6 +190,36 @@ void loop() {
     sensors.loop();  // read sensor data and show it
 }
 ```
+
+#### DFRobot Gravity gas sensors
+
+- **Library (manufacturer):** [DFRobot_MultiGasSensor](https://github.com/DFRobot/DFRobot_MultiGasSensor) — the PlatformIO dependency is in `unified-lib-deps.ini` pointing to that repository.
+- **Fixed I²C addresses (group 7):**  
+  | Sensor | Address | Reference |
+  |--------|-----------|------------|
+  | CO     | 0x78      | SEN0466    |
+  | O₃     | 0x79      | SEN0472    |
+  | NH₃    | 0x7A      | SEN0469    |
+  | NO₂    | 0x7B      | SEN0471    |
+- **Custom addresses:** any address can be overridden via `build_flags`, e.g.:  
+  `build_flags = -D DFROBOT_CO_I2C_ADDR=0x74`
+- **Preheating:** the wiki recommends **>5 min** at power-on (and up to 24 h if the sensor has been idle for a long time).
+- **Compensation:** the library applies its own temperature and pressure compensation using external sensors (BME280, etc.) or the DFRobot's own internal temperature if no external sensor is available.
+
+NoiseSensor auto-detection uses the same I2C bus as the rest of the sensors (Wire) and is available on all boards supported by the sensorlib.
+
+#### NoiseSensor readings
+
+When the NoiseSensor module is detected via I2C on the main bus (Wire), the library exposes dedicated helpers:
+
+- `getNoise()` – instantaneous reading in mV
+- `getNoiseAverage()` / `getNoisePeak()` / `getNoiseMin()` – LAeq statistics per cycle in mV
+- `getNoiseLegalAverage()` / `getNoiseLegalMaximum()` – legal averages in mV
+- `getNoiseLd()`- Day index in db
+- `getNoiseLe()`- Evening index in db
+- `getNoiseLn()` - Night index in db
+- `getNoiseLden()` - Global day-evening-night index in db
+- `getNoiseL90()` - Low noise level in db
 
 ## Multivariable demo
 
@@ -271,6 +293,8 @@ void loop() {
 }
 ```
 
+Units are registered automatically so they are available for multivariable dashboards alongside the rest of the sensors.
+
 ## UART detection demo
 
 [![CanAirIO auto configuration demo](https://img.youtube.com/vi/hmukAmG5Eec/0.jpg)](https://www.youtube.com/watch?v=hmukAmG5Eec)
@@ -285,7 +309,7 @@ The current version of library supports 3 kinds of wiring connection, UART, i2c 
 
 ### Predefined UART
 
-The library has [pre-defined some UART pin configs](https://github.com/kike-canaries/canairio_sensorlib/blob/master/src/Sensors.hpp#L19-L52), these are selected at compile time. Maybe you don't need to change anything with your board, and maybe the following alternatives work for you:
+The library has [pre-defined some UART pin configs](https://github.com/kike-canaries/canairio_sensorlib/blob/master/src/Sensors.hpp#L68-L122), these are selected at compile time. Maybe you don't need to change anything with your board, and maybe the following alternatives work for you:
 
 | Board model    |  TX   | RX  |      Notes |
 |:---------------|:---:|:---:|:------------------:|
@@ -404,13 +428,14 @@ Also you can make a donation, become a patron, or buy a device:
 - [x] Added Geiger sensor support
 - [x] New IKEA VINDSTYRKA device support
 - [x] Sea level setting for Pressure sensors and others
-- [ ] Support for second UART port
+- [x] Support for second UART port
 
 # Projects using this Library
 
 - [CanAirIO Device](https://github.com/kike-canaries/canairio_firmware): ESP32 Air quality device for mobile and fixed stations. (PM2.5 and CO2)
 - [CO2 Gadget](https://emariete.com/medidor-co2-display-tft-color-ttgo-t-display-sensirion-scd30): A high-quality CO2 meter with color display. (CO2)  
 - [M5CoreInk Multi Sensor](https://github.com/hpsaturn/co2_m5coreink#readme): Wall CO2, T, H, P, Alt sensor with low consumption (30 days)
+- (Please add yours)
 
 # Credits
 
