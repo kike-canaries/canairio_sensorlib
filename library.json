@@ -1,6 +1,6 @@
 {
   "name": "CanAirIO Air Quality Sensors Library",
-  "version": "0.7.6",
+  "version": "0.7.7",
   "homepage":"https://canair.io",
   "keywords": 
   [ 
@@ -36,7 +36,7 @@
     "PM1.0",
     "PM10"
   ],
-  "description":"Generic sensor manager, abstratctions and bindings of multiple air sensors libraries: Honeywell, Plantower, Panasonic, Sensirion, Nova, etc. and CO2 sensors. Also it handling others environment sensors. This library is for general purpose but also is the sensors library base of CanAirIO project.",
+  "description":"Generic sensor manager, abstractions and bindings of multiple air sensors libraries: Honeywell, Plantower, Panasonic, Sensirion, Nova, etc. and CO2 sensors. Also it handling others environment sensors. This library is for general purpose but also is the sensors library base of CanAirIO project.",
   "repository":
   {
     "type": "git",
@@ -92,8 +92,8 @@
     {"name":"Sensirion I2C SCD4x","owner":"sensirion","version":"0.4.0"},
     {"name":"Sensirion I2C SEN5X","owner":"sensirion","version":"0.3.0"},
     {"name":"Sensirion I2C SGP41","owner":"sensirion","version":"1.0.0"},
-    {"name":"DFRobot_MultiGasSensor","owner":"phzi","version":"2.0.0"},
-
+    {"name":"Sensirion Gas Index Algorithm","owner":"sensirion","version":"3.2.3"},
+    {"name":"DFRobot_MultiGasSensor","version":"https://github.com/DFRobot/DFRobot_MultiGasSensor.git#5b08794"},
     {"name":"AHTxx", "version":"https://github.com/enjoyneering/AHTxx.git#eb21571"},
     {"name":"DHT_nonblocking", "version":"https://github.com/hpsaturn/DHT_nonblocking.git#ec6e5b9"},
     {"name":"SN-GCJA5", "version":"https://github.com/paulvha/SN-GCJA5.git#f261968"},

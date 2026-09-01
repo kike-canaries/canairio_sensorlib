@@ -51,10 +51,41 @@ GEIGER::GEIGER(int gpio, bool debug) {
   attachInterrupt(digitalPinToInterrupt(gpio), GeigerTicISR, FALLING);
 
   // attach interrupt routine to internal timer, to fire every 1000 ms
-  geiger_timer = timerBegin(GEIGER_TIMER, 80, true);
+  // New ESP32 timer API uses frequency in Hz rather than timer number/prescaler.
+  // Support both old and new ESP32 Arduino timer APIs:
+  // - Older cores: timerBegin(uint32_t frequency), timerAttachInterrupt(hw_timer_t*, void(*)()),
+  // timerAlarm(...)
+  // - Newer cores: timerBegin(uint8_t, uint16_t, bool), timerAttachInterrupt(..., bool),
+  // timerAlarmWrite(), timerAlarmEnable()
+#if defined(MAIN_ESP32_HAL_TIMER_H_)
+  // New API
+  geiger_timer = timerBegin(0, 80, true);
   timerAttachInterrupt(geiger_timer, &onGeigerTimer, true);
-  timerAlarmWrite(geiger_timer, 1000000, true);  // 1000 ms
+  timerAlarmWrite(geiger_timer, 1000000, true);  // 1000 ms periodic
   timerAlarmEnable(geiger_timer);
+#else
+  // Old API
+  geiger_timer = timerBegin(1000000);
+  timerAttachInterrupt(geiger_timer, onGeigerTimer);
+  timerAlarm(geiger_timer, 1000000, true, 1000000);  // 1000 ms periodic
+#endif
+#endif
+}
+
+GEIGER::~GEIGER() {
+#ifdef ESP32
+  if (geiger_timer) {
+    timerEnd(geiger_timer);
+    geiger_timer = NULL;
+  }
+  if (geiger_timerMux) {
+    delete geiger_timerMux;
+    geiger_timerMux = NULL;
+  }
+  if (cajoe_fms) {
+    delete cajoe_fms;
+    cajoe_fms = NULL;
+  }
 #endif
 }
 
@@ -87,10 +118,10 @@ bool GEIGER::read() {
 
 #ifdef CORE_DEBUG_LEVEL
   if (CORE_DEBUG_LEVEL >= 3) {
-    Serial.printf("-->[SLIB] tTOT:\t %i\r\n", tics_tot);
-    Serial.printf("-->[SLIB] tLEN:\t %i ", tics_len);
+    Serial.printf("-->[SLIB] tTOT:\t %lu\r\n", (unsigned long)tics_tot);
+    Serial.printf("-->[SLIB] tLEN:\t %lu ", (unsigned long)tics_len);
     Serial.println(ready ? "(ready)" : "(not ready)");
-    Serial.printf("-->[SLIB] tCPM:\t %i\r\n", tics_cpm);
+    Serial.printf("-->[SLIB] tCPM:\t %lu\r\n", (unsigned long)tics_cpm);
     Serial.printf("-->[SLIB] uSvh:\t %04.2f\r\n", uSvh);
   }
 #endif
@@ -103,11 +134,11 @@ bool GEIGER::read() {
 /**
  * Converts CPM to uSv/h units (J305 tube)
  */
-float GEIGER::getUSvh() { return float(this->tics_cpm) * J305_CONV_FACTOR; }
+float GEIGER::getUSvh() const { return float(this->tics_cpm) * J305_CONV_FACTOR; }
 /**
  * Returns CPM
  */
-uint32_t GEIGER::getTics() { return this->tics_cpm; }
+uint32_t GEIGER::getTics() const { return this->tics_cpm; }
 
 void GEIGER::clear() {
   tics_cpm = 0;

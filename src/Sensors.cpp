@@ -1,5 +1,13 @@
 #include "Sensors.hpp"
 
+#include <math.h>
+
+/** Default I2C clock (Hz) when many devices share the bus; override with -D
+ * SLIB_I2C_CLOCK_HZ=400000 */
+#ifndef SLIB_I2C_CLOCK_HZ
+#define SLIB_I2C_CLOCK_HZ 100000
+#endif
+
 // Units and sensors registers
 
 #define X(unit, symbol, name) symbol,
@@ -26,11 +34,43 @@ uint8_t sensors_registered[SCOUNT];
  *  P U B L I C   M E T H O D S
  * *********************************************************************************/
 
+Sensors::Sensors()
+    : devmode(false),
+      sample_time(10),
+      toffset(0.0),
+      altoffset(0.0),
+      sealevel(1013.25),
+      hpa(0.0),
+      i2conly(false),
+      cm1106(nullptr),
+      s8(nullptr),
+      pm1006(nullptr),
+      rad(nullptr),
+      pm5003t(nullptr),
+      _serial(nullptr),
+      _serial2(nullptr),
+      dataReady(false),
+      sensors_registered_count(0),
+      units_registered_count(0),
+      current_unit(0) {
+  resetSensorsRegister();
+  resetUnitsRegister();
+}
+
+Sensors::~Sensors() {
+  if (cm1106) delete cm1106;
+  if (s8) delete s8;
+  if (pm1006) delete pm1006;
+  if (pm5003t) delete pm5003t;
+  if (rad) delete rad;
+}
+
 /**
  * @brief Main sensors loop.
  * All sensors are read here, please call it on main loop.
  */
 void Sensors::loop() {
+  noiseSensorService();
   static uint32_t pmLoopTimeStamp = 0;  // timestamp for sensor loop check data
   if ((millis() - pmLoopTimeStamp >
        sample_time * (uint32_t)1000)) {  // sample time for each capture
@@ -64,6 +104,11 @@ bool Sensors::readAllSensors() {
     dataReady = pmSensorRead();
     DEBUG("-->[SLIB] UART data ready \t:", dataReady ? "true" : "false");
   }
+
+#ifdef AG_OPENAIR
+  senseAirS8Read();
+#endif
+
   enableWire1();
 
   CO2scd30Read();
@@ -84,6 +129,8 @@ bool Sensors::readAllSensors() {
   DFRobotO3Read();
   geigerRead();
   sgp41Read();
+
+  noiseSensorCollect();
 
 #ifdef DHT11_ENABLED
   dhtRead();
@@ -106,6 +153,31 @@ bool Sensors::readAllSensors() {
  * @param pms_tx (optional) UART PMS TX pin.
  */
 void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
+  // cleanup previous UART sensors if any (in case of re-init)
+  if (cm1106) {
+    delete cm1106;
+    cm1106 = nullptr;
+  }
+  if (s8) {
+    delete s8;
+    s8 = nullptr;
+  }
+  if (pm1006) {
+    delete pm1006;
+    pm1006 = nullptr;
+  }
+  if (pm5003t) {
+    delete pm5003t;
+    pm5003t = nullptr;
+  }
+  if (rad) {
+    delete rad;
+    rad = nullptr;
+  }
+
+  s8_uart2 = false;
+  _serial2 = nullptr;
+
 // override with debug INFO level (>=3)
 #ifdef CORE_DEBUG_LEVEL
   if (CORE_DEBUG_LEVEL >= 3) devmode = true;
@@ -120,9 +192,18 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
   Serial.println("-->[SLIB] sea level pressure\t: " + String(sealevel) + " hPa");
   Serial.printf("-->[SLIB] only i2c sensors  \t: %s\r\n", i2conly ? "true" : "false");
 
+#ifdef AG_OPENAIR
+  pms_type = PMS_TYPE;
+#endif
+
   if (!i2conly && !sensorSerialInit(pms_type, pms_rx, pms_tx)) {
     DEBUG("-->[SLIB] UART sensors detected\t:", "0");
   }
+
+#ifdef AG_OPENAIR
+  sensorAnnounce(SENSORS::SAIRS8);
+  if (senseAirS8Init()) sensorRegister(SENSORS::SAIRS8);
+#endif
 
   startI2C();
   CO2scd30Init();
@@ -142,6 +223,8 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
   DFRobotNO2Init();
   DFRobotO3Init();
   sgp41Init();
+
+  noiseSensorAutoDetect();
 
 #ifdef DHT11_ENABLED
   dhtInit();
@@ -201,7 +284,8 @@ void Sensors::setCO2RecalibrationFactor(int ppmValue) {
  * @brief set CO2 altitude offset (m)
  * @param altitude (m).
  *
- * This method is used to compensate the CO2 value with the altitude. Recommended on high altitude.
+ * This method is used to compensate the CO2 value with the altitude. Recommended on high
+ * altitude.
  */
 void Sensors::setCO2AltitudeOffset(float altitude) {
   this->altoffset = altitude;
@@ -242,7 +326,7 @@ void Sensors::setOnDataCallBack(voidCbFn cb) { _onDataCb = cb; }
 
 /**
  * @brief Optional callback for get the sensors errors
- * @param cb callback function to be called when any warnning or error happens.
+ * @param cb callback function to be called when any warning or error happens.
  */
 void Sensors::setOnErrorCallBack(errorCbFn cb) { _onErrorCb = cb; }
 
@@ -256,25 +340,25 @@ void Sensors::setDebugMode(bool enable) { devmode = enable; }
 bool Sensors::isDataReady() { return readAllComplete; }
 
 /// get PM1.0 ug/m3 value
-uint16_t Sensors::getPM1() { return pm1; }
+uint16_t Sensors::getPM1() const { return pm1; }
 
 /// get PM2.5 ug/m3 value
-uint16_t Sensors::getPM25() { return pm25; }
+uint16_t Sensors::getPM25() const { return pm25; }
 
 /// get PM4 ug/m3 value
-uint16_t Sensors::getPM4() { return pm4; }
+uint16_t Sensors::getPM4() const { return pm4; }
 
 /// get PM10 ug/m3 value
-uint16_t Sensors::getPM10() { return pm10; }
+uint16_t Sensors::getPM10() const { return pm10; }
 
 /// get CO2 ppm value
-uint16_t Sensors::getCO2() { return CO2Val; }
+uint16_t Sensors::getCO2() const { return CO2Val; }
 
 /// get humidity % value of CO2 sensor device
-float Sensors::getCO2humi() { return CO2humi; }
+float Sensors::getCO2humi() const { return CO2humi; }
 
 /// get humidity % value of environment sensor
-float Sensors::getHumidity() { return humi; }
+float Sensors::getHumidity() const { return humi; }
 
 /**
  * @brief set the temperature type unit
@@ -300,7 +384,7 @@ void Sensors::setTemperatureUnit(TEMPUNIT tunit) {
 }
 
 /// get temperature value from the CO2 sensor device
-float Sensors::getCO2temp() {
+float Sensors::getCO2temp() const {
   switch (temp_unit) {
     case TEMPUNIT::CELSIUS:
       return CO2temp;
@@ -313,7 +397,7 @@ float Sensors::getCO2temp() {
 }
 
 /// get temperature value from environment sensor
-float Sensors::getTemperature() {
+float Sensors::getTemperature() const {
   switch (temp_unit) {
     case TEMPUNIT::CELSIUS:
       return temp;
@@ -367,7 +451,7 @@ void Sensors::initTOffset(float offset) { toffset = offset; }
  * @return float with the temperature offset.
  * Positive value for offset to be subtracetd to the temperature.
  */
-float Sensors::getTOffset() { return toffset; }
+float Sensors::getTOffset() const { return toffset; }
 
 /**
  * @brief Set temperature offset for all temperature sensors
@@ -386,7 +470,7 @@ void Sensors::setTempOffset(float offset) {
  * @return float with the temperature offset.
  * Positive value for offset to be subtracetd to the temperature.
  */
-float Sensors::getTempOffset() {
+float Sensors::getTempOffset() const {
   float toffset = 0.0;
   if (isSensorRegistered(SENSORS::SSCD30)) {
     toffset = getSCD30TempOffset();
@@ -398,37 +482,113 @@ float Sensors::getTempOffset() {
 }
 
 /// get Gas resistance value of BMP680 sensor
-float Sensors::getGas() { return gas; }
+float Sensors::getGas() const { return gas; }
 
 /// get Altitude value in meters
-float Sensors::getAltitude() { return alt; }
+float Sensors::getAltitude() const { return alt; }
 
 /// get Pressure value in hPa
-float Sensors::getPressure() { return pres; }
+float Sensors::getPressure() const { return pres; }
 
 /// get NH3 value in ppm
-float Sensors::getNH3() { return nh3; }
+float Sensors::getNH3() const { return nh3; }
 
 /// get CO value in ppm
-float Sensors::getCO() { return co; }
+float Sensors::getCO() const { return co; }
 
 /// get NO2 value in ppm
-float Sensors::getNO2() { return no2; }
+float Sensors::getNO2() const { return no2; }
 
 /// get O3 value in ppm
-float Sensors::getO3() { return o3; }
+float Sensors::getO3() const { return o3; }
+
+float Sensors::getVOC() const { return voc; }
+
+float Sensors::getNOX() const { return nox; }
+
+float Sensors::getVOCI() const { return voci; }
+
+float Sensors::getNOXI() const { return noxi; }
+
+float Sensors::getNoise() const { return noiseInstant; }
+
+float Sensors::getNoiseAverage() const { return noiseAvgValue; }
+
+float Sensors::getNoisePeak() const { return noisePeakValue; }
+
+float Sensors::getNoiseMin() const { return noiseMinValue; }
+
+float Sensors::getNoiseLegalAverage() const { return noiseAvgLegalValue; }
+
+float Sensors::getNoiseLegalMaximum() const { return noiseAvgLegalMaxValue; }
+float Sensors::getNoiseL90() const { return noiseL90Value; }
+float Sensors::getNoiseLd() const { return noiseLdValue; }
+float Sensors::getNoiseLe() const { return noiseLeValue; }
+float Sensors::getNoiseLn() const { return noiseLnValue; }
+float Sensors::getNoiseLden() const { return noiseLdenValue; }
+
+bool Sensors::sendNoiseSensorTime(uint32_t unixTime) {
+  if (!noiseTimeSyncEnabled) return false;
+
+  if (!noiseSensorEnabled) return false;
+
+  if (!noiseWireReady) {
+    noiseSensorInitWire();
+  }
+  if (noiseWire == nullptr || noiseSensorAddress == 0) return false;
+
+  if (!noiseSensorDevicePresent(*noiseWire, noiseSensorAddress)) {
+    noiseSensorEnabled = false;
+    noiseSensorAddress = 0;
+    return false;
+  }
+
+  uint8_t payload[1 + sizeof(uint32_t)];
+  payload[0] = CMD_SET_TIME;
+  memcpy(&payload[1], &unixTime, sizeof(uint32_t));
+
+  noiseWire->beginTransmission(noiseSensorAddress);
+  size_t wrote = noiseWire->write(payload, sizeof(payload));
+  uint8_t err = noiseWire->endTransmission();
+  if (err == 0 && wrote == sizeof(payload)) {
+    noiseLastTimeSyncMs = millis();
+    return true;
+  }
+  return false;
+}
+
+bool Sensors::syncNoiseSensorTime() {
+  if (!noiseTimeSyncEnabled || !noiseSensorEnabled) return false;
+
+  uint32_t now_ms = millis();
+  if (noiseLastTimeSyncMs != 0) {
+    if ((now_ms - noiseLastTimeSyncMs) < noiseTimeSyncIntervalMs) return false;
+  } else {
+    if ((now_ms - noiseLastSyncAttemptMs) < NOISE_SYNC_RETRY_MS) return false;
+  }
+  noiseLastSyncAttemptMs = now_ms;
+
+  time_t now = time(nullptr);
+  if (!(now > 1609459200)) return false;  // isTimeValid()
+
+  return sendNoiseSensorTime(static_cast<uint32_t>(now));
+}
+
+void Sensors::setNoiseSensorTimeSyncInterval(uint32_t intervalMs) {
+  noiseTimeSyncIntervalMs = intervalMs;
+}
 
 /**
  * @brief UART only: check if the UART sensor is registered
  * @return bool true if the UART sensor is registered, false otherwise.
  */
-bool Sensors::isUARTSensorConfigured() { return dev_uart_type >= 0; }
+bool Sensors::isUARTSensorConfigured() const { return dev_uart_type >= 0; }
 
 /**
  * @brief UART only: get the UART sensor type. See SENSORS enum. Also getDeviceName()
  * @return SENSORS enum value.
  */
-int Sensors::getUARTDeviceTypeSelected() { return dev_uart_type; }
+int Sensors::getUARTDeviceTypeSelected() const { return dev_uart_type; }
 
 /**
  * @brief Forced to enable I2C sensors only.
@@ -437,20 +597,20 @@ int Sensors::getUARTDeviceTypeSelected() { return dev_uart_type; }
 void Sensors::detectI2COnly(bool enable) { i2conly = enable; }
 
 /// returns the CanAirIO Sensorslib version
-String Sensors::getLibraryVersion() { return String(CSL_VERSION); }
+String Sensors::getLibraryVersion() const { return String(CSL_VERSION); }
 
 /// return the current revision code number
-int16_t Sensors::getLibraryRevision() { return CSL_REVISION; }
+int16_t Sensors::getLibraryRevision() const { return CSL_REVISION; }
 
 /// get device sensors detected count
-uint8_t Sensors::getSensorsRegisteredCount() { return sensors_registered_count; }
+uint8_t Sensors::getSensorsRegisteredCount() const { return sensors_registered_count; }
 
 /**
  * @brief Read and check the sensors status on initialization
  * @param sensor (mandatory) SENSORS enum value.
  * @return True if the sensor is registered, false otherwise.
  */
-bool Sensors::isSensorRegistered(SENSORS sensor) {
+bool Sensors::isSensorRegistered(SENSORS sensor) const {
   for (u_int i = 0; i < SCOUNT; i++) {
     if (sensors_registered[i] == sensor) return true;
   }
@@ -462,7 +622,7 @@ bool Sensors::isSensorRegistered(SENSORS sensor) {
  * @param sensor (mandatory) SENSORS enum value.
  * @return String with the sensor name.
  */
-String Sensors::getSensorName(SENSORS sensor) {
+String Sensors::getSensorName(SENSORS sensor) const {
   if (sensor < 0 || sensor > SENSORS::SCOUNT) return "";
   return String(sensors_device_names[sensor]);
 }
@@ -475,7 +635,7 @@ String Sensors::getSensorName(SENSORS sensor) {
  * if the sensor is not in a group, return 0.
  * if the sensor is in a group, return 1 (PM), 2 (CO2), 3 (ENV).
  */
-SensorGroup Sensors::getSensorGroup(SENSORS sensor) {
+SensorGroup Sensors::getSensorGroup(SENSORS sensor) const {
   return (SensorGroup)sensors_device_types[sensor];
 }
 
@@ -493,7 +653,7 @@ uint8_t *Sensors::getSensorsRegistered() { return sensors_registered; }
  *
  * See the <a href="https://bit.ly/3qVQYYy">Advanced Multivariable example</a>
  */
-bool Sensors::isUnitRegistered(UNIT unit) {
+bool Sensors::isUnitRegistered(UNIT unit) const {
   if (unit == UNIT::NUNIT) return false;
   for (u_int i = 0; i < UCOUNT; i++) {
     if (units_registered[i] == unit) return true;
@@ -511,14 +671,14 @@ bool Sensors::isUnitRegistered(UNIT unit) {
 uint8_t *Sensors::getUnitsRegistered() { return units_registered; }
 
 /// get device sensors units detected count
-uint8_t Sensors::getUnitsRegisteredCount() { return units_registered_count; }
+uint8_t Sensors::getUnitsRegisteredCount() const { return units_registered_count; }
 
 /**
  * @brief get the sensor unit name
  * @param unit (mandatory) UNIT enum value.
  * @return String with the unit name.
  */
-String Sensors::getUnitName(UNIT unit) {
+String Sensors::getUnitName(UNIT unit) const {
   if (unit < 0 || unit > UCOUNT) return "";
   return String(unit_name[unit]);
 }
@@ -528,7 +688,7 @@ String Sensors::getUnitName(UNIT unit) {
  * @param unit (mandatory) UNIT enum value.
  * @return String with the unit symbol.
  */
-String Sensors::getUnitSymbol(UNIT unit) { return String(unit_symbol[unit]); }
+String Sensors::getUnitSymbol(UNIT unit) const { return String(unit_symbol[unit]); }
 
 /**
  * @brief get the next sensor unit available
@@ -633,6 +793,36 @@ float Sensors::getUnitValue(UNIT unit) {
       return no2;
     case O3:
       return o3;
+    case NOISE:
+      return noiseInstant;
+    case NOISEAVG:
+      return noiseAvgValue;
+    case NOISEPEAK:
+      return noisePeakValue;
+    case NOISEMIN:
+      return noiseMinValue;
+    case NOISEAVGLEGAL:
+      return noiseAvgLegalValue;
+    case NOISEAVGLEGALMAX:
+      return noiseAvgLegalMaxValue;
+    case NOISEL90:
+      return noiseL90Value;
+    case NOISELD:
+      return noiseLdValue;
+    case NOISELE:
+      return noiseLeValue;
+    case NOISELN:
+      return noiseLnValue;
+    case NOISELDEN:
+      return noiseLdenValue;
+    case VOC:
+      return voc;
+    case NOX:
+      return nox;
+    case VOCI:
+      return voci;
+    case NOXI:
+      return noxi;
     default:
       return 0.0;
   }
@@ -677,9 +867,11 @@ void Sensors::printValues() {
   Serial.print("-->[SLIB] sensors values  \t: ");
   for (u_int i = 0; i < UCOUNT; i++) {
     if (units_registered[i] != 0) {
-      Serial.print(getUnitName((UNIT)units_registered[i]));
+      UNIT unit = (UNIT)units_registered[i];
+      Serial.print(getUnitName(unit));
       Serial.print(":");
-      Serial.printf("%02.1f ", getUnitValue((UNIT)units_registered[i]));
+      bool isGasPpm = (unit == NH3 || unit == CO || unit == NO2 || unit == O3);
+      Serial.printf(isGasPpm ? "%02.2f " : "%02.2f ", getUnitValue(unit));
     }
   }
   Serial.println();
@@ -694,8 +886,8 @@ void Sensors::printValues() {
  *  @return true if header and sensor data is right.
  */
 bool Sensors::pmGenericRead() {
-  int lenght_buffer = 32;
-  String txtMsg = hwSerialRead(lenght_buffer);
+  int length_buffer = 32;
+  String txtMsg = hwSerialRead(length_buffer);
   if (txtMsg[0] == 66) {
     if (txtMsg[1] == 77) {
       DEBUG("-->[SLIB] UART PMGENERIC read!\t: :D");
@@ -721,8 +913,8 @@ bool Sensors::pmGenericRead() {
  *  @return true if header and sensor data is right.
  */
 bool Sensors::pmGCJA5Read() {
-  int lenght_buffer = 32;
-  String txtMsg = hwSerialRead(lenght_buffer);
+  int length_buffer = 32;
+  String txtMsg = hwSerialRead(length_buffer);
   if (txtMsg[0] == 02) {
     DEBUG("-->[SLIB] UART GCJA5 read\t: done!");
     pm1 = txtMsg[2] * 256 + (char)(txtMsg[1]);
@@ -748,8 +940,8 @@ bool Sensors::pmGCJA5Read() {
  *  @return true if header and sensor data is right.
  */
 bool Sensors::pmSDS011Read() {
-  int lenght_buffer = 10;
-  String txtMsg = hwSerialRead(lenght_buffer);
+  int length_buffer = 10;
+  String txtMsg = hwSerialRead(length_buffer);
   if (txtMsg[0] == 170) {
     if (txtMsg[1] == 192) {
       DEBUG("-->[SLIB] SDS011 read \t\t: done!");
@@ -811,10 +1003,10 @@ bool Sensors::pm5003TRead() {
  * @param SENSOR_RETRY attempts before failure
  * @return String buffer.
  **/
-String Sensors::hwSerialRead(unsigned int lenght_buffer) {
+String Sensors::hwSerialRead(unsigned int length_buffer) {
   unsigned int try_sensor_read = 0;
   String txtMsg = "";
-  while (txtMsg.length() < lenght_buffer && try_sensor_read++ < SENSOR_RETRY) {
+  while (txtMsg.length() < length_buffer && try_sensor_read++ < SENSOR_RETRY) {
     while (_serial->available() > 0) {
       char inChar = _serial->read();
       txtMsg += inChar;
@@ -828,12 +1020,12 @@ String Sensors::hwSerialRead(unsigned int lenght_buffer) {
 
 /**
  *  @brief Sensirion SPS30 particulate meter sensor read.
- *  @return true if reads succes.
+ *  @return true if reads success.
  */
 bool Sensors::sps30Read() {
   if (!isSensorRegistered(SENSORS::SSPS30)) return false;
   uint8_t ret, error_cnt = 0;
-  delay(35);  // Delay for sincronization
+  delay(35);  // Delay for synchronization
 
   do {
     ret = sps30.GetValues(&val);
@@ -1075,7 +1267,9 @@ void Sensors::sgp41Read() {
   uint16_t defaultRh = 0x8000;
   uint16_t defaultT = 0x6666;
 
-  if (conditioning_s > 0) {
+  bool isConditioning = (conditioning_s > 0);
+
+  if (isConditioning) {
     // During NOx conditioning (10s) SRAW NOx will remain 0
     error = sgp41.executeConditioning(defaultRh, defaultT, voc);
     conditioning_s--;
@@ -1085,12 +1279,20 @@ void Sensors::sgp41Read() {
   }
 
   if (error) {
-    Serial.print("Error trying to execute (): ");
     DEBUG("-->[SLIB] sgp41 measureRaw error\t:", String(error).c_str());
     return;
   } else {
+    // Process raw signals through the Sensirion gas index algorithms
+    voci = vocAlgorithm.process(voc);
+    if (!isConditioning) {
+      // NOx raw signal is only valid after conditioning period
+      noxi = noxAlgorithm.process(nox);
+    }
+    dataReady = true;
     unitRegister(UNIT::VOC);
     unitRegister(UNIT::NOX);
+    unitRegister(UNIT::VOCI);
+    unitRegister(UNIT::NOXI);
   }
 }
 
@@ -1170,30 +1372,217 @@ void Sensors::GCJA5Read() {
 
 void Sensors::DFRobotNH3Read() {
   if (!isSensorRegistered(SENSORS::SDFRNH3)) return;
-  if (!dfrNH3.begin()) return;
-  nh3 = dfrNH3.readGasConcentrationPPM();
+  float rawPpm = dfrNH3.readGasConcentrationPPM();
+  float dfrInternalTemp = dfrNH3.readTempC();
+  bool hasExternalTempSensor = dfrHasExternalTempSensor();
+  float compensationTemp = hasExternalTempSensor ? temp : (dfrInternalTemp - toffset);
+  nh3 = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::NH3);
+  if (hasExternalTempSensor && humi > 0.0f)
+    nh3 = dfrGasHumiCompensation(nh3, humi, DFRobot_GAS::NH3);
+  if (pres > 0.0) nh3 = dfrGasPressCompensation(nh3, pres);
   unitRegister(UNIT::NH3);
+  dataReady = true;
+  if (!hasExternalTempSensor) {
+    temp = dfrInternalTemp - toffset;
+    tempRegister(false);
+  }
 }
 
 void Sensors::DFRobotCORead() {
   if (!isSensorRegistered(SENSORS::SDFRCO)) return;
-  if (!dfrCO.begin()) return;
-  co = dfrCO.readGasConcentrationPPM();
+  float rawPpm = dfrCO.readGasConcentrationPPM();
+  float dfrInternalTemp = dfrCO.readTempC();
+  bool hasExternalTempSensor = dfrHasExternalTempSensor();
+  float compensationTemp = hasExternalTempSensor ? temp : (dfrInternalTemp - toffset);
+  co = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::CO);
+  if (hasExternalTempSensor && humi > 0.0f) co = dfrGasHumiCompensation(co, humi, DFRobot_GAS::CO);
+  if (pres > 0.0) co = dfrGasPressCompensation(co, pres);
   unitRegister(UNIT::CO);
+  dataReady = true;
+  if (!hasExternalTempSensor) {
+    temp = dfrInternalTemp - toffset;
+    tempRegister(false);
+  }
 }
 
 void Sensors::DFRobotNO2Read() {
   if (!isSensorRegistered(SENSORS::SDFRNO2)) return;
-  if (!dfrNO2.begin()) return;
-  no2 = dfrNO2.readGasConcentrationPPM();
+  float rawPpm = dfrNO2.readGasConcentrationPPM();
+  float dfrInternalTemp = dfrNO2.readTempC();
+  bool hasExternalTempSensor = dfrHasExternalTempSensor();
+  float compensationTemp = hasExternalTempSensor ? temp : (dfrInternalTemp - toffset);
+  no2 = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::NO2);
+  if (hasExternalTempSensor && humi > 0.0f)
+    no2 = dfrGasHumiCompensation(no2, humi, DFRobot_GAS::NO2);
+  if (pres > 0.0) no2 = dfrGasPressCompensation(no2, pres);
   unitRegister(UNIT::NO2);
+  dataReady = true;
+  if (!hasExternalTempSensor) {
+    temp = dfrInternalTemp - toffset;
+    tempRegister(false);
+  }
 }
 
 void Sensors::DFRobotO3Read() {
   if (!isSensorRegistered(SENSORS::SDFRO3)) return;
-  if (!dfrO3.begin()) return;
-  o3 = dfrO3.readGasConcentrationPPM();
+  float rawPpm = dfrO3.readGasConcentrationPPM();
+  float dfrInternalTemp = dfrO3.readTempC();
+  bool hasExternalTempSensor = dfrHasExternalTempSensor();
+  float compensationTemp = hasExternalTempSensor ? temp : (dfrInternalTemp - toffset);
+  o3 = dfrGasTempCompensation(rawPpm, compensationTemp, DFRobot_GAS::O3);
+  if (hasExternalTempSensor && humi > 0.0f) o3 = dfrGasHumiCompensation(o3, humi, DFRobot_GAS::O3);
+  if (pres > 0.0) o3 = dfrGasPressCompensation(o3, pres);
   unitRegister(UNIT::O3);
+  dataReady = true;
+  if (!hasExternalTempSensor) {
+    temp = dfrInternalTemp - toffset;
+    tempRegister(false);
+  }
+}
+
+bool Sensors::noiseSensorAutoDetect() {
+  if (noiseSensorEnabled) return true;
+  if (noiseScanDone) return false;
+  noiseScanDone = true;
+
+  noiseSensorInitWire();
+  if (noiseWire == nullptr) {
+    DEBUG("-->[SLIB] Noise sensor detect\t: no i2c");
+    return false;
+  }
+
+  for (uint8_t addr = NOISE_MIN_SCAN_ADDR; addr <= NOISE_MAX_SCAN_ADDR; addr++) {
+    if (!noiseSensorDevicePresent(*noiseWire, addr)) continue;
+    if (devmode) Serial.printf("-->[SLIB] Found device at: 0x%02X, reading identity...\r\n", addr);
+
+    SensorIdentity identity;
+    if (!noiseSensorReadIdentity(*noiseWire, addr, identity)) {
+      if (devmode) Serial.printf("-->[SLIB] No identity response at: 0x%02X\r\n", addr);
+      continue;
+    }
+    if (identity.sensorType != NOISE_SENSOR_TYPE_ID) {
+      if (devmode)
+        Serial.printf("-->[SLIB] Wrong sensor type at: 0x%02X (0x%02X)\r\n", addr,
+                      identity.sensorType);
+      continue;
+    }
+    if (identity.i2cAddress != addr) {
+      if (devmode)
+        Serial.printf("-->[SLIB] Addr mismatch at: 0x%02X (reported 0x%02X)\r\n", addr,
+                      identity.i2cAddress);
+      continue;
+    }
+
+    noiseSensorEnabled = true;
+    noiseSensorAddress = addr;
+    sensorAnnounce(SENSORS::SNOISE);
+    sensorRegister(SENSORS::SNOISE);
+    DEBUG("-->[SLIB] Noise sensor detect\t: ok");
+    return true;
+  }
+
+  DEBUG("-->[SLIB] Noise sensor detect\t: not found");
+  return false;
+}
+
+void Sensors::noiseSensorService() {
+  // Detection is done once at boot; noiseScanDone prevents any retry.
+  if (noiseSensorEnabled || noiseScanDone) return;
+  noiseSensorAutoDetect();
+}
+
+void Sensors::noiseSensorCollect() {
+  if (!noiseSensorEnabled) return;
+
+  if (noiseWire == nullptr || !noiseSensorEnabled) return;
+
+  if (noiseSensorAddress == 0) return;
+  if (!noiseSensorDevicePresent(*noiseWire, noiseSensorAddress)) {
+    noiseSensorEnabled = false;
+    noiseSensorAddress = 0;
+    return;
+  }
+  if (!noiseSensorReadData(*noiseWire, noiseSensorAddress, noiseSensorData)) return;
+  noiseInstant =
+      noiseSensorData
+          .noiseAvgDb;  // Use DB as instant? Or raw? I'll use noiseAvgDb for 'NOISE' unit usually
+  noiseAvgValue = noiseSensorData.noiseAvgDb;
+  noisePeakValue = noiseSensorData.noisePeakDb;
+  noiseMinValue = noiseSensorData.noiseMinDb;
+  noiseAvgLegalValue = noiseSensorData.noiseAvgLegalDb;        // Use DB version
+  noiseAvgLegalMaxValue = noiseSensorData.noiseAvgLegalMaxDb;  // Use DB version
+  noiseL90Value = (float)noiseSensorData.lowNoiseLevel;        // L90 background level
+
+  // Ld/Le/Ln/Lden: sensor returns 0 when period has no samples (e.g. Ld/Le=0 at night).
+  // Preserve last valid value so UI shows recent data instead of 0.
+  static constexpr float NOISE_PERIOD_MIN_VALID_DB = 15.0f;  // below this, 0 = "no data"
+  auto updateIfValid = [](float newVal, float &stored) {
+    if (!isnan(newVal) && newVal >= NOISE_PERIOD_MIN_VALID_DB) {
+      stored = newVal;
+    }
+  };
+  updateIfValid(noiseSensorData.Ld, noiseLdValue);
+  updateIfValid(noiseSensorData.Le, noiseLeValue);
+  updateIfValid(noiseSensorData.Ln, noiseLnValue);
+  updateIfValid(noiseSensorData.noiseLden, noiseLdenValue);
+
+  unitRegister(UNIT::NOISE);
+  dataReady = true;
+
+  unitRegister(UNIT::NOISEAVG);
+  unitRegister(UNIT::NOISEPEAK);
+  unitRegister(UNIT::NOISEMIN);
+  unitRegister(UNIT::NOISEAVGLEGAL);
+  unitRegister(UNIT::NOISEAVGLEGALMAX);
+  unitRegister(UNIT::NOISEL90);
+  unitRegister(UNIT::NOISELD);
+  unitRegister(UNIT::NOISELE);
+  unitRegister(UNIT::NOISELN);
+  unitRegister(UNIT::NOISELDEN);
+}
+
+bool Sensors::noiseSensorReadIdentity(TwoWire &wire, uint8_t address, SensorIdentity &identity) {
+  wire.beginTransmission(address);
+  wire.write(CMD_IDENTIFY);
+  if (wire.endTransmission(true) != 0) return false;
+  delay(5);
+  uint8_t got = wire.requestFrom(address, (uint8_t)sizeof(SensorIdentity));
+  if (got != sizeof(SensorIdentity)) return false;
+  uint8_t buffer[sizeof(SensorIdentity)];
+  wire.readBytes(buffer, sizeof(SensorIdentity));
+  memcpy(&identity, buffer, sizeof(SensorIdentity));
+  return true;
+}
+
+bool Sensors::noiseSensorReadData(TwoWire &wire, uint8_t address, SensorData &out) {
+  int retries = 3;
+  while (retries-- > 0) {
+    wire.beginTransmission(address);
+    wire.write(CMD_GET_DATA);
+    if (wire.endTransmission(true) == 0) {
+      delay(5);
+      uint8_t buffer[sizeof(SensorData)] = {0};
+      uint8_t got = wire.requestFrom(address, (uint8_t)sizeof(SensorData));
+      if (got == sizeof(SensorData)) {
+        wire.readBytes(buffer, sizeof(SensorData));
+        memcpy(&out, buffer, sizeof(SensorData));
+        return true;
+      }
+    }
+    delay(100);
+  }
+  return false;
+}
+
+bool Sensors::noiseSensorDevicePresent(TwoWire &wire, uint8_t address) {
+  wire.beginTransmission(address);
+  return (wire.endTransmission() == 0);
+}
+
+void Sensors::noiseSensorInitWire() {
+  if (noiseWireReady) return;
+  noiseWire = &Wire;
+  noiseWireReady = true;
 }
 
 #ifdef DHT11_ENABLED
@@ -1298,8 +1687,8 @@ bool Sensors::sensorSerialInit(u_int pms_type, int pms_rx, int pms_tx) {
 
   // starting auto detection loop
   int try_sensor_init = 0;
-  while (!pmSensorAutoDetect(pms_type) && try_sensor_init++ < 2)
-    ;
+  while (!pmSensorAutoDetect(pms_type) && try_sensor_init++ < 2) {
+  }
 
   // get device selected..
   if (dev_uart_type >= 0) {
@@ -1432,7 +1821,7 @@ bool Sensors::CO2CM1106Init() {
   DEBUG("-->[SLIB] CM1106 Software version\t:", cm1106sensor.softver);
 
   // Setup ABC parameters
-  DEBUG("-->[SLIB] CM1106 Setting ABC parameters...");
+  DEBUG("-->[SLIB] CM1106 Setting ABC params...");
   cm1106->set_ABC(CM1106_ABC_OPEN, 7, 415);  // 7 days cycle, 415 ppm for base
 
   // Force mode continous B for CM1106SL-NS
@@ -1454,7 +1843,15 @@ bool Sensors::CO2CM1106Init() {
 }
 
 bool Sensors::senseAirS8Init() {
+// Second UART for a dedicated sensor (e.g. SenseAir S8 on AG_OPENAIR).
+// The PM sensor keeps the first UART, the S8 CO2 sensor uses the second one.
+#if defined(AG_OPENAIR) && defined(SLIB_UART2_RX) && defined(SLIB_UART2_TX)
+  if (sensorSerial2Init(SLIB_UART2_RX, SLIB_UART2_TX)) {
+    s8 = new S8_UART(*_serial2);
+  }
+#else
   s8 = new S8_UART(*_serial);
+#endif
   // Check if S8 is available
   s8->get_firmware_version(s8sensor.firm_version);
   int len = strlen(s8sensor.firm_version);
@@ -1462,26 +1859,18 @@ bool Sensors::senseAirS8Init() {
     DEBUG("[E][SLIB] SENSEAIR S8 not detected!");
     return false;
   }
-  // Show S8 sensor info
-
-  Serial.println("-->[SLIB] UART sensor detected \t: SenseAir S8");
   if (devmode) {
-    Serial.printf("-->[SLIB] S8 Software version\t: %s\r\n", s8sensor.firm_version);
-    Serial.printf("-->[SLIB] S8 Sensor type\t: 0x%08x\r\n", s8->get_sensor_type_ID());
-    Serial.printf("-->[SLIB] S8 Sensor ID\t: %08x\r\n", s8->get_sensor_ID());
-    Serial.printf("-->[SLIB] S8 Memory ver\t: 0x%04x\r\n", s8->get_memory_map_version());
-    Serial.printf("-->[SLIB] S8 ABC period\t: %d hours\r\n", s8->get_ABC_period());
+    Serial.printf("-->[SLIB] S8 Software version \t: %s\r\n", s8sensor.firm_version);
+    Serial.printf("-->[SLIB] S8 Sensor type      \t: 0x%08X\r\n", s8->get_sensor_type_ID());
+    Serial.printf("-->[SLIB] S8 Sensor ID        \t: %08X\r\n", s8->get_sensor_ID());
+    Serial.printf("-->[SLIB] S8 Memory ver       \t: 0x%04x\r\n", s8->get_memory_map_version());
+    Serial.printf("-->[SLIB] S8 ABC period       \t: %d hours\r\n", s8->get_ABC_period());
   }
   DEBUG("-->[SLIB] S8 Disabling ABC period");
   s8->set_ABC_period(0);
   delay(100);
-  if (devmode) Serial.printf("-->[SLIB] S8 ABC period\t: %d hours\r\n", s8->get_ABC_period());
-
-  DEBUG("-->[SLIB] S8 ABC period \t: 180 hours");
   s8->set_ABC_period(180);
   delay(100);
-  if (devmode) Serial.printf("-->[SLIB] S8 ABC period\t: %d hours\r\n", s8->get_ABC_period());
-
   s8->get_meter_status();
   s8->get_alarm_status();
   s8->get_output_status();
@@ -1490,12 +1879,41 @@ bool Sensors::senseAirS8Init() {
   return true;
 }
 
+/**
+ * @brief Initialize the second UART for a dedicated sensor SenseAir S8
+ *
+ * On ESP32-C3 (AG_OPENAIR) the second UART (Serial1) is used by the PM sensor,
+ * the S8 CO2 sensor is attached to the first UART in Serial0 of ESP32C3
+ *
+ * @param rx RX pin for the second UART.
+ * @param tx TX pin for the second UART.
+ * @return true if the second UART was initialized.
+ */
+bool Sensors::sensorSerial2Init(int rx, int tx) {
+#if defined(AG_OPENAIR)
+  if (rx < 0 || tx < 0) {
+    DEBUG("-->[SLIB] UART2 TX/RX line not defined");
+    return false;
+  }
+  printUART("UART2", S8_BAUDRATE, rx, tx);
+  Serial0.begin(S8_BAUDRATE, SERIAL_8N1, rx, tx, false);
+  _serial2 = &Serial0;
+#endif
+  return true;
+}
+
 bool Sensors::sps30UARTInit() {
   sensorAnnounce(SENSORS::SSPS30);
   // set driver debug level
-  if (CORE_DEBUG_LEVEL > 0) sps30.EnableDebugging(true);
-  // Begin communication channel;
+  if (CORE_DEBUG_LEVEL > 0) {
+    sps30.EnableDebugging(true);
+  }
+  // Begin communication channel (non-ESP32: use Stream* e.g. SoftwareSerial; ESP32: SENSOR_COMMS)
+#if defined(ARDUINO_ARCH_ESP32)
   if (!sps30.begin(SENSOR_COMMS)) {
+#else
+  if (_serial == nullptr || !sps30.begin(*_serial)) {
+#endif
     sps30Errorloop((char *)"[E][SLIB] UART SPS30 could not initialize communication channel.", 0);
     return false;
   }
@@ -1694,8 +2112,9 @@ void Sensors::aht10Init() {
   sensorAnnounce(SENSORS::SAHTXX);
   // TODO: this sensor only works in Wire0
   aht10 = AHTxx(AHTXX_ADDRESS_X38, AHT1x_SENSOR);
+  // TODO: check if the last M5 library fix that:
 #ifdef M5STICKCPLUS  // issue: https://github.com/enjoyneering/AHTxx/issues/11
-  if (!aht10.begin(EXT_I2C_SDA, EXT_I2C_SCL, 100000, 50000)) return;
+  if (!aht10.begin(SLIB_I2C2_SDA, SLIB_I2C2_SCL, 100000, 50000)) return;
 #else
   if (!aht10.begin()) return;
 #endif
@@ -1739,10 +2158,11 @@ void Sensors::setSCD30TempOffset(float offset) {
 }
 
 /// get SCD30 temperature compensation
-float Sensors::getSCD30TempOffset() {
+float Sensors::getSCD30TempOffset() const {
   float offset = 0.0;
   if (isSensorRegistered(SENSORS::SSCD30)) {
-    offset = scd30.getTemperatureOffset() / 100.0;
+    // Cast away const because Adafruit_SCD30::getTemperatureOffset() is not const
+    offset = const_cast<Adafruit_SCD30 &>(scd30).getTemperatureOffset() / 100.0;
     Serial.println("-->[SLIB] SCD30 get temp offset\t: " + String(offset));
   }
   return offset;
@@ -1811,26 +2231,26 @@ void Sensors::setSCD4xTempOffset(float offset) {
 }
 
 /// get SCD4x temperature compensation
-float Sensors::getSCD4xTempOffset() {
+float Sensors::getSCD4xTempOffset() const {
   float offset = 0.0;
   if (isSensorRegistered(SENSORS::SSCD4X)) {
-    uint16_t error = scd4x.stopPeriodicMeasurement();
+    // We cannot call stop/start measurements here if we want this method to be const
+    // because they are not const methods in the library.
+    // However, if we really need to read it, we might have to use a cached value
+    // or cast away const if we are sure it is safe.
+    // For now, let's try to just read it without stopping if the lib allows,
+    // but the library says it must be stopped.
+    // Since this is a refactoring, maybe we should just not make it const if it has side effects.
+    // BUT the calling method getTempOffset() IS const.
+    // Let's use a workaround for now: cast away const for the sub-calls.
+    auto *nonConstThis = const_cast<Sensors *>(this);
+    uint16_t error = nonConstThis->scd4x.stopPeriodicMeasurement();
     if (error) {
       DEBUG("[SLIB] SCD4x stopPeriodicMeasurement()\t: error:", String(error).c_str());
-      return 0.0;
     } else {
-      DEBUG("[SLIB] SCD4x stopPeriodicMeasurement()\t: done!");
+      nonConstThis->scd4x.getTemperatureOffset(offset);
     }
-    error = scd4x.getTemperatureOffset(offset);
-    if (error) {
-      DEBUG("[SLIB] SCD4x get temp offset\t: error:", String(error).c_str());
-      return 0.0;
-    }
-    error = scd4x.startPeriodicMeasurement();
-    if (error) {
-      DEBUG("[SLIB] SCD4x startPeriodicMeasurement()\t: error:", String(error).c_str());
-      return 0.0;
-    }
+    nonConstThis->scd4x.startPeriodicMeasurement();
   }
   return offset;
 }
@@ -1892,60 +2312,244 @@ void Sensors::GCJA5Init() {
   sensorRegister(SENSORS::SGCJA5);
 }
 
+/**
+ * @brief Check if any non-DFRobot sensor that provides ambient temperature
+ *        is registered and read before the DFRobot sensors in readAllSensors().
+ *
+ * Unlike checking isUnitRegistered(UNIT::TEMP), this avoids a subtle bug:
+ * the first DFRobot read in a cycle would register UNIT::TEMP itself, causing
+ * all subsequent DFRobot reads (and all future cycles) to believe an external
+ * sensor is present and stop refreshing the temperature from readTempC().
+ */
+bool Sensors::dfrHasExternalTempSensor() const {
+  return isSensorRegistered(SENSORS::SBME280) || isSensorRegistered(SENSORS::SBMP280) ||
+         isSensorRegistered(SENSORS::SBME680) || isSensorRegistered(SENSORS::SSHT31) ||
+         isSensorRegistered(SENSORS::SAHTXX) || isSensorRegistered(SENSORS::SAM232X) ||
+         isSensorRegistered(SENSORS::SSEN5X) || isSensorRegistered(SENSORS::P5003T);
+}
+
+/**
+ * @brief Temperature compensation for DFRobot gas sensors using external temperature.
+ *
+ * Reimplements the DFRobot library formulas (from DFRobot_MultiGasSensor.cpp)
+ * so we can feed the current ambient temperature from an external sensor
+ * (BME280, SHT31, etc.) instead of the stale onboard thermistor value that
+ * the library captures only once at init.
+ *
+ * Each formula is split into a gain divisor (corrects sensitivity drift) and
+ * a baseline offset (corrects zero-point drift).  When the offset would make
+ * the result negative — common for low ambient NO2/O3/CO concentrations — we
+ * fall back to the gain-only correction so the reading stays meaningful.
+ *
+ * @param rawPpm  Uncompensated gas concentration from readGasConcentrationPPM()
+ * @param temperature  Ambient temperature in °C (from external sensor)
+ * @param gasType  DFRobot gas type constant (DFRobot_GAS::CO, ::NH3, ::NO2, ::O3)
+ * @return Compensated gas concentration in PPM
+ */
+float Sensors::dfrGasTempCompensation(float rawPpm, float temperature, uint8_t gasType) {
+  static const float DFR_TEMP_MIN = -20.0f;
+  static const float DFR_TEMP_MAX = 40.0f;
+
+  if (temperature <= DFR_TEMP_MIN) temperature = DFR_TEMP_MIN + 0.01f;
+  if (temperature > DFR_TEMP_MAX) temperature = DFR_TEMP_MAX;
+
+  float gainDivisor = 1.0f;
+  float baselineOffset = 0.0f;
+
+  switch (gasType) {
+    case DFRobot_GAS::CO:
+      gainDivisor = 0.005f * temperature + 0.9f;
+      if (temperature > 20) baselineOffset = 0.3f * temperature - 6.0f;
+      break;
+
+    case DFRobot_GAS::NH3:
+      if (temperature <= 0) {
+        gainDivisor = 0.006f * temperature + 0.95f;
+        baselineOffset = -0.006f * temperature + 0.25f;
+      } else if (temperature <= 20) {
+        gainDivisor = 0.006f * temperature + 0.95f;
+        baselineOffset = -0.012f * temperature + 0.25f;
+      } else {
+        gainDivisor = 0.005f * temperature + 1.08f;
+        baselineOffset = -0.1f * temperature + 2.0f;
+      }
+      break;
+
+    case DFRobot_GAS::NO2:
+      gainDivisor = 0.005f * temperature + 0.9f;
+      if (temperature <= 0) {
+        baselineOffset = -0.0025f * temperature + 0.005f;
+      } else if (temperature <= 20) {
+        baselineOffset = 0.005f * temperature + 0.005f;
+      } else {
+        baselineOffset = 0.0025f * temperature + 0.1f;
+      }
+      break;
+
+    case DFRobot_GAS::O3:
+      if (temperature <= 0) {
+        gainDivisor = 0.015f * temperature + 1.1f;
+        baselineOffset = 0.05f;
+      } else if (temperature <= 20) {
+        gainDivisor = 1.1f;
+        baselineOffset = 0.01f * temperature;
+      } else {
+        gainDivisor = 1.1f;
+        baselineOffset = -0.005f * temperature + 0.3f;
+      }
+      break;
+
+    default:
+      break;
+  }
+
+  float scaled = rawPpm / gainDivisor;
+  float compensated = scaled - baselineOffset;
+
+  if (compensated < 0) return (scaled > 0) ? scaled : 0.0f;
+  return compensated;
+}
+
+/**
+ * @brief Pressure compensation for electrochemical gas sensors.
+ *
+ * Corrects for the effect of barometric pressure on the partial pressure of
+ * the target gas.  At higher pressure more molecules reach the electrode,
+ * inflating the apparent concentration.
+ *
+ * @param ppm  Gas concentration after temperature compensation
+ * @param pressure  Current barometric pressure in hPa (from BME280/BMP280/BME680)
+ * @return Pressure-compensated gas concentration in PPM
+ */
+float Sensors::dfrGasPressCompensation(float ppm, float pressure) {
+  static const float STANDARD_PRESSURE_HPA = 1013.25f;
+  if (pressure <= 0.0f) return ppm;
+  return ppm * (STANDARD_PRESSURE_HPA / pressure);
+}
+
+/**
+ * @brief Humidity compensation for DFRobot electrochemical gas sensors.
+ *
+ * Electrochemical cells drift with relative humidity (cross-sensitivity),
+ * most noticeably for NO2 and NH3. DFRobot does NOT publish official RH
+ * coefficients, so by default this function is a NO-OP (coefficients = 0)
+ * and returns the input unchanged — it will not introduce noise.
+ *
+ * Once you have the SHT31 logging in parallel with the official reference
+ * station, derive real per-gas coefficients by regression and either fill
+ * them in below or define SLIB_DFR_HUMI_COMP with your fitted values.
+ *
+ * Model: ppm_out = (ppm / (1 + k_gain*(RH-REF))) - k_off*(RH-REF)
+ *
+ * @param ppm   Gas concentration after temperature compensation
+ * @param humidity  Relative humidity in % (from SHT31/BME280/etc.)
+ * @param gasType   DFRobot gas type constant (::CO, ::NH3, ::NO2, ::O3)
+ * @return Humidity-compensated gas concentration in PPM
+ */
+float Sensors::dfrGasHumiCompensation(float ppm, float humidity, uint8_t gasType) {
+  static const float REF_HUMI = 50.0f;  // factory reference RH (%)
+  if (humidity <= 0.0f || humidity > 100.0f) return ppm;
+
+  const float delta = humidity - REF_HUMI;
+
+  // Default coefficients = 0 (NO-OP). Replace with your regression results.
+  float kGain = 0.0f;  // sensitivity drift per %RH
+  float kOff = 0.0f;   // baseline drift per %RH
+
+  switch (gasType) {
+    case DFRobot_GAS::NH3:
+      // kGain = 0.0015f; kOff = 0.002f;   // example placeholders
+      break;
+    case DFRobot_GAS::NO2:
+      // kGain = 0.0010f; kOff = 0.001f;
+      break;
+    case DFRobot_GAS::O3:
+      // kGain = 0.0020f; kOff = 0.0015f;
+      break;
+    case DFRobot_GAS::CO:
+      // kGain = 0.0005f; kOff = 0.0f;
+      break;
+    default:
+      break;
+  }
+
+  if (kGain == 0.0f && kOff == 0.0f) return ppm;  // nothing to do
+
+  const float gainDivisor = 1.0f + kGain * delta;
+  const float scaled = (gainDivisor != 0.0f) ? (ppm / gainDivisor) : ppm;
+  const float compensated = scaled - kOff * delta;
+
+  if (compensated < 0.0f) return (scaled > 0.0f) ? scaled : 0.0f;
+  return compensated;
+}
+
 /// DFRobot GAS (CO) sensors init
 void Sensors::DFRobotCOInit() {
   sensorAnnounce(SENSORS::SDFRCO);
-  dfrCO =
-      DFRobot_GAS_I2C(&Wire, 0x78);  // Be sure that your group of i2c address is 7, and A0=0 A1=0
+  dfrCO = DFRobot_GAS_I2C(&Wire, DFROBOT_CO_I2C_ADDR);
   if (!dfrCO.begin()) return;
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrCO.changeAcquireMode(dfrCO.PASSIVITY);
-  // Turn on temperature compensation: gas.ON : turn on
-  dfrCO.setTempCompensation(dfrCO.ON);
+  delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
+  // Disable internal compensation: we apply our own using external T/P sensors
+  if (dfrHasExternalTempSensor())
+    dfrCO.setTempCompensation(dfrCO.ON);
+  else
+    dfrCO.setTempCompensation(dfrCO.OFF);
   sensorRegister(SENSORS::SDFRCO);
 }
 
 /// DFRobot GAS (NH3) sensors init
 void Sensors::DFRobotNH3Init() {
   sensorAnnounce(SENSORS::SDFRNH3);
-  dfrNH3 = DFRobot_GAS_I2C(&Wire, 0x7A);  // 0x77 y 0x75 used by bme680. Be sure that your group of
-                                          // i2c address is 7, and A0=1 A1=0
+  dfrNH3 = DFRobot_GAS_I2C(&Wire, DFROBOT_NH3_I2C_ADDR);
   if (!dfrNH3.begin()) return;
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrNH3.changeAcquireMode(dfrNH3.PASSIVITY);
-  // Turn on temperature compensation: gas.ON : turn on
-  dfrNH3.setTempCompensation(dfrNH3.ON);
+  delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
+  // Disable internal compensation: we apply our own using external T/P sensors
+  if (dfrHasExternalTempSensor())
+    dfrNH3.setTempCompensation(dfrNH3.ON);
+  else
+    dfrNH3.setTempCompensation(dfrNH3.OFF);
   sensorRegister(SENSORS::SDFRNH3);
 }
 
 /// DFRobot GAS (NO2) sensors init
 void Sensors::DFRobotNO2Init() {
   sensorAnnounce(SENSORS::SDFRNO2);
-  dfrNO2 =
-      DFRobot_GAS_I2C(&Wire, 0x7B);  // Be sure that your group of i2c address is 7, and A0=1 A1=1
+  dfrNO2 = DFRobot_GAS_I2C(&Wire, DFROBOT_NO2_I2C_ADDR);
   if (!dfrNO2.begin()) return;
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrNO2.changeAcquireMode(dfrNO2.PASSIVITY);
-  // Turn on temperature compensation: gas.ON : turn on
-  dfrNO2.setTempCompensation(dfrNO2.ON);
+  delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
+  // Disable internal compensation: we apply our own using external T/P sensors
+  if (dfrHasExternalTempSensor())
+    dfrNO2.setTempCompensation(dfrNO2.ON);
+  else
+    dfrNO2.setTempCompensation(dfrNO2.OFF);
   sensorRegister(SENSORS::SDFRNO2);
 }
 
-/// DFRobot GAS (NO2) sensors init
+/// DFRobot GAS (O3) sensors init
 void Sensors::DFRobotO3Init() {
   sensorAnnounce(SENSORS::SDFRO3);
-  dfrO3 = DFRobot_GAS_I2C(&Wire, 0x79);  // Be sure that your group of i2c address is 7, and A0= A1=
+  dfrO3 = DFRobot_GAS_I2C(&Wire, DFROBOT_O3_I2C_ADDR);
   if (!dfrO3.begin()) return;
   // Mode of obtaining data: the main controller needs to request the sensor for data
   dfrO3.changeAcquireMode(dfrO3.PASSIVITY);
-  // Turn on temperature compensation: gas.ON : turn on
-  dfrO3.setTempCompensation(dfrO3.ON);
+  delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
+  // Disable internal compensation: we apply our own using external T/P sensors
+  if (dfrHasExternalTempSensor())
+    dfrO3.setTempCompensation(dfrO3.ON);
+  else
+    dfrO3.setTempCompensation(dfrO3.OFF);
   sensorRegister(SENSORS::SDFRO3);
 }
 
 // Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
 void Sensors::CO2correctionAlt() {
-  DEBUG("-->[SLIB] CO2 altitud original\t:", String(CO2Val).c_str());
+  DEBUG("-->[SLIB] CO2 altitude original\t:", String(CO2Val).c_str());
   float CO2cor = (0.016 * ((1013.25 - hpa) / 10) * (CO2Val - 400)) +
                  CO2Val;  // Increment of 1.6% for every hpa of difference at sea level
   CO2Val = round(CO2cor);
@@ -1958,7 +2562,7 @@ float Sensors::hpaCalculation(float altitude) {
   float hpa =
       1012 - 0.118 * altitude +
       0.00000473 * altitude *
-          altitude;  // Cuadratic regresion formula obtained PA (hpa) from high above the sea
+          altitude;  // Quadratic regression formula obtained PA (hpa) from high above the sea
   DEBUG("-->[SLIB] CO2 pressure (hPa)\t:", String(hpa).c_str());
   return hpa;
 }
@@ -2013,6 +2617,20 @@ void Sensors::resetAllVariables() {
   co = 0;
   no2 = 0.0;
   o3 = 0.0;
+  voc = 0;
+  nox = 0;
+  voci = 0.0;
+  noxi = 0.0;
+  noiseInstant = 0.0;
+  noiseAvgValue = 0.0;
+  noisePeakValue = 0.0;
+  noiseMinValue = 0.0;
+  noiseAvgLegalValue = 0.0;
+  noiseAvgLegalMaxValue = 0.0;
+  noiseLdValue = 0.0;
+  noiseLeValue = 0.0;
+  noiseLnValue = 0.0;
+  noiseLdenValue = 0.0;
   if (rad != nullptr) rad->clear();
 }
 
@@ -2042,7 +2660,7 @@ void Sensors::enableGeigerSensor(int gpio) {
  * @brief get Geiger count. Tics in the last 60secs
  * @return CPM
  */
-uint32_t Sensors::getGeigerCPM(void) {
+uint32_t Sensors::getGeigerCPM(void) const {
   if (rad == nullptr)
     return 0;
   else
@@ -2053,7 +2671,7 @@ uint32_t Sensors::getGeigerCPM(void) {
  * @brief get Geiger count in uSv/h units
  * @return CPM * J305 conversion factor
  */
-float Sensors::getGeigerMicroSievertHour(void) {
+float Sensors::getGeigerMicroSievertHour(void) const {
   if (rad == nullptr)
     return 0;
   else
@@ -2062,7 +2680,7 @@ float Sensors::getGeigerMicroSievertHour(void) {
 
 // #########################################################################
 
-void Sensors::DEBUG(const char *text, const char *textb) {
+void Sensors::DEBUG(const char *text, const char *textb) const {
   if (devmode) {
     _debugPort.print(text);
     if (textb) {
@@ -2075,55 +2693,51 @@ void Sensors::DEBUG(const char *text, const char *textb) {
 
 //***********************************************************************************//
 
+void Sensors::printI2C(const char *name, const char *i2cname, int pin_sda, int pin_scl) {
+  if (devmode) {
+    Serial.printf("-->[SLIB] (%s) %s pins \t: SDA:%i SCL:%i\r\n", name, i2cname, pin_sda, pin_scl);
+  }
+}
+
 void Sensors::startI2C() {
-#if defined(M5STICKCPLUS) || defined(M5COREINK)
-  Wire.begin(EXT_I2C_SDA, EXT_I2C_SCL);  // M5CoreInk Ext port (default for all sensors)
-  enableWire1();
-#endif
-#ifdef M5ATOM
+#if defined(SLIB_I2C_SDA) && defined(SLIB_I2C_SCL)
+  Wire.begin(SLIB_I2C_SDA, SLIB_I2C_SCL);
+  printI2C("CUSTOM", "I2C", SLIB_I2C_SDA, SLIB_I2C_SCL);
+#elif defined(ESP32S3)
   Wire.begin();
+  printI2C("ESP32S3", "I2C", SDA, SCL);
+#elif defined(ARDUINO_ARCH_ESP32)
+  Wire.begin();
+  printI2C("ESP32", "I2C", SDA, SCL);
+#elif defined(ARDUINO_ARCH_ESP8266)
+  Wire.begin(SDA, SCL);
+  printI2C("ESP8266", "I2C", SDA, SCL);
+#else
+  Wire.begin(SDA, SCL);
+  printI2C("UNDEFINED", "I2C", SDA, SCL);
+#endif
+
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+  Wire.setClock(SLIB_I2C_CLOCK_HZ);
+  if (devmode) Serial.printf("-->[SLIB] I2C clock set to \t: %iHz\r\n", SLIB_I2C_CLOCK_HZ);
+#endif
+
   enableWire1();
-#endif
-#ifdef ESP32C3
-  Wire.begin(19, 18);
-#endif
-#ifdef ESP32S2
-  Wire.begin(33, 35);
-#endif
-#ifdef TTGO_T7S3
-  Wire.begin(GROVE_SDA, GROVE_SCL);
-  enableWire1();
-#endif
-#ifdef M5AIRQ
-  Wire.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);
-  enableWire1();
-#endif
-#ifdef AG_OPENAIR
-  Wire.begin(AIRG_SDA, AIRG_SCL);
-  delay(1000);
-#endif
 }
 
 void Sensors::enableWire1() {
-#ifdef M5STICKCPLUS
+#if defined(SLIB_I2C2_SDA) && defined(SLIB_I2C2_SCL)
   Wire1.flush();
-  Wire1.begin(HAT_I2C_SDA, HAT_I2C_SCL);  // M5CoreInk hat pines (header on top)
+  Wire1.begin(SLIB_I2C2_SDA, SLIB_I2C2_SCL);
+  printI2C("CUSTOM", "I2C2", SLIB_I2C2_SDA, SLIB_I2C2_SCL);
 #endif
 #ifdef M5COREINK
   Wire1.flush();
   Wire1.begin(25, 26);  // M5CoreInk hat pines (header on top)
 #endif
-#ifdef M5ATOM
-  Wire1.flush();
-  Wire1.begin(26, 32);  // M5CoreInk Ext port (default for all sensors)
-#endif
 #ifdef M5AIRQ
   Wire1.flush();
   Wire1.begin(GROVE_SDA, GROVE_SCL);
-#endif
-#ifdef TTGO_T7S3
-  Wire1.flush();
-  Wire1.begin(I2C1_SDA_PIN, I2C1_SCL_PIN);  // Alternative I2C port
 #endif
 }
 
@@ -2138,17 +2752,25 @@ void Sensors::disableWire1() {
 #endif
 }
 
+void Sensors::printUART(const char *name, unsigned long speed, int pin_rx, int pin_tx) {
+  if (devmode) {
+    Serial.printf("-->[SLIB] %s init speed\t: %lu\r\n", name, speed);
+    Serial.printf("-->[SLIB] %s init pins \t: TX:%i RX:%i\r\n", name, pin_tx, pin_rx);
+  }
+}
+
 bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx) {
-  if (devmode)
-    Serial.printf("-->[SLIB] UART init with speed\t: %lu TX:%i RX:%i\r\n", speed_baud, pms_tx,
-                  pms_rx);
 #if ARDUINO_USB_CDC_ON_BOOT  // Serial used for USB CDC
-  Serial0.begin(9600, SERIAL_8N1);
+#ifndef AG_OPENAIR
+  printUART("UART1", speed_baud, pms_rx, pms_tx);
+  Serial0.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx);
   _serial = &Serial0;
   return true;
 #endif
+#endif
   switch (SENSOR_COMMS) {
     case SERIALPORT:
+      printUART("UART1", speed_baud, -1, -1);
       Serial.begin(speed_baud);
       _serial = &Serial;
       break;
@@ -2161,26 +2783,28 @@ bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, i
         DEBUG("-->[SLIB] TX/RX line not defined");
         return false;
       }
+      printUART("UART1", speed_baud, pms_rx, pms_tx);
       Serial1.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx, false);
       _serial = &Serial1;
       break;
     case SERIALPORT2:
 #if SOC_UART_NUM > 2
-      DEBUG("-->[SLIB] UART COMM port \t: Serial2");
-      if (pms_type == SENSORS::SSPS30)
+      if (pms_type == SENSORS::SSPS30) {
+        printUART("UART1", speed_baud, -1, -1);
         Serial2.begin(speed_baud);
-      else
+      } else {
+        printUART("UART1", speed_baud, pms_rx, pms_tx);
         Serial2.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx, false);
+      }
       _serial = &Serial2;
 #else
-      DEBUG("-->[SLIB] Force UART port \t: Serial1");
+      printUART("UART1", speed_baud, pms_rx, pms_tx);
       Serial1.begin(speed_baud, SERIAL_8N1, pms_rx, pms_tx);
       _serial = &Serial1;
 #endif
       break;
 #endif
     default:
-
       if (pms_rx == 0 || pms_tx == 0) {
         DEBUG("-->[SLIB] TX/RX line not defined");
         return false;
@@ -2190,9 +2814,7 @@ bool Sensors::serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, i
       if (pms_rx == 8 && pms_tx == 8) {
         Serial1.begin(speed_baud);
         _serial = &Serial1;
-      }
-
-      else {
+      } else {
 #if defined(INCLUDE_SOFTWARE_SERIAL)
         DEBUG("-->[SLIB] swSerial init on pin\t:", String(pms_rx).c_str());
         static SoftwareSerial swSerial(pms_rx, pms_tx);
