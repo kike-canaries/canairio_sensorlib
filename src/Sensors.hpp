@@ -161,12 +161,11 @@
   X(NOX, "nox", "NOX")                          \
   X(VOC, "voc", "VOC")                          \
   X(NOISE, "dB", "Noise")                       \
-  X(NOISEAVG, "dB", "NoiseAvg")                 \
   X(NOISEPEAK, "dB", "NoisePeak")               \
-  X(NOISEMIN, "dB", "NoiseMin")                 \
   X(NOISEAVGLEGAL, "dB", "NoiseAvgLegal")       \
-  X(NOISEAVGLEGALMAX, "dB", "NoiseAvgLegalMax") \
   X(NOISEL90, "dB", "NoiseL90")                 \
+  X(NOISELASMAX, "dB", "NoiseLASmax")           \
+  X(NOISELCPEAK, "dB", "NoiseLCpeak")           \
   X(NOISELD, "dB", "Ld")                        \
   X(NOISELE, "dB", "Le")                        \
   X(NOISELN, "dB", "Ln")                        \
@@ -388,23 +387,47 @@ class Sensors {
 
   void enableGeigerSensor(int gpio);
 
+  // Noise sensor (I2C slave node). Every level is in dB(A) unless noted.
+  /** LAeq,1s: level of the last second published by the node. */
   float getNoise() const;
-
-  float getNoiseAverage() const;
-
+  /** LAFmax: maximum Fast-weighted level of the last second. Not a true peak. */
   float getNoisePeak() const;
-
-  float getNoiseMin() const;
-
+  /** L10, over the node's sliding window (300 s by default). */
   float getNoiseLegalAverage() const;
-
-  float getNoiseLegalMaximum() const;
+  /** L90, over the node's sliding window. */
   float getNoiseL90() const;
+  /**
+   * LASmax (Slow weighting): the maximum since the previous reading, so no
+   * event is lost whatever the sample time. 0 on nodes older than 3.3.1.
+   */
+  float getNoiseLASmax() const;
+  /**
+   * LCpeak in dB(C): true instantaneous peak since the previous reading, the
+   * indicator for impulsive noise. 0 on nodes older than 3.3.1.
+   */
+  float getNoiseLCpeak() const;
   float getNoiseLd() const;
   float getNoiseLe() const;
   float getNoiseLn() const;
   float getNoiseLden() const;
+
+  /**
+   * Sends the node its clock. The node applies no time zone: unixTime must be
+   * LOCAL epoch (UTC + offset), because the day/evening/night bands are read
+   * straight off it. syncNoiseSensorTime() already does that conversion.
+   */
   bool sendNoiseSensorTime(uint32_t unixTime);
+  /**
+   * Sends the clock now if due: the first time, every sync interval, when the
+   * local UTC offset changes (daylight saving) and at once when the node
+   * reports it lost its clock. Cheap to call from loop(): the clock is only
+   * examined once a minute once the node is synced.
+   *
+   * The local time is UTC plus the offset of the SYSTEM time zone (TZ), so the
+   * application must set a proper one, with daylight saving if it applies, for
+   * example setenv("TZ", "CET-1CEST,M3.5.0,M10.5.0/3", 1); tzset(). With no TZ
+   * the node gets UTC, and every Ld/Le/Ln/Lden is shifted by the zone offset.
+   */
   bool syncNoiseSensorTime();
   void setNoiseSensorTimeSyncInterval(uint32_t intervalMs);
 
@@ -529,17 +552,24 @@ class Sensors {
   uint8_t noiseSensorAddress = 0;
 
   bool noiseSensorEnabled = false;
-  float noiseInstant = 0.0;
-  float noiseAvgValue = 0.0;
-  float noisePeakValue = 0.0;
-  float noiseMinValue = 0.0;
-  float noiseAvgLegalValue = 0.0;
-  float noiseAvgLegalMaxValue = 0.0;
+  float noiseInstant = 0.0;  // LAeq,1s
+  float noisePeakValue = 0.0;  // LAFmax
+  float noiseAvgLegalValue = 0.0;  // L10
   float noiseL90Value = 0.0;
+  float noiseLASmaxValue = 0.0;
+  float noiseLCpeakValue = 0.0;
   float noiseLdValue = 0.0;
   float noiseLeValue = 0.0;
   float noiseLnValue = 0.0;
   float noiseLdenValue = 0.0;
+  NodeMetadata noiseMeta{};
+  uint32_t noiseFwVer = 0;           // 0 = unknown / node without metadata (legacy)
+  bool noiseHasMeta = false;
+  uint32_t noiseLastCycles = 0;
+  bool noiseHaveCycles = false;
+  int32_t noiseLastSentOffset = 0;  // UTC offset of the last clock sent to the node
+  uint32_t noiseLastZoneCheckMs = 0;
+  static constexpr uint32_t NOISE_ZONE_CHECK_MS = 60000;
   bool noiseScanDone = false;
   uint32_t noiseLastTimeSyncMs = 0;
   uint32_t noiseLastSyncAttemptMs = 0;
@@ -675,9 +705,12 @@ class Sensors {
   void noiseSensorService();
   void noiseSensorCollect();
   bool noiseSensorReadIdentity(TwoWire &wire, uint8_t address, SensorIdentity &identity);
+  bool noiseSensorReadStatus(TwoWire &wire, uint8_t address, uint8_t &status);
+  bool noiseSensorReadMetadata(TwoWire &wire, uint8_t address, NodeMetadata &meta);
   bool noiseSensorReadData(TwoWire &wire, uint8_t address, SensorData &out);
   bool noiseSensorDevicePresent(TwoWire &wire, uint8_t address);
   void noiseSensorInitWire();
+  uint32_t noiseSensorLocalEpoch(time_t utcNow) const;
 
 // @todo use DEBUG_ESP_PORT ?
 #ifdef WM_DEBUG_PORT
