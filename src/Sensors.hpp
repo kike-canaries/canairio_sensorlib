@@ -132,44 +132,44 @@
 #endif
 
 // Sensors units definitions (symbol/name)
-#define SENSOR_UNITS                            \
-  X(NUNIT, "NUNIT", "NUNIT")                    \
-  X(PM1, "ug/m3", "PM1")                        \
-  X(PM25, "ug/m3", "PM2.5")                     \
-  X(PM4, "ug/m3", "PM4")                        \
-  X(PM10, "ug/m3", "PM10")                      \
-  X(TEMP, "C", "T")                             \
-  X(TEMPK, "K", "T")                            \
-  X(TEMPF, "F", "T")                            \
-  X(HUM, "%", "H")                              \
-  X(CO2, "ppm", "CO2")                          \
-  X(CO2TEMP, "C", "CO2T")                       \
-  X(CO2TEMPK, "K", "CO2TK")                     \
-  X(CO2TEMPF, "F", "CO2TF")                     \
-  X(CO2HUM, "%", "CO2H")                        \
-  X(PRESS, "hPa", "P")                          \
-  X(ALT, "m", "Alt")                            \
-  X(GAS, "Ohm", "Gas")                          \
-  X(CPM, "CPM", "RAD")                          \
-  X(RAD, "uSv/h", "RAD")                        \
-  X(NH3, "ppm", "NH3")                          \
-  X(CO, "ppm", "CO")                            \
-  X(NO2, "ppm", "NO2")                          \
-  X(O3, "ppm", "O3")                            \
-  X(NOXI, "noxi", "NOXI")                       \
-  X(VOCI, "voci", "VOCI")                       \
-  X(NOX, "nox", "NOX")                          \
-  X(VOC, "voc", "VOC")                          \
-  X(NOISE, "dB", "Noise")                       \
-  X(NOISEPEAK, "dB", "NoisePeak")               \
-  X(NOISEAVGLEGAL, "dB", "NoiseAvgLegal")       \
-  X(NOISEL90, "dB", "NoiseL90")                 \
-  X(NOISELASMAX, "dB", "NoiseLASmax")           \
-  X(NOISELCPEAK, "dB", "NoiseLCpeak")           \
-  X(NOISELD, "dB", "Ld")                        \
-  X(NOISELE, "dB", "Le")                        \
-  X(NOISELN, "dB", "Ln")                        \
-  X(NOISELDEN, "dB", "Lden")                    \
+#define SENSOR_UNITS                      \
+  X(NUNIT, "NUNIT", "NUNIT")              \
+  X(PM1, "ug/m3", "PM1")                  \
+  X(PM25, "ug/m3", "PM2.5")               \
+  X(PM4, "ug/m3", "PM4")                  \
+  X(PM10, "ug/m3", "PM10")                \
+  X(TEMP, "C", "T")                       \
+  X(TEMPK, "K", "T")                      \
+  X(TEMPF, "F", "T")                      \
+  X(HUM, "%", "H")                        \
+  X(CO2, "ppm", "CO2")                    \
+  X(CO2TEMP, "C", "CO2T")                 \
+  X(CO2TEMPK, "K", "CO2TK")               \
+  X(CO2TEMPF, "F", "CO2TF")               \
+  X(CO2HUM, "%", "CO2H")                  \
+  X(PRESS, "hPa", "P")                    \
+  X(ALT, "m", "Alt")                      \
+  X(GAS, "Ohm", "Gas")                    \
+  X(CPM, "CPM", "RAD")                    \
+  X(RAD, "uSv/h", "RAD")                  \
+  X(NH3, "ppm", "NH3")                    \
+  X(CO, "ppm", "CO")                      \
+  X(NO2, "ppm", "NO2")                    \
+  X(O3, "ppm", "O3")                      \
+  X(NOXI, "noxi", "NOXI")                 \
+  X(VOCI, "voci", "VOCI")                 \
+  X(NOX, "nox", "NOX")                    \
+  X(VOC, "voc", "VOC")                    \
+  X(NOISE, "dB", "Noise")                 \
+  X(NOISEPEAK, "dB", "NoisePeak")         \
+  X(NOISEAVGLEGAL, "dB", "NoiseAvgLegal") \
+  X(NOISEL90, "dB", "NoiseL90")           \
+  X(NOISELASMAX, "dB", "NoiseLASmax")     \
+  X(NOISELCPEAK, "dB", "NoiseLCpeak")     \
+  X(NOISELD, "dB", "Ld")                  \
+  X(NOISELE, "dB", "Le")                  \
+  X(NOISELN, "dB", "Ln")                  \
+  X(NOISELDEN, "dB", "Lden")              \
   X(UCOUNT, "COUNT", "UCOUNT")
 
 #define X(unit, symbol, name) unit,
@@ -552,8 +552,8 @@ class Sensors {
   uint8_t noiseSensorAddress = 0;
 
   bool noiseSensorEnabled = false;
-  float noiseInstant = 0.0;  // LAeq,1s
-  float noisePeakValue = 0.0;  // LAFmax
+  float noiseInstant = 0.0;        // LAeq,1s
+  float noisePeakValue = 0.0;      // LAFmax
   float noiseAvgLegalValue = 0.0;  // L10
   float noiseL90Value = 0.0;
   float noiseLASmaxValue = 0.0;
@@ -563,7 +563,7 @@ class Sensors {
   float noiseLnValue = 0.0;
   float noiseLdenValue = 0.0;
   NodeMetadata noiseMeta{};
-  uint32_t noiseFwVer = 0;           // 0 = unknown / node without metadata (legacy)
+  uint32_t noiseFwVer = 0;  // 0 = unknown / node without metadata (legacy)
   bool noiseHasMeta = false;
   uint32_t noiseLastCycles = 0;
   bool noiseHaveCycles = false;

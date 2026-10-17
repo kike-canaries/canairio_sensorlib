@@ -60,12 +60,12 @@ struct SensorData {
   float Ln;                  // night       (23-07 h)
   float noiseLden;           // day-evening-night index, dB
   // --- appended in firmware 3.3.1; absent in the 68-byte frame of older nodes ---
-  float noiseLASmaxDb;       // LASmax of the last second (Slow weighting), dB(A)
-  float noiseLCpeakDb;       // LCpeak of the last second (true peak, C weighting), dB(C)
-  float noiseLASmaxHoldDb;   // max LASmax since the previous CMD_GET_DATA, dB(A)
-  float noiseLCpeakHoldDb;   // max LCpeak since the previous CMD_GET_DATA, dB(C)
-  uint16_t crc16;            // CRC-16/CCITT-FALSE over the 84 bytes before it
-  uint16_t reserved;         // always 0, NOT covered by the CRC: do not interpret
+  float noiseLASmaxDb;      // LASmax of the last second (Slow weighting), dB(A)
+  float noiseLCpeakDb;      // LCpeak of the last second (true peak, C weighting), dB(C)
+  float noiseLASmaxHoldDb;  // max LASmax since the previous CMD_GET_DATA, dB(A)
+  float noiseLCpeakHoldDb;  // max LCpeak since the previous CMD_GET_DATA, dB(C)
+  uint16_t crc16;           // CRC-16/CCITT-FALSE over the 84 bytes before it
+  uint16_t reserved;        // always 0, NOT covered by the CRC: do not interpret
 };
 
 // Bytes the CRC covers: everything ahead of the crc16 field.
@@ -83,8 +83,8 @@ struct SensorIdentity {
   uint8_t sensorType;    // 0x01 = noise sensor
   uint8_t versionMajor;  // fixed by the firmware, not its real version
   uint8_t versionMinor;
-  uint8_t status;        // fixed by the firmware
-  uint8_t i2cAddress;    // I2C address the node answers on
+  uint8_t status;      // fixed by the firmware
+  uint8_t i2cAddress;  // I2C address the node answers on
 } __attribute__((packed));
 
 // ---------------------------------------------------------------------------
@@ -97,14 +97,14 @@ struct NodeMetadata {
   uint8_t fw_major;
   uint8_t fw_minor;
   uint8_t fw_patch;
-  uint8_t node_type;       // NOISE_NODE_ADC or NOISE_NODE_I2S
-  uint8_t time_synced;     // 1 once a master has set the node's clock
-  uint16_t clip_count;     // clipped samples in the last second
-  int16_t calib_offset;    // persistent calibration offset, hundredths of dB
-  uint16_t window_fill;    // valid seconds currently in the L10/L90 window...
-  uint16_t window_size;    // ...out of this many
-  uint8_t lden_periods;    // bit 0 day has data, bit 1 evening, bit 2 night
-  uint16_t lden_minutes;   // minutes accumulated across the populated periods
+  uint8_t node_type;      // NOISE_NODE_ADC or NOISE_NODE_I2S
+  uint8_t time_synced;    // 1 once a master has set the node's clock
+  uint16_t clip_count;    // clipped samples in the last second
+  int16_t calib_offset;   // persistent calibration offset, hundredths of dB
+  uint16_t window_fill;   // valid seconds currently in the L10/L90 window...
+  uint16_t window_size;   // ...out of this many
+  uint8_t lden_periods;   // bit 0 day has data, bit 1 evening, bit 2 night
+  uint16_t lden_minutes;  // minutes accumulated across the populated periods
 } __attribute__((packed));
 
 // ---------------------------------------------------------------------------
@@ -161,8 +161,10 @@ static_assert(offsetof(SensorData, Ld) == 52, "wire format: Ld moved");
 static_assert(offsetof(SensorData, noiseLden) == 64, "wire format: noiseLden moved");
 static_assert(offsetof(SensorData, noiseLASmaxDb) == 68, "wire format: noiseLASmaxDb moved");
 static_assert(offsetof(SensorData, noiseLCpeakDb) == 72, "wire format: noiseLCpeakDb moved");
-static_assert(offsetof(SensorData, noiseLASmaxHoldDb) == 76, "wire format: noiseLASmaxHoldDb moved");
-static_assert(offsetof(SensorData, noiseLCpeakHoldDb) == 80, "wire format: noiseLCpeakHoldDb moved");
+static_assert(offsetof(SensorData, noiseLASmaxHoldDb) == 76,
+              "wire format: noiseLASmaxHoldDb moved");
+static_assert(offsetof(SensorData, noiseLCpeakHoldDb) == 80,
+              "wire format: noiseLCpeakHoldDb moved");
 static_assert(offsetof(SensorData, crc16) == 84, "wire format: crc16 moved");
 static_assert(sizeof(SensorData) == 88, "wire format: unexpected SensorData size");
 static_assert(NOISE_LEGACY_DATA_LEN == 68, "wire format: legacy frame length changed");

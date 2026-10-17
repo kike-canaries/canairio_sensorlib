@@ -597,7 +597,8 @@ bool Sensors::syncNoiseSensorTime() {
   if (!(now > 1609459200)) return false;  // isTimeValid(): NTP has not set the clock yet
 
   uint32_t localEpoch = noiseSensorLocalEpoch(now);
-  int32_t offset = static_cast<int32_t>(static_cast<int64_t>(localEpoch) - static_cast<int64_t>(now));
+  int32_t offset =
+      static_cast<int32_t>(static_cast<int64_t>(localEpoch) - static_cast<int64_t>(now));
 
   if (noiseLastTimeSyncMs != 0) {
     // The zone offset changes twice a year with DST: resend at once instead of
@@ -1517,8 +1518,9 @@ bool Sensors::noiseSensorAutoDetect() {
     // from 3.3.1, 68 before) and which status command to use. A node that does
     // not answer the metadata command is treated as legacy.
     noiseHasMeta = noiseSensorReadMetadata(*noiseWire, addr, noiseMeta);
-    noiseFwVer =
-        noiseHasMeta ? noiseFwVersion(noiseMeta.fw_major, noiseMeta.fw_minor, noiseMeta.fw_patch) : 0;
+    noiseFwVer = noiseHasMeta
+                     ? noiseFwVersion(noiseMeta.fw_major, noiseMeta.fw_minor, noiseMeta.fw_patch)
+                     : 0;
     if (devmode) {
       if (noiseHasMeta) {
         Serial.printf("-->[SLIB] Noise node fw %u.%u.%u type=%s\r\n", noiseMeta.fw_major,
@@ -1583,8 +1585,8 @@ void Sensors::noiseSensorCollect() {
   const SensorData &d = noiseSensorData;
   const bool fullFrame = noiseFwVer >= NOISE_FW_FULL_PROTOCOL;
 
-  noiseInstant = d.noiseAvgDb;          // LAeq,1s
-  noisePeakValue = d.noisePeakDb;       // LAFmax
+  noiseInstant = d.noiseAvgDb;             // LAeq,1s
+  noisePeakValue = d.noisePeakDb;          // LAFmax
   noiseAvgLegalValue = d.noiseAvgLegalDb;  // L10
   noiseL90Value = (float)d.lowNoiseLevel;  // L90
   if (fullFrame) {
