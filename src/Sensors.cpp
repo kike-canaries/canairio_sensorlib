@@ -1211,7 +1211,7 @@ void Sensors::bme280Read() {
   if (isnan(humi1) || humi1 == 0 || isnan(temp1)) return;
   humi = humi1;
   temp = temp1 - toffset;
-  pres = bme280.readPressure();
+  pres = bme280.readPressure() / 100.0F;  // Pa -> hPa
   alt = bme280.readAltitude(sealevel);
   dataReady = true;
   DEBUG("-->[SLIB] BME280 read\t\t: done!");
