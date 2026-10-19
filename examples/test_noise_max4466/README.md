@@ -63,10 +63,12 @@ pio device monitor
 =================================
   NOISE SENSOR MEASUREMENTS
 =================================
-Instant Noise:  45.3 dB
-Average:        44.8 dB
-Peak:           52.1 dB
-Minimum:        38.5 dB
+LAeq (1s):      45.3 dB
+LAFmax:         52.1 dB
+L10:            48.0 dB
+L90:            38 dB
+LASmax:         50.4 dB
+LCpeak:         61.2 dB(C)
 
 --- Regulatory Indicators ---
 Ld (Day):       44.2 dB  [07:00-19:00]
@@ -78,7 +80,8 @@ Lden (Global):  0.0 dB   [24h index]
 
 ## Notes
 
-- **Time Sync**: Ld/Le/Ln/Lden require time synchronization. The example sends a sample timestamp.
+- **Time Sync**: Ld/Le/Ln/Lden require time synchronization. The node applies no time zone, so it needs a **local** epoch (UTC + offset), not UTC. The example sends a sample timestamp; in production use `sensors.syncNoiseSensorTime()` with the system `TZ` configured (`setenv("TZ", "CET-1CEST,M3.5.0,M10.5.0/3", 1); tzset();`).
+- **LASmax / LCpeak**: need node firmware 3.3.1 or later; they read 0 on older nodes.
 - **Period Accumulation**: Indicators update as measurements accumulate in each period.
 - **Zero Values**: If a period has no samples yet, it will show 0.0 dB.
 
