@@ -363,5 +363,5 @@ void Sensors::resetAllVariables() {
   noiseLeValue = 0.0;
   noiseLnValue = 0.0;
   noiseLdenValue = 0.0;
-  if (rad != nullptr) rad->clear();
+  _geiger.clear();
 }

@@ -1,49 +1,20 @@
-// CanAirIO sensorlib — SensorsGeiger.cpp
-// Split from the original monolithic Sensors.cpp. Behavior preserved.
+// CanAirIO sensorlib — CAJOE Geiger public facade.
 #include "Sensors.hpp"
-
-#include <math.h>
-#include <string.h>
-
-void Sensors::geigerRead() {
-  if (rad != nullptr && rad->read()) {
-    unitRegister(UNIT::CPM);
-    unitRegister(UNIT::RAD);
-  }
-}
 
 /**
  * @brief Enable Geiger sensor on specific pin
  * @param gpio number or pin.
  */
-void Sensors::enableGeigerSensor(int gpio) {
-  sensorAnnounce(SENSORS::SCAJOE);
-  if (gpio < 0) {
-    if (devmode) Serial.printf("[W][SLIB] undefined Geiger pin\t: %i\r\n", gpio);
-    return;
-  }
-  rad = new GEIGER(gpio, devmode);
-  sensorRegister(SENSORS::SCAJOE);
-}
+void Sensors::enableGeigerSensor(int gpio) { _geiger.enable(gpio); }
 
 /**
  * @brief get Geiger count. Tics in the last 60secs
  * @return CPM
  */
-uint32_t Sensors::getGeigerCPM(void) const {
-  if (rad == nullptr)
-    return 0;
-  else
-    return rad->getTics();
-}
+uint32_t Sensors::getGeigerCPM(void) const { return _geiger.cpm(); }
 
 /**
  * @brief get Geiger count in uSv/h units
  * @return CPM * J305 conversion factor
  */
-float Sensors::getGeigerMicroSievertHour(void) const {
-  if (rad == nullptr)
-    return 0;
-  else
-    return rad->getUSvh();
-}
+float Sensors::getGeigerMicroSievertHour(void) const { return _geiger.microSievertHour(); }

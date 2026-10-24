@@ -23,7 +23,26 @@ Sensors::Sensors()
       dataReady(false),
       sensors_registered_count(0),
       units_registered_count(0),
-      current_unit(0) {
+      current_unit(0),
+      _uart(*this),
+      _sps30(*this),
+      _gcja5(*this),
+      _scd30(*this),
+      _scd4x(*this),
+      _sen5x(*this),
+      _sgp41(*this),
+      _am2320(*this),
+      _sht31(*this),
+      _bme280(*this),
+      _bmp280(*this),
+      _bme680(*this),
+      _ahtxx(*this),
+      _dfrCo(*this),
+      _dfrNh3(*this),
+      _dfrNo2(*this),
+      _dfrO3(*this),
+      _noise(*this),
+      _geiger(*this) {
   resetSensorsRegister();
   resetUnitsRegister();
 }
@@ -41,7 +60,7 @@ Sensors::~Sensors() {
  * All sensors are read here, please call it on main loop.
  */
 void Sensors::loop() {
-  noiseSensorService();
+  _noise.service();
   static uint32_t pmLoopTimeStamp = 0;  // timestamp for sensor loop check data
   if ((millis() - pmLoopTimeStamp >
        sample_time * (uint32_t)1000)) {  // sample time for each capture
@@ -57,7 +76,7 @@ void Sensors::loop() {
   }
 
 #ifdef DHT11_ENABLED
-  dhtRead();  // DHT2x sensors need check fastest
+  _dht11.read();  // DHT2x sensors need check fastest
 #endif
 }
 
@@ -72,39 +91,39 @@ void Sensors::printHumTemp() {
 bool Sensors::readAllSensors() {
   readAllComplete = false;
   if (!i2conly && dev_uart_type >= 0) {
-    dataReady = pmSensorRead();
+    dataReady = _uart.read();
     DEBUG("-->[SLIB] UART data ready \t:", dataReady ? "true" : "false");
   }
 
 #ifdef AG_OPENAIR
-  senseAirS8Read();
+  _uart.readS8();
 #endif
 
   enableWire1();
 
-  CO2scd30Read();
-  GCJA5Read();
-  CO2scd4xRead();
-  if (!sps30Read()) {
-    sen5xRead();
+  _scd30.read();
+  _gcja5.read();
+  _scd4x.read();
+  if (!_sps30.read()) {
+    _sen5x.read();
   }
-  am2320Read();
-  sht31Read();
-  bme280Read();
-  bmp280Read();
-  bme680Read();
-  aht10Read();
-  DFRobotCORead();
-  DFRobotNH3Read();
-  DFRobotNO2Read();
-  DFRobotO3Read();
-  geigerRead();
-  sgp41Read();
+  _am2320.read();
+  _sht31.read();
+  _bme280.read();
+  _bmp280.read();
+  _bme680.read();
+  _ahtxx.read();
+  _dfrCo.read();
+  _dfrNh3.read();
+  _dfrNo2.read();
+  _dfrO3.read();
+  _geiger.read();
+  _sgp41.read();
 
-  noiseSensorCollect();
+  _noise.read();
 
 #ifdef DHT11_ENABLED
-  dhtRead();
+  _dht11.read();
 #endif
 
   disableWire1();
@@ -124,30 +143,9 @@ bool Sensors::readAllSensors() {
  * @param pms_tx (optional) UART PMS TX pin.
  */
 void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
-  // cleanup previous UART sensors if any (in case of re-init)
-  if (cm1106) {
-    delete cm1106;
-    cm1106 = nullptr;
-  }
-  if (s8) {
-    delete s8;
-    s8 = nullptr;
-  }
-  if (pm1006) {
-    delete pm1006;
-    pm1006 = nullptr;
-  }
-  if (pm5003t) {
-    delete pm5003t;
-    pm5003t = nullptr;
-  }
-  if (rad) {
-    delete rad;
-    rad = nullptr;
-  }
-
-  s8_uart2 = false;
-  _serial2 = nullptr;
+  // cleanup previous UART sensors and serial state (in case of re-init)
+  _uart.reset();
+  _geiger.detach();
 
 // override with debug INFO level (>=3)
 #ifdef CORE_DEBUG_LEVEL
@@ -167,38 +165,37 @@ void Sensors::init(u_int pms_type, int pms_rx, int pms_tx) {
   pms_type = PMS_TYPE;
 #endif
 
-  if (!i2conly && !sensorSerialInit(pms_type, pms_rx, pms_tx)) {
+  if (!i2conly && !_uart.begin(pms_type, pms_rx, pms_tx)) {
     DEBUG("-->[SLIB] UART sensors detected\t:", "0");
   }
 
 #ifdef AG_OPENAIR
-  sensorAnnounce(SENSORS::SAIRS8);
-  if (senseAirS8Init()) sensorRegister(SENSORS::SAIRS8);
+  _uart.beginS8();
 #endif
 
   startI2C();
-  CO2scd30Init();
-  GCJA5Init();
-  CO2scd4xInit();
-  if (!sps30I2CInit()) {
-    sen5xInit();
+  _scd30.begin();
+  _gcja5.begin();
+  _scd4x.begin();
+  if (!_sps30.begin()) {
+    _sen5x.begin();
   }
-  bmp280Init();
-  bme280Init();
-  bme680Init();
-  am2320Init();
-  sht31Init();
-  aht10Init();
-  DFRobotCOInit();
-  DFRobotNH3Init();
-  DFRobotNO2Init();
-  DFRobotO3Init();
-  sgp41Init();
+  _bmp280.begin();
+  _bme280.begin();
+  _bme680.begin();
+  _am2320.begin();
+  _sht31.begin();
+  _ahtxx.begin();
+  _dfrCo.begin();
+  _dfrNh3.begin();
+  _dfrNo2.begin();
+  _dfrO3.begin();
+  _sgp41.begin();
 
-  noiseSensorAutoDetect();
+  _noise.begin();
 
 #ifdef DHT11_ENABLED
-  dhtInit();
+  _dht11.begin();
 #endif
 
   printSensorsRegistered(true);
@@ -263,7 +260,7 @@ void Sensors::setCO2AltitudeOffset(float altitude) {
   this->hpa = hpaCalculation(altitude);  // hPa hectopascal calculation based on altitude
 
   if (isSensorRegistered(SENSORS::SSCD30)) {
-    setSCD30AltitudeOffset(altoffset);
+    _scd30.setAltitudeOffset(altoffset);
   }
   if (isSensorRegistered(SENSORS::SSCD4X)) {
     scd4x.stopPeriodicMeasurement();
@@ -284,7 +281,7 @@ void Sensors::setSeaLevelPressure(float hpa) { sealevel = hpa; }
 
 /// restart and re-init all sensors (not recommended)
 void Sensors::restart() {
-  _serial->flush();
+  _uart.flush();
   init();
   delay(100);
 }
@@ -431,9 +428,9 @@ float Sensors::getTOffset() const { return toffset; }
  */
 void Sensors::setTempOffset(float offset) {
   toffset = offset;
-  setSCD30TempOffset(toffset * 100);
-  setSCD4xTempOffset(toffset);
-  setsen5xTempOffset(toffset);
+  _scd30.setTempOffset(toffset * 100);
+  _scd4x.setTempOffset(toffset);
+  _sen5x.setTempOffset(toffset);
 }
 
 /**
@@ -444,10 +441,10 @@ void Sensors::setTempOffset(float offset) {
 float Sensors::getTempOffset() const {
   float toffset = 0.0;
   if (isSensorRegistered(SENSORS::SSCD30)) {
-    toffset = getSCD30TempOffset();
+    toffset = _scd30.getTempOffset();
   }
   if (isSensorRegistered(SENSORS::SSCD4X)) {
-    toffset = getSCD4xTempOffset();
+    toffset = _scd4x.getTempOffset();
   }
   return toffset;
 }
