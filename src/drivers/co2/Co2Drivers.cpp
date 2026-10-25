@@ -33,7 +33,8 @@ bool Scd30Driver::begin() {
   if (uint16_t((_sensors.scd30.getTemperatureOffset())) !=
       (uint16_t(_sensors.toffset * 100))) {
     _sensors.DEBUG("-->[SLIB] SCD30 Temp offset to\t:", String(_sensors.toffset).c_str());
-    setTempOffset(_sensors.toffset);
+    // Adafruit_SCD30::setTemperatureOffset() expects hundredths of a degree C
+    setTempOffset(_sensors.toffset * 100);
     delay(10);
   }
   return true;
@@ -209,7 +210,7 @@ bool Sen5xDriver::read() {
   _sensors.pm1 = (u_int16_t)massConcentrationPm1p0;
   _sensors.pm25 = (u_int16_t)massConcentrationPm2p5;
   _sensors.pm4 = (u_int16_t)massConcentrationPm4p0;
-  _sensors.pm10 = (u_int16_t)massConcentrationPm4p0;
+  _sensors.pm10 = (u_int16_t)massConcentrationPm10p0;
   _sensors.voci = vocIndex;
   _sensors.noxi = noxIndex;
   _sensors.temp = ambientTemperature - _sensors.toffset;

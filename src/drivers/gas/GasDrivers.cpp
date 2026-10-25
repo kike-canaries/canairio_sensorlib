@@ -12,11 +12,11 @@ bool DfrobotGasDriver::beginGas(DFRobot_GAS_I2C &gas, uint8_t address, SENSORS s
   // Mode of obtaining data: the main controller needs to request the sensor for data
   gas.changeAcquireMode(gas.PASSIVITY);
   delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
-  // Disable internal compensation: we apply our own using external T/P sensors
-  if (hasExternalTempSensor())
-    gas.setTempCompensation(gas.ON);
-  else
-    gas.setTempCompensation(gas.OFF);
+  // Disable internal compensation: readGas() applies our own temperature (external
+  // sensor or onboard thermistor) and pressure compensation. With ON, the library
+  // would already compensate readGasConcentrationPPM() using a temperature sampled
+  // only once in setTempCompensation(), and the value would be compensated twice.
+  gas.setTempCompensation(gas.OFF);
   _sensors.sensorRegister(sensor);
   return true;
 }
