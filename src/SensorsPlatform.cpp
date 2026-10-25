@@ -1,9 +1,9 @@
 // CanAirIO sensorlib — SensorsPlatform.cpp
 // Split from the original monolithic Sensors.cpp. Behavior preserved.
-#include "Sensors.hpp"
-
 #include <math.h>
 #include <string.h>
+
+#include "Sensors.hpp"
 
 #ifndef SLIB_I2C_CLOCK_HZ
 #define SLIB_I2C_CLOCK_HZ 100000

@@ -1,10 +1,10 @@
 // CanAirIO sensorlib — UART transport and autodetected protocols.
 #include "UartDriver.h"
 
-#include "../../Sensors.hpp"
-
 #include <math.h>
 #include <string.h>
+
+#include "../../Sensors.hpp"
 
 SENSORS UartDriver::type() const {
   int selected = _sensors.getUARTDeviceTypeSelected();
@@ -185,8 +185,9 @@ String UartDriver::hwSerialRead(unsigned int length_buffer) {
 }
 
 bool UartDriver::CO2Mhz19Read() {
-  _sensors.CO2Val = _sensors.mhz19.getCO2();                     // Request CO2 (as ppm)
-  _sensors.CO2temp = _sensors.mhz19.getTemperature() - _sensors.toffset;  // Request Temperature (as Celsius)
+  _sensors.CO2Val = _sensors.mhz19.getCO2();  // Request CO2 (as ppm)
+  _sensors.CO2temp =
+      _sensors.mhz19.getTemperature() - _sensors.toffset;  // Request Temperature (as Celsius)
   if (_sensors.CO2Val > 0) {
     if (_sensors.altoffset != 0) _sensors.CO2correctionAlt();
     _sensors.dataReady = true;
@@ -316,7 +317,8 @@ bool UartDriver::sensorSerialInit(u_int pms_type, int pms_rx, int pms_tx) {
 
   // get device selected..
   if (_sensors.dev_uart_type >= 0) {
-    _sensors.DEBUG("-->[SLIB] UART sensor detected \t:", _sensors.getSensorName((SENSORS)_sensors.dev_uart_type).c_str());
+    _sensors.DEBUG("-->[SLIB] UART sensor detected \t:",
+                   _sensors.getSensorName((SENSORS)_sensors.dev_uart_type).c_str());
     _sensors.sensorRegister((SENSORS)_sensors.dev_uart_type);
     return true;
   }
@@ -486,9 +488,11 @@ bool UartDriver::senseAirS8Init() {
   }
   if (_sensors.devmode) {
     Serial.printf("-->[SLIB] S8 Software version \t: %s\r\n", _sensors.s8sensor.firm_version);
-    Serial.printf("-->[SLIB] S8 Sensor type      \t: 0x%08X\r\n", _sensors.s8->get_sensor_type_ID());
+    Serial.printf("-->[SLIB] S8 Sensor type      \t: 0x%08X\r\n",
+                  _sensors.s8->get_sensor_type_ID());
     Serial.printf("-->[SLIB] S8 Sensor ID        \t: %08X\r\n", _sensors.s8->get_sensor_ID());
-    Serial.printf("-->[SLIB] S8 Memory ver       \t: 0x%04x\r\n", _sensors.s8->get_memory_map_version());
+    Serial.printf("-->[SLIB] S8 Memory ver       \t: 0x%04x\r\n",
+                  _sensors.s8->get_memory_map_version());
     Serial.printf("-->[SLIB] S8 ABC period       \t: %d hours\r\n", _sensors.s8->get_ABC_period());
   }
   _sensors.DEBUG("-->[SLIB] S8 Disabling ABC period");

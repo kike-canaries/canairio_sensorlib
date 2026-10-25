@@ -29,7 +29,6 @@ class GeigerDriver : public SensorDriver {
   void clear();
   uint32_t cpm() const;
   float microSievertHour() const;
-
 };
 
 #endif  // GeigerDriver_h

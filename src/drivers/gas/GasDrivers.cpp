@@ -21,16 +21,14 @@ bool DfrobotGasDriver::beginGas(DFRobot_GAS_I2C &gas, uint8_t address, SENSORS s
   return true;
 }
 
-bool DfrobotGasDriver::readGas(DFRobot_GAS_I2C &gas, float &value, uint8_t gasType,
-                               UNIT unit) {
+bool DfrobotGasDriver::readGas(DFRobot_GAS_I2C &gas, float &value, uint8_t gasType, UNIT unit) {
   float rawPpm = gas.readGasConcentrationPPM();
   float internalTemp = gas.readTempC();
   bool external = hasExternalTempSensor();
   float compensationTemp = external ? _sensors.temp : (internalTemp - _sensors.toffset);
 
   value = tempCompensation(rawPpm, compensationTemp, gasType);
-  if (external && _sensors.humi > 0.0f)
-    value = humidityCompensation(value, _sensors.humi, gasType);
+  if (external && _sensors.humi > 0.0f) value = humidityCompensation(value, _sensors.humi, gasType);
   if (_sensors.pres > 0.0) value = pressCompensation(value, _sensors.pres);
   _sensors.unitRegister(unit);
   _sensors.dataReady = true;

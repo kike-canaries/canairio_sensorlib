@@ -1,9 +1,9 @@
 // CanAirIO sensorlib — SensorsRegistry.cpp
 // Split from the original monolithic Sensors.cpp. Behavior preserved.
-#include "Sensors.hpp"
-
 #include <math.h>
 #include <string.h>
+
+#include "Sensors.hpp"
 
 // Units and sensors registers
 
@@ -26,7 +26,6 @@ int sensors_device_types[] = {SENSORS_TYPES};
 #undef X
 
 uint8_t sensors_registered[SCOUNT];
-
 
 /**
  * @brief Read and check the sensors status on initialization

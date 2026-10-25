@@ -35,11 +35,11 @@
 #define CSL_VERSION "0.7.7"
 #define CSL_REVISION 386
 #include "SensorsTypes.hpp"
+#include "drivers/GeigerDriver.h"
+#include "drivers/NoiseSensorDriver.h"
 #include "drivers/co2/Co2Drivers.h"
 #include "drivers/env/EnvDrivers.h"
 #include "drivers/gas/GasDrivers.h"
-#include "drivers/GeigerDriver.h"
-#include "drivers/NoiseSensorDriver.h"
 #include "drivers/pm/PmDrivers.h"
 #include "drivers/uart/UartDriver.h"
 
