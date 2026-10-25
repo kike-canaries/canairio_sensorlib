@@ -21,9 +21,7 @@ float Sensors::getNoiseLn() const { return noiseLnValue; }
 
 float Sensors::getNoiseLden() const { return noiseLdenValue; }
 
-bool Sensors::sendNoiseSensorTime(uint32_t unixTime) {
-  return _noise.sendTime(unixTime);
-}
+bool Sensors::sendNoiseSensorTime(uint32_t unixTime) { return _noise.sendTime(unixTime); }
 
 bool Sensors::syncNoiseSensorTime() { return _noise.syncTime(); }
 

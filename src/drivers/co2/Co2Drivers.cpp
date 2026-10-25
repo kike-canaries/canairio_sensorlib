@@ -24,16 +24,15 @@ bool Scd30Driver::begin() {
                  String(_sensors.scd30.getAltitudeOffset()).c_str());
 
   if (_sensors.scd30.getAltitudeOffset() != uint16_t(_sensors.altoffset)) {
-    _sensors.DEBUG("-->[SLIB] SCD30 altitude offset to\t:",
-                   String(_sensors.altoffset).c_str());
+    _sensors.DEBUG("-->[SLIB] SCD30 altitude offset to\t:", String(_sensors.altoffset).c_str());
     setAltitudeOffset(_sensors.altoffset);
     delay(10);
   }
 
-  if (uint16_t((_sensors.scd30.getTemperatureOffset())) !=
-      (uint16_t(_sensors.toffset * 100))) {
+  if (uint16_t((_sensors.scd30.getTemperatureOffset())) != (uint16_t(_sensors.toffset * 100))) {
     _sensors.DEBUG("-->[SLIB] SCD30 Temp offset to\t:", String(_sensors.toffset).c_str());
-    setTempOffset(_sensors.toffset);
+    // Adafruit_SCD30::setTemperatureOffset() expects hundredths of a degree C
+    setTempOffset(_sensors.toffset * 100);
     delay(10);
   }
   return true;
@@ -95,20 +94,17 @@ bool Scd4xDriver::begin() {
   _sensors.DEBUG("-->[SLIB] SCD4x Temp offset\t:", String(tTemperatureOffset).c_str());
   _sensors.DEBUG("-->[SLIB] SCD4x Alt offset \t:", String(tSensorAltitude).c_str());
 
-  if (tSensorAltitude != uint16_t(_sensors.altoffset))
-    setAltitudeOffset(_sensors.altoffset);
+  if (tSensorAltitude != uint16_t(_sensors.altoffset)) setAltitudeOffset(_sensors.altoffset);
 
   offsetDifference = abs((_sensors.toffset * 100) - (tTemperatureOffset * 100));
   if (offsetDifference >
       0.5) {  // Accounts for SCD4x conversion rounding errors in temperature offset
-    Serial.println("-->[SLIB] SCD4x new offset\t: Temp offset to " +
-                   String(_sensors.toffset));
+    Serial.println("-->[SLIB] SCD4x new offset\t: Temp offset to " + String(_sensors.toffset));
     setTempOffset(_sensors.toffset);
   }
   error = _sensors.scd4x.startPeriodicMeasurement();
   if (error)
-    _sensors.DEBUG("[W][SLIB] SCD4x periodic measure\t: starting error:",
-                   String(error).c_str());
+    _sensors.DEBUG("[W][SLIB] SCD4x periodic measure\t: starting error:", String(error).c_str());
   return true;
 }
 
@@ -144,8 +140,7 @@ float Scd4xDriver::getTempOffset() const {
   if (_sensors.isSensorRegistered(SENSORS::SSCD4X)) {
     uint16_t error = _sensors.scd4x.stopPeriodicMeasurement();
     if (error) {
-      _sensors.DEBUG("[SLIB] SCD4x stopPeriodicMeasurement()\t: error:",
-                     String(error).c_str());
+      _sensors.DEBUG("[SLIB] SCD4x stopPeriodicMeasurement()\t: error:", String(error).c_str());
     } else {
       _sensors.scd4x.getTemperatureOffset(offset);
     }
@@ -209,7 +204,7 @@ bool Sen5xDriver::read() {
   _sensors.pm1 = (u_int16_t)massConcentrationPm1p0;
   _sensors.pm25 = (u_int16_t)massConcentrationPm2p5;
   _sensors.pm4 = (u_int16_t)massConcentrationPm4p0;
-  _sensors.pm10 = (u_int16_t)massConcentrationPm4p0;
+  _sensors.pm10 = (u_int16_t)massConcentrationPm10p0;
   _sensors.voci = vocIndex;
   _sensors.noxi = noxIndex;
   _sensors.temp = ambientTemperature - _sensors.toffset;

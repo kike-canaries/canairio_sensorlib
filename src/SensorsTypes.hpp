@@ -7,7 +7,6 @@
 // Kept independent from the Sensors facade so driver headers can include it
 // without pulling every third-party sensor library.
 
-
 /***************************************************************
  * D F R o b o t   G r a v i t y   g a s   s e n s o r s
  ***************************************************************/

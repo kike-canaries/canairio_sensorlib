@@ -17,9 +17,7 @@ bool NoiseSensorDriver::read() {
   return enabled();
 }
 
-bool NoiseSensorDriver::enabled() const {
-  return _sensors.isSensorRegistered(SENSORS::SNOISE);
-}
+bool NoiseSensorDriver::enabled() const { return _sensors.isSensorRegistered(SENSORS::SNOISE); }
 
 void NoiseSensorDriver::service() {
   if (_sensors.noiseSensorEnabled || _sensors.noiseScanDone) return;
@@ -137,7 +135,8 @@ bool NoiseSensorDriver::autoDetect() {
 
   for (uint8_t addr = NOISE_MIN_SCAN_ADDR; addr <= NOISE_MAX_SCAN_ADDR; addr++) {
     if (!devicePresent(*_sensors.noiseWire, addr)) continue;
-    if (_sensors.devmode) Serial.printf("-->[SLIB] Found device at: 0x%02X, reading identity...\r\n", addr);
+    if (_sensors.devmode)
+      Serial.printf("-->[SLIB] Found device at: 0x%02X, reading identity...\r\n", addr);
 
     SensorIdentity identity;
     if (!readIdentity(*_sensors.noiseWire, addr, identity)) {
@@ -164,9 +163,10 @@ bool NoiseSensorDriver::autoDetect() {
     // from 3.3.1, 68 before) and which status command to use. A node that does
     // not answer the metadata command is treated as legacy.
     _sensors.noiseHasMeta = readMetadata(*_sensors.noiseWire, addr, _sensors.noiseMeta);
-    _sensors.noiseFwVer = _sensors.noiseHasMeta
-                     ? noiseFwVersion(_sensors.noiseMeta.fw_major, _sensors.noiseMeta.fw_minor, _sensors.noiseMeta.fw_patch)
-                     : 0;
+    _sensors.noiseFwVer = _sensors.noiseHasMeta ? noiseFwVersion(_sensors.noiseMeta.fw_major,
+                                                                 _sensors.noiseMeta.fw_minor,
+                                                                 _sensors.noiseMeta.fw_patch)
+                                                : 0;
     if (_sensors.devmode) {
       if (_sensors.noiseHasMeta) {
         Serial.printf("-->[SLIB] Noise node fw %u.%u.%u type=%s\r\n", _sensors.noiseMeta.fw_major,
@@ -205,7 +205,8 @@ void NoiseSensorDriver::collect() {
   NodeMetadata meta{};
   if (readMetadata(*_sensors.noiseWire, _sensors.noiseSensorAddress, meta)) {
     uint32_t ver = noiseFwVersion(meta.fw_major, meta.fw_minor, meta.fw_patch);
-    if (ver != _sensors.noiseFwVer) _sensors.noiseHaveCycles = false;  // reflashed: forget the heartbeat
+    if (ver != _sensors.noiseFwVer)
+      _sensors.noiseHaveCycles = false;  // reflashed: forget the heartbeat
     _sensors.noiseMeta = meta;
     _sensors.noiseHasMeta = true;
     _sensors.noiseFwVer = ver;
@@ -390,7 +391,8 @@ bool NoiseSensorDriver::readData(TwoWire &wire, uint8_t address, SensorData &out
       return false;
     }
     if (_sensors.noiseHaveCycles && frame.cycles == _sensors.noiseLastCycles) {
-      if (_sensors.devmode) Serial.println("-->[SLIB] Noise node cycles not advancing: frame skipped");
+      if (_sensors.devmode)
+        Serial.println("-->[SLIB] Noise node cycles not advancing: frame skipped");
       return false;
     }
 

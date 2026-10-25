@@ -1,9 +1,9 @@
 // CanAirIO sensorlib — Sensors core: construction, lifecycle, init and getters.
 // Split from the original monolithic Sensors.cpp. Behavior preserved.
-#include "Sensors.hpp"
-
 #include <math.h>
 #include <string.h>
+
+#include "Sensors.hpp"
 
 Sensors::Sensors()
     : devmode(false),

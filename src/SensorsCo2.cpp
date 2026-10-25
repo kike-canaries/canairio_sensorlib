@@ -1,8 +1,8 @@
 // CanAirIO sensorlib — generic CO2 compensation helpers.
-#include "Sensors.hpp"
-
 #include <math.h>
 #include <string.h>
+
+#include "Sensors.hpp"
 
 // Altitude compensation for CO2 sensors without Pressure atm or Altitude compensation
 void Sensors::CO2correctionAlt() {

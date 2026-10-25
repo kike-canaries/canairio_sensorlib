@@ -5,8 +5,7 @@
 bool GeigerDriver::enable(int gpio) {
   _sensors.sensorAnnounce(SENSORS::SCAJOE);
   if (gpio < 0) {
-    if (_sensors.devmode)
-      Serial.printf("[W][SLIB] undefined Geiger pin\t: %i\r\n", gpio);
+    if (_sensors.devmode) Serial.printf("[W][SLIB] undefined Geiger pin\t: %i\r\n", gpio);
     return false;
   }
   if (_sensors.rad != nullptr) delete _sensors.rad;
@@ -41,4 +40,6 @@ void GeigerDriver::clear() {
 
 uint32_t GeigerDriver::cpm() const { return _sensors.rad != nullptr ? _sensors.rad->getTics() : 0; }
 
-float GeigerDriver::microSievertHour() const { return _sensors.rad != nullptr ? _sensors.rad->getUSvh() : 0.0f; }
+float GeigerDriver::microSievertHour() const {
+  return _sensors.rad != nullptr ? _sensors.rad->getUSvh() : 0.0f;
+}

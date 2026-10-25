@@ -12,25 +12,23 @@ bool DfrobotGasDriver::beginGas(DFRobot_GAS_I2C &gas, uint8_t address, SENSORS s
   // Mode of obtaining data: the main controller needs to request the sensor for data
   gas.changeAcquireMode(gas.PASSIVITY);
   delay(500);  // Required for PASSIVITY mode to stabilize (see DFRobot example)
-  // Disable internal compensation: we apply our own using external T/P sensors
-  if (hasExternalTempSensor())
-    gas.setTempCompensation(gas.ON);
-  else
-    gas.setTempCompensation(gas.OFF);
+  // Disable internal compensation: readGas() applies our own temperature (external
+  // sensor or onboard thermistor) and pressure compensation. With ON, the library
+  // would already compensate readGasConcentrationPPM() using a temperature sampled
+  // only once in setTempCompensation(), and the value would be compensated twice.
+  gas.setTempCompensation(gas.OFF);
   _sensors.sensorRegister(sensor);
   return true;
 }
 
-bool DfrobotGasDriver::readGas(DFRobot_GAS_I2C &gas, float &value, uint8_t gasType,
-                               UNIT unit) {
+bool DfrobotGasDriver::readGas(DFRobot_GAS_I2C &gas, float &value, uint8_t gasType, UNIT unit) {
   float rawPpm = gas.readGasConcentrationPPM();
   float internalTemp = gas.readTempC();
   bool external = hasExternalTempSensor();
   float compensationTemp = external ? _sensors.temp : (internalTemp - _sensors.toffset);
 
   value = tempCompensation(rawPpm, compensationTemp, gasType);
-  if (external && _sensors.humi > 0.0f)
-    value = humidityCompensation(value, _sensors.humi, gasType);
+  if (external && _sensors.humi > 0.0f) value = humidityCompensation(value, _sensors.humi, gasType);
   if (_sensors.pres > 0.0) value = pressCompensation(value, _sensors.pres);
   _sensors.unitRegister(unit);
   _sensors.dataReady = true;

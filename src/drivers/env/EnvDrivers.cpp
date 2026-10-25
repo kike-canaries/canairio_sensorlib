@@ -83,6 +83,7 @@ bool Bme280Driver::read() {
   _sensors.DEBUG("-->[SLIB] BME280 read\t\t: done!");
   _sensors.tempRegister(false);
   _sensors.unitRegister(UNIT::HUM);
+  _sensors.unitRegister(UNIT::PRESS);
   _sensors.unitRegister(UNIT::ALT);
   return true;
 }
