@@ -34,196 +34,14 @@
 
 #define CSL_VERSION "0.7.7"
 #define CSL_REVISION 386
-
-/***************************************************************
- * D F R o b o t   G r a v i t y   g a s   s e n s o r s
- ***************************************************************/
-/**
- * DFRobot Gravity gas sensors — fixed I2C addresses (group 7):
- *   CO  @ 0x78  (SEN0466)
- *   O3  @ 0x79  (SEN0472)
- *   NH3 @ 0x7A  (SEN0469)
- *   NO2 @ 0x7B  (SEN0471)
- *
- * Override any address via build_flags, e.g.:
- *   -D DFROBOT_CO_I2C_ADDR=0x74
- */
-#ifndef DFROBOT_CO_I2C_ADDR
-#define DFROBOT_CO_I2C_ADDR 0x78
-#endif
-#ifndef DFROBOT_O3_I2C_ADDR
-#define DFROBOT_O3_I2C_ADDR 0x79
-#endif
-#ifndef DFROBOT_NH3_I2C_ADDR
-#define DFROBOT_NH3_I2C_ADDR 0x7A
-#endif
-#ifndef DFROBOT_NO2_I2C_ADDR
-#define DFROBOT_NO2_I2C_ADDR 0x7B
-#endif
-
-/***************************************************************
- * S E T U P   E S P 3 2   B O A R D S   A N D   F I E L D S
- ***************************************************************/
-
-// provisional pins. Config those via CLI
-#ifdef WEMOSOLED
-#define PMS_RX 13  // config for Wemos board & TTGO18650
-#define PMS_TX 15  // some old TTGO18650 have PMS_RX 18 & PMS_TX 17
-#elif HELTEC
-#define PMS_RX 17
-#define PMS_TX 18
-#elif TTGO_TQ
-#define PMS_RX 13
-#define PMS_TX 18
-#elif M5COREINK
-#define PMS_RX 13
-#define PMS_TX 14
-#elif TTGO_TDISPLAY
-#define PMS_RX 13
-#define PMS_TX 12
-#elif ESP32PICOD4
-#define PMS_RX 19
-#define PMS_TX 18
-#elif ESP32GENERIC
-#define PMS_RX RX
-#define PMS_TX TX
-#elif M5STICKCPLUS
-#define PMS_RX 36
-#define PMS_TX 0
-#elif M5COREINK
-#define PMS_RX 13
-#define PMS_TX 14
-#elif M5ATOM
-#define PMS_RX 23
-#define PMS_TX 33
-#elif M5PICOD4
-#define PMS_RX 3
-#define PMS_TX 1
-#elif AG_OPENAIR
-#define PMS_TYPE 8
-#define PMS_RX 20
-#define PMS_TX 21
-#elif TTGO_T7
-#define PMS_RX 17
-#define PMS_TX 16
-#elif ESP32DEVKIT
-#define PMS_RX 17
-#define PMS_TX 16
-#else
-#define PMS_RX -1  // DEFAULTS for other boards. Please setup it via CLI
-#define PMS_TX -1
-#endif
-
-#ifdef M5AIRQ
-#define GROVE_SDA 13
-#define GROVE_SCL 15
-#define I2C1_SDA_PIN 11
-#define I2C1_SCL_PIN 12
-#endif
-
-// Read UART sensor retry.
-#define SENSOR_RETRY 1000  // Max Serial characters
-
-// UART default port (ESP8266 has no Serial2, use SoftwareSerial via default branch)
-#if defined(ARDUINO_ARCH_ESP32)
-#define SENSOR_COMMS SERIALPORT2
-#else
-#define SENSOR_COMMS 3  // Custom value: use default (SoftwareSerial) path on ESP8266
-#endif
-
-// Sensors units definitions (symbol/name)
-#define SENSOR_UNITS                            \
-  X(NUNIT, "NUNIT", "NUNIT")                    \
-  X(PM1, "ug/m3", "PM1")                        \
-  X(PM25, "ug/m3", "PM2.5")                     \
-  X(PM4, "ug/m3", "PM4")                        \
-  X(PM10, "ug/m3", "PM10")                      \
-  X(TEMP, "C", "T")                             \
-  X(TEMPK, "K", "T")                            \
-  X(TEMPF, "F", "T")                            \
-  X(HUM, "%", "H")                              \
-  X(CO2, "ppm", "CO2")                          \
-  X(CO2TEMP, "C", "CO2T")                       \
-  X(CO2TEMPK, "K", "CO2TK")                     \
-  X(CO2TEMPF, "F", "CO2TF")                     \
-  X(CO2HUM, "%", "CO2H")                        \
-  X(PRESS, "hPa", "P")                          \
-  X(ALT, "m", "Alt")                            \
-  X(GAS, "Ohm", "Gas")                          \
-  X(CPM, "CPM", "RAD")                          \
-  X(RAD, "uSv/h", "RAD")                        \
-  X(NH3, "ppm", "NH3")                          \
-  X(CO, "ppm", "CO")                            \
-  X(NO2, "ppm", "NO2")                          \
-  X(O3, "ppm", "O3")                            \
-  X(NOXI, "noxi", "NOXI")                       \
-  X(VOCI, "voci", "VOCI")                       \
-  X(NOX, "nox", "NOX")                          \
-  X(VOC, "voc", "VOC")                          \
-  X(NOISE, "dB", "Noise")                       \
-  X(NOISEAVG, "dB", "NoiseAvg")                 \
-  X(NOISEPEAK, "dB", "NoisePeak")               \
-  X(NOISEMIN, "dB", "NoiseMin")                 \
-  X(NOISEAVGLEGAL, "dB", "NoiseAvgLegal")       \
-  X(NOISEAVGLEGALMAX, "dB", "NoiseAvgLegalMax") \
-  X(NOISEL90, "dB", "NoiseL90")                 \
-  X(NOISELD, "dB", "Ld")                        \
-  X(NOISELE, "dB", "Le")                        \
-  X(NOISELN, "dB", "Ln")                        \
-  X(NOISELDEN, "dB", "Lden")                    \
-  X(UCOUNT, "COUNT", "UCOUNT")
-
-#define X(unit, symbol, name) unit,
-typedef enum UNIT : size_t { SENSOR_UNITS } UNIT;
-#undef X
-
-// sensors types: 1:PM, 2:CO2, 3:ENV
-#define SENSORS_TYPES     \
-  X(Auto, "GENERIC", 1)   \
-  X(SGCJA5, "GCJA5", 1)   \
-  X(SSPS30, "SPS30", 1)   \
-  X(SDS011, "SDS011", 1)  \
-  X(SMHZ19, "MHZ19", 2)   \
-  X(SCM1106, "CM1106", 2) \
-  X(SAIRS8, "SAIRS8", 2)  \
-  X(IKEAVK, "IKEAVK", 1)  \
-  X(P5003T, "PM5003T", 1) \
-  X(SSCD30, "SCD30", 2)   \
-  X(SSCD4X, "SCD4X", 2)   \
-  X(SSEN5X, "SEN5X", 1)   \
-  X(SSHT31, "SHT31", 3)   \
-  X(SBME280, "BME280", 3) \
-  X(SBMP280, "BMP280", 3) \
-  X(SBME680, "BME680", 3) \
-  X(SAHTXX, "AHTXX", 3)   \
-  X(SAM232X, "AM232X", 3) \
-  X(SDHTX, "DHTX", 3)     \
-  X(SDFRCO, "DFRCO", 3)   \
-  X(SDFRNH3, "DFRNH3", 3) \
-  X(SDFRNO2, "DFRNO2", 3) \
-  X(SDFRO3, "DFRO3", 3)   \
-  X(SCAJOE, "CAJOE", 3)   \
-  X(SSGP41, "SGP41", 3)   \
-  X(SNOISE, "NOISE", 3)   \
-  X(SCOUNT, "SCOUNT", 3)
-
-#define X(utype, uname, umaintype) utype,
-typedef enum SENSORS : size_t { SENSORS_TYPES } SENSORS;  // backward compatibility
-#undef X
-
-// MAIN SENSOR GROUPS TYPE
-enum class SensorGroup {
-  SENSOR_NONE,
-  SENSOR_PM,
-  SENSOR_CO2,
-  SENSOR_ENV,
-  SENSOR_RAD  // CAJOE_GEIGER
-};
-// TEMPERATURE UNITS
-enum class TEMPUNIT { CELSIUS, FAHRENHEIT, KELVIN };
-
-typedef void (*errorCbFn)(const char *msg);
-typedef void (*voidCbFn)();
+#include "SensorsTypes.hpp"
+#include "drivers/GeigerDriver.h"
+#include "drivers/NoiseSensorDriver.h"
+#include "drivers/co2/Co2Drivers.h"
+#include "drivers/env/EnvDrivers.h"
+#include "drivers/gas/GasDrivers.h"
+#include "drivers/pm/PmDrivers.h"
+#include "drivers/uart/UartDriver.h"
 
 /**
  * @brief CanAirIO Sensors Manager main class.
@@ -324,6 +142,11 @@ class Sensors {
   Sensors();
   ~Sensors();
 
+  // Drivers hold a reference to this facade; copying it would leave dangling
+  // references in the copy. The manager is intended as a singleton.
+  Sensors(const Sensors &) = delete;
+  Sensors &operator=(const Sensors &) = delete;
+
   void init(u_int pms_type = 0, int pms_rx = PMS_RX, int pms_tx = PMS_TX);
 
   void loop();
@@ -388,23 +211,47 @@ class Sensors {
 
   void enableGeigerSensor(int gpio);
 
+  // Noise sensor (I2C slave node). Every level is in dB(A) unless noted.
+  /** LAeq,1s: level of the last second published by the node. */
   float getNoise() const;
-
-  float getNoiseAverage() const;
-
+  /** LAFmax: maximum Fast-weighted level of the last second. Not a true peak. */
   float getNoisePeak() const;
-
-  float getNoiseMin() const;
-
+  /** L10, over the node's sliding window (300 s by default). */
   float getNoiseLegalAverage() const;
-
-  float getNoiseLegalMaximum() const;
+  /** L90, over the node's sliding window. */
   float getNoiseL90() const;
+  /**
+   * LASmax (Slow weighting): the maximum since the previous reading, so no
+   * event is lost whatever the sample time. 0 on nodes older than 3.3.1.
+   */
+  float getNoiseLASmax() const;
+  /**
+   * LCpeak in dB(C): true instantaneous peak since the previous reading, the
+   * indicator for impulsive noise. 0 on nodes older than 3.3.1.
+   */
+  float getNoiseLCpeak() const;
   float getNoiseLd() const;
   float getNoiseLe() const;
   float getNoiseLn() const;
   float getNoiseLden() const;
+
+  /**
+   * Sends the node its clock. The node applies no time zone: unixTime must be
+   * LOCAL epoch (UTC + offset), because the day/evening/night bands are read
+   * straight off it. syncNoiseSensorTime() already does that conversion.
+   */
   bool sendNoiseSensorTime(uint32_t unixTime);
+  /**
+   * Sends the clock now if due: the first time, every sync interval, when the
+   * local UTC offset changes (daylight saving) and at once when the node
+   * reports it lost its clock. Cheap to call from loop(): the clock is only
+   * examined once a minute once the node is synced.
+   *
+   * The local time is UTC plus the offset of the SYSTEM time zone (TZ), so the
+   * application must set a proper one, with daylight saving if it applies, for
+   * example setenv("TZ", "CET-1CEST,M3.5.0,M10.5.0/3", 1); tzset(). With no TZ
+   * the node gets UTC, and every Ld/Le/Ln/Lden is shifted by the zone offset.
+   */
   bool syncNoiseSensorTime();
   void setNoiseSensorTimeSyncInterval(uint32_t intervalMs);
 
@@ -529,17 +376,24 @@ class Sensors {
   uint8_t noiseSensorAddress = 0;
 
   bool noiseSensorEnabled = false;
-  float noiseInstant = 0.0;
-  float noiseAvgValue = 0.0;
-  float noisePeakValue = 0.0;
-  float noiseMinValue = 0.0;
-  float noiseAvgLegalValue = 0.0;
-  float noiseAvgLegalMaxValue = 0.0;
+  float noiseInstant = 0.0;        // LAeq,1s
+  float noisePeakValue = 0.0;      // LAFmax
+  float noiseAvgLegalValue = 0.0;  // L10
   float noiseL90Value = 0.0;
+  float noiseLASmaxValue = 0.0;
+  float noiseLCpeakValue = 0.0;
   float noiseLdValue = 0.0;
   float noiseLeValue = 0.0;
   float noiseLnValue = 0.0;
   float noiseLdenValue = 0.0;
+  NodeMetadata noiseMeta{};
+  uint32_t noiseFwVer = 0;  // 0 = unknown / node without metadata (legacy)
+  bool noiseHasMeta = false;
+  uint32_t noiseLastCycles = 0;
+  bool noiseHaveCycles = false;
+  int32_t noiseLastSentOffset = 0;  // UTC offset of the last clock sent to the node
+  uint32_t noiseLastZoneCheckMs = 0;
+  static constexpr uint32_t NOISE_ZONE_CHECK_MS = 60000;
   bool noiseScanDone = false;
   uint32_t noiseLastTimeSyncMs = 0;
   uint32_t noiseLastSyncAttemptMs = 0;
@@ -547,107 +401,14 @@ class Sensors {
   static constexpr uint32_t NOISE_SYNC_RETRY_MS = 30000;
   bool noiseTimeSyncEnabled = true;
 
-  void am2320Init();
-  void am2320Read();
-
-  void bme280Init();
-  void bme280Read();
-
-  void bmp280Init();
-  void bmp280Read();
-
-  void bme680Init();
-  void bme680Read();
-
-  void aht10Init();
-  void aht10Read();
-
-  void sht31Init();
-  void sht31Read();
-
-  void CO2scd30Init();
-  void CO2scd30Read();
-  void setSCD30TempOffset(float offset);
-  float getSCD30TempOffset() const;
-  void setSCD30AltitudeOffset(float offset);
   void CO2correctionAlt();
   float hpaCalculation(float altitude);
-
-  void CO2scd4xInit();
-  void CO2scd4xRead();
-  void setSCD4xTempOffset(float offset);
-  float getSCD4xTempOffset() const;
-  void setSCD4xAltitudeOffset(float offset);
-
-  void sen5xInit();
-  void sen5xRead();
-  void setsen5xTempOffset(float offset);
-
-  void sgp41Init();
-  void sgp41Read();
-
-  void GCJA5Init();
-  void GCJA5Read();
-
-#ifdef DHT11_ENABLED
-  void dhtInit();
-  void dhtRead();
-  bool dhtIsReady(float *temperature, float *humidity);
-#endif
-
-  void DFRobotNH3Init();
-  void DFRobotNH3Read();
-  void DFRobotCOInit();
-  void DFRobotCORead();
-  void DFRobotNO2Init();
-  void DFRobotNO2Read();
-  void DFRobotO3Init();
-  void DFRobotO3Read();
-
-  float dfrGasTempCompensation(float rawPpm, float temperature, uint8_t gasType);
-  float dfrGasPressCompensation(float ppm, float pressure);
-  float dfrGasHumiCompensation(float ppm, float humidity, uint8_t gasType);
-  bool dfrHasExternalTempSensor() const;
-
-  // UART sensors methods:
-
-  bool sensorSerialInit(u_int pms_type, int rx, int tx);
-  bool pmSensorAutoDetect(u_int pms_type);
-  bool pmSensorRead();
-  bool pmGenericRead();
-  bool pmGCJA5Read();
-  bool pmSDS011Read();
-  bool pm1006Read();
-  bool pm5003TRead();
-  bool CO2Mhz19Read();
-  bool CO2CM1106Read();
-  bool CO2Mhz19Init();
-  bool CO2CM1106Init();
-  bool senseAirS8Init();
-  bool senseAirS8Read();
-  bool sensorSerial2Init(int rx, int tx);
-  bool PM1006Init();
-  bool PM5003TInit();
-
-  bool sps30I2CInit();
-  bool sps30UARTInit();
-  bool sps30Read();
-  bool sps30tests();
-  void sps30ErrToMess(char *mess, uint8_t r);
-  void sps30Errorloop(char *mess, uint8_t r);
-  void sps30DeviceInfo();
-
-  void geigerRead();
 
   void onSensorError(const char *msg);
 
   void enableWire1();
 
   void disableWire1();
-
-  bool serialInit(u_int pms_type, unsigned long speed_baud, int pms_rx, int pms_tx);
-
-  String hwSerialRead(unsigned int length_buffer);
 
   void restart();  // restart serial (it isn't works sometimes)
 
@@ -656,8 +417,6 @@ class Sensors {
   void printValues();
 
   void printHumTemp();
-
-  void printUART(const char *name, unsigned long speed, int pin_rx, int pin_tx);
 
   void printI2C(const char *name, const char *i2cname, int pin_sda, int pin_scl);
 
@@ -671,15 +430,56 @@ class Sensors {
 
   uint8_t *getUnitsRegistered();
 
-  bool noiseSensorAutoDetect();
-  void noiseSensorService();
-  void noiseSensorCollect();
-  bool noiseSensorReadIdentity(TwoWire &wire, uint8_t address, SensorIdentity &identity);
-  bool noiseSensorReadData(TwoWire &wire, uint8_t address, SensorData &out);
-  bool noiseSensorDevicePresent(TwoWire &wire, uint8_t address);
-  void noiseSensorInitWire();
+  // Driver layer: each sensor owns its begin()/read() implementation.
+  friend class Am2320Driver;
+  friend class Bme280Driver;
+  friend class Bmp280Driver;
+  friend class Bme680Driver;
+  friend class AhtxxDriver;
+  friend class Sht31Driver;
+#ifdef DHT11_ENABLED
+  friend class Dht11Driver;
+#endif
+  friend class Scd30Driver;
+  friend class Scd4xDriver;
+  friend class Sen5xDriver;
+  friend class Sgp41Driver;
+  friend class DfrobotGasDriver;
+  friend class DfrobotCoDriver;
+  friend class DfrobotNh3Driver;
+  friend class DfrobotNo2Driver;
+  friend class DfrobotO3Driver;
+  friend class Sps30Driver;
+  friend class Gcja5Driver;
+  friend class UartDriver;
+  friend class NoiseSensorDriver;
+  friend class GeigerDriver;
 
-// @todo use DEBUG_ESP_PORT ?
+  // Drivers (declaration order is the read/init order used by Sensors).
+  UartDriver _uart;
+  Sps30Driver _sps30;
+  Gcja5Driver _gcja5;
+  Scd30Driver _scd30;
+  Scd4xDriver _scd4x;
+  Sen5xDriver _sen5x;
+  Sgp41Driver _sgp41;
+  Am2320Driver _am2320;
+  Sht31Driver _sht31;
+  Bme280Driver _bme280;
+  Bmp280Driver _bmp280;
+  Bme680Driver _bme680;
+  AhtxxDriver _ahtxx;
+  DfrobotCoDriver _dfrCo;
+  DfrobotNh3Driver _dfrNh3;
+  DfrobotNo2Driver _dfrNo2;
+  DfrobotO3Driver _dfrO3;
+  NoiseSensorDriver _noise;
+  GeigerDriver _geiger;
+#ifdef DHT11_ENABLED
+  Dht11Driver _dht11;
+#endif
+
+  // @todo use DEBUG_ESP_PORT ?
 #ifdef WM_DEBUG_PORT
   Stream &_debugPort = WM_DEBUG_PORT;
 #else

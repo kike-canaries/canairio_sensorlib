@@ -98,7 +98,7 @@ DHT22 is supported but is not recommended. Please see the documentation.
 - Unified calibration trigger for all CO2 sensors
 - Unified CO2 Altitude compensation
 - Unified temperature offset for CO2 and environment sensors
-- Automatic I2C NoiseSensor integration with LAeq, PMI and peak/min tracking on ESP32-C3/S2/S3 (outputs in mV with sensor validation)
+- Automatic I2C NoiseSensor integration (ISO 1996-2 noise node): LAeq, LAFmax, LASmax, LCpeak, L10, L90, Ld/Le/Ln/Lden, all in dB, with status/CRC/heartbeat validation of every frame
 - Add support for Kelvin and Fahrenheit on environment and CO2 sensors
 - Public access to main objects of each library (full methods access)
 - Get unit symbol and name and each sub-sensor
@@ -210,16 +210,35 @@ NoiseSensor auto-detection uses the same I2C bus as the rest of the sensors (Wir
 
 #### NoiseSensor readings
 
-When the NoiseSensor module is detected via I2C on the main bus (Wire), the library exposes dedicated helpers:
+The node is the firmware of [noise_UNE-EN_ISO_1996-2-2009](https://github.com/roberbike/noise_UNE-EN_ISO_1996-2-2009) (ESP32-C3 + MAX4466 or XIAO ESP32-S3 + ICS-43434, I2C slave at `0x08`). When it is detected via I2C on the main bus (Wire), the library exposes dedicated helpers. **All of them are in dB(A)** unless noted; none is in mV.
 
-- `getNoise()` – instantaneous reading in mV
-- `getNoiseAverage()` / `getNoisePeak()` / `getNoiseMin()` – LAeq statistics per cycle in mV
-- `getNoiseLegalAverage()` / `getNoiseLegalMaximum()` – legal averages in mV
-- `getNoiseLd()`- Day index in db
-- `getNoiseLe()`- Evening index in db
-- `getNoiseLn()` - Night index in db
-- `getNoiseLden()` - Global day-evening-night index in db
-- `getNoiseL90()` - Low noise level in db
+| Getter | Unit name | Meaning |
+|:--|:--|:--|
+| `getNoise()` | `Noise` | LAeq,1s: level of the last second the node published |
+| `getNoisePeak()` | `NoisePeak` | LAFmax (Fast weighting). Not a true peak |
+| `getNoiseLegalAverage()` | `NoiseAvgLegal` | L10 over the node's sliding window (300 s by default) |
+| `getNoiseL90()` | `NoiseL90` | L90 over the same window |
+| `getNoiseLASmax()` | `NoiseLASmax` | LASmax (Slow weighting): maximum since the previous reading |
+| `getNoiseLCpeak()` | `NoiseLCpeak` | LCpeak in dB(C): true peak since the previous reading, for impulsive noise |
+| `getNoiseLd()` / `getNoiseLe()` / `getNoiseLn()` | `Ld` / `Le` / `Ln` | Day (07-19 h), evening (19-23 h), night (23-07 h) indices |
+| `getNoiseLden()` | `Lden` | Day-evening-night index |
+
+`getNoiseLASmax()` and `getNoiseLCpeak()` need node firmware 3.3.1 or later (they stay 0 on older nodes, and their units are not registered).
+
+The former `getNoiseAverage()`, `getNoiseMin()` and `getNoiseLegalMaximum()` (units `NoiseAvg`, `NoiseMin`, `NoiseAvgLegalMax`) are removed: the node never had separate values for them, they were copies of `Noise` and `NoisePeak`. Move any sketch or query that used them to `getNoise()` / `getNoisePeak()` (`Noise` / `NoisePeak`).
+
+**Frame validation.** A reading is only published after the node's status is 1 before and after the data read, the CRC is correct (firmware 3.3.1+) and the node's `cycles` heartbeat has changed. Anything else is dropped, never republished, so a frozen or half-served node cannot draw a flat line.
+
+**Clock.** The node has no clock and applies no time zone: Ld/Le/Ln/Lden stay at 0 until a master sets it, and it must be **local** time, because it splits day/evening/night straight off the epoch it receives. `syncNoiseSensorTime()` sends UTC plus the offset of the **system time zone** (`TZ`), so the application must set a proper one, with daylight saving if it applies, for example:
+
+```cpp
+setenv("TZ", "CET-1CEST,M3.5.0,M10.5.0/3", 1);  // Spain
+tzset();
+```
+
+Without a `TZ` the node gets UTC and its Ld/Le/Ln/Lden are shifted by the zone offset. The CanAirIO firmware sets `TZ` from its persistent `tzone` setting (CLI command `tzone`); without it, it falls back to a fixed offset derived from the longitude, which is UTC for Spain.
+
+The library resends the clock when the local offset changes (daylight saving) and when the node reports it lost it (a reboot).
 
 ## Multivariable demo
 

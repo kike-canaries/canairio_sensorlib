@@ -22,22 +22,31 @@ void onSensorDataOk() {
   Serial.println("  NOISE SENSOR MEASUREMENTS");
   Serial.println("=================================");
 
-  // Mediciones instantáneas
-  Serial.print("Instant Noise:  ");
+  // Mediciones del último segundo y estadísticos (todo en dB(A) salvo LCpeak)
+  Serial.print("LAeq (1s):      ");
   Serial.print(sensors.getNoise());
   Serial.println(" dB");
 
-  Serial.print("Average:        ");
-  Serial.print(sensors.getNoiseAverage());
-  Serial.println(" dB");
-
-  Serial.print("Peak:           ");
+  Serial.print("LAFmax:         ");
   Serial.print(sensors.getNoisePeak());
   Serial.println(" dB");
 
-  Serial.print("Minimum:        ");
-  Serial.print(sensors.getNoiseMin());
+  Serial.print("L10:            ");
+  Serial.print(sensors.getNoiseLegalAverage());
   Serial.println(" dB");
+
+  Serial.print("L90:            ");
+  Serial.print(sensors.getNoiseL90());
+  Serial.println(" dB");
+
+  // Máximos desde la lectura anterior (firmware del nodo >= 3.3.1; 0 en nodos antiguos)
+  Serial.print("LASmax:         ");
+  Serial.print(sensors.getNoiseLASmax());
+  Serial.println(" dB");
+
+  Serial.print("LCpeak:         ");
+  Serial.print(sensors.getNoiseLCpeak());
+  Serial.println(" dB(C)");
 
   Serial.println("\n--- Regulatory Indicators ---");
 
@@ -96,9 +105,11 @@ void setup() {
 
   delay(2000);
 
-  // Sincronizar tiempo (opcional pero recomendado para Ld/Le/Ln/Lden)
-  // Aquí usamos un timestamp de ejemplo (2024-02-11 12:00:00 UTC)
-  // En producción, obtener de RTC o NTP
+  // Sincronizar tiempo (necesario para Ld/Le/Ln/Lden)
+  // El nodo NO aplica zona horaria: espera un epoch en HORA LOCAL, no UTC.
+  // Aquí usamos un timestamp de ejemplo (2024-02-11 12:00:00 como hora local).
+  // En producción, con NTP y TZ configurada, basta con
+  // sensors.syncNoiseSensorTime(), que ya envía UTC + desplazamiento local.
   uint32_t testTimestamp = 1707652800;
 
   Serial.println("\n[INFO] Synchronizing time with sensor...");
